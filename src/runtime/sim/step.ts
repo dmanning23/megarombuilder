@@ -1,4 +1,5 @@
 import { checkEdges } from "./edges";
+import { updateEntities } from "./entities/enemies";
 import { updateSlots } from "./entities/slots";
 import { insideSolid, kill, respawn, touchCheckpoints, touchingSpike } from "./hazards";
 import { updatePlayer } from "./player";
@@ -26,6 +27,7 @@ function playStep(sim: Sim, input: Input): void {
   if (input.shoot && !sim.prev.shoot) shoot(sim);
   updateShots(sim);
   updateSlots(sim);
+  updateEntities(sim);
   touchCheckpoints(sim);
   if (touchingSpike(sim) || insideSolid(sim)) kill(sim);
   else checkEdges(sim);
