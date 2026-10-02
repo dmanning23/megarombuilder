@@ -1,5 +1,6 @@
 import { kill, respawn, touchCheckpoints, touchingSpike } from "./hazards";
 import { updatePlayer } from "./player";
+import { shoot, updateShots } from "./shots";
 import type { Input, Sim } from "./state";
 
 // Advances the simulation by one step of 1/60 second.
@@ -11,6 +12,8 @@ export function step(sim: Sim, input: Input): void {
     return;
   }
   updatePlayer(sim, input);
+  if (input.shoot && !sim.prev.shoot) shoot(sim);
+  updateShots(sim);
   touchCheckpoints(sim);
   if (touchingSpike(sim) || sim.player.y > sim.map.heightPx) kill(sim);
   sim.prev = input;
