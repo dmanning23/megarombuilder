@@ -2,7 +2,15 @@ import { TILE_SIZE } from "@/model/geometry";
 import { ICE_ACCEL, JUMP_CUT_SPEED } from "./constants";
 import { clamp } from "./math";
 import type { Input, Player, Sim } from "./state";
-import { firstTile, isPlatform, isSolid, lastTile, type TileMap } from "./tilemap";
+import {
+  firstTile,
+  isPlatform,
+  isSolid,
+  ladderAtPx,
+  lastTile,
+  touchingLadder,
+  type TileMap,
+} from "./tilemap";
 
 // Moves sideways and stops at solid tiles.
 export function moveX(map: TileMap, p: Player, dx: number): void {
@@ -51,11 +59,51 @@ export function moveY(map: TileMap, p: Player, dy: number, dropThrough: boolean)
   }
 }
 
+// One step on a ladder: no gravity, up and down only.
+function climb(sim: Sim, input: Input, jumpPressed: boolean): void {
+  const { map, player: p, settings } = sim;
+  p.vx = 0;
+  p.vy = 0;
+  if (jumpPressed) {
+    p.onLadder = false;
+    return;
+  }
+  const dy = ((input.down ? 1 : 0) - (input.up ? 1 : 0)) * settings.ladderSpeed;
+  p.onGround = false;
+  p.onIce = false;
+  moveY(map, p, dy, true);
+  if (p.onGround) {
+    p.onLadder = false; // climbed down onto solid ground
+    return;
+  }
+  if (touchingLadder(map, p)) return;
+  p.onLadder = false;
+  if (dy < 0) {
+    // Climbed off the top: stand on the ladder's top tile.
+    p.y = (firstTile(p.y + p.h - 1) + 1) * TILE_SIZE - p.h;
+    p.onGround = true;
+  }
+}
+
 export function updatePlayer(sim: Sim, input: Input): void {
   const { map, player: p, settings, prev } = sim;
   const jumpPressed = input.jump && !prev.jump;
   const dir = (input.right ? 1 : 0) - (input.left ? 1 : 0);
   if (dir !== 0) p.facing = dir > 0 ? 1 : -1;
+
+  if (!p.onLadder) {
+    const cx = p.x + p.w / 2;
+    const grabUp = input.up && ladderAtPx(map, cx, p.y + p.h / 2);
+    const grabDown = input.down && p.onGround && ladderAtPx(map, cx, p.y + p.h);
+    if (grabUp || grabDown) {
+      p.onLadder = true;
+      p.x = firstTile(cx) * TILE_SIZE + (TILE_SIZE - p.w) / 2;
+    }
+  }
+  if (p.onLadder) {
+    climb(sim, input, jumpPressed);
+    return;
+  }
 
   const target = dir * settings.runSpeed;
   if (p.onGround && p.onIce) p.vx += clamp(target - p.vx, -ICE_ACCEL, ICE_ACCEL);
