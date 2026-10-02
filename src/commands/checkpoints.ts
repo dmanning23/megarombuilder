@@ -3,7 +3,7 @@ import { inBounds, zoneSize } from "@/model/geometry";
 import { editLevel } from "./helpers";
 import { coordArg, defineCommand, idArg } from "./types";
 
-const checkpointArgs = z.object({ levelId: idArg, zoneId: idArg, x: coordArg, y: coordArg });
+const checkpointArgs = z.strictObject({ levelId: idArg, zoneId: idArg, x: coordArg, y: coordArg });
 
 const addCheckpointCommand = defineCommand({
   name: "addCheckpoint",

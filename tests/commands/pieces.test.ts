@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { tileIndex } from "@/model/geometry";
+import { applyCommand } from "@/commands/registry";
+import type { PieceResult } from "@/model/contentPack";
+import { testPack } from "../fixtures/testPack";
 import { baseProject, run, runError, zoneOf } from "./helpers";
 
 const L = "L1";
@@ -146,5 +149,58 @@ describe("insertPiece", () => {
         idPrefix: "p1",
       }),
     ).toMatch(/already a thing with id "p1-1"/);
+  });
+
+  it("refuses an id prefix so long that the thing ids could not be saved", () => {
+    const error = runError(baseProject(), "insertPiece", {
+      levelId: L,
+      zoneId: "z1",
+      pieceId: "step",
+      x: 4,
+      y: 11,
+      idPrefix: "p".repeat(64),
+    });
+    expect(error).toMatch(/idPrefix is too long/);
+  });
+
+  describe("with a faulty piece in the pack", () => {
+    function errorFor(built: PieceResult): string {
+      const pack = {
+        ...testPack,
+        pieces: [{ id: "bad", name: "Bad", description: "", settings: [], build: () => built }],
+      };
+      const result = applyCommand(
+        baseProject(),
+        {
+          name: "insertPiece",
+          args: { levelId: L, zoneId: "z1", pieceId: "bad", x: 0, y: 0, idPrefix: "b" },
+        },
+        { pack },
+      );
+      if (result.ok) throw new Error("insertPiece should have failed");
+      return result.error;
+    }
+
+    it("refuses a piece that puts a thing outside itself", () => {
+      const built = { width: 1, height: 1, tiles: [1], things: [{ type: "walker", x: 0, y: -1, settings: {} }] };
+      expect(errorFor(built)).toMatch(/piece "bad" is faulty.*outside the piece/);
+    });
+
+    it("refuses a piece that uses an unknown thing type", () => {
+      const built = { width: 1, height: 1, tiles: [1], things: [{ type: "dragon", x: 0, y: 0, settings: {} }] };
+      expect(errorFor(built)).toMatch(/piece "bad" is faulty.*unknown thing "dragon"/);
+    });
+
+    it("refuses a piece that uses an unknown tile", () => {
+      expect(errorFor({ width: 1, height: 1, tiles: [77], things: [] })).toMatch(
+        /piece "bad" is faulty.*unknown tile 77/,
+      );
+    });
+
+    it("refuses a piece whose tile list does not match its size", () => {
+      expect(errorFor({ width: 2, height: 2, tiles: [1], things: [] })).toMatch(
+        /piece "bad" is faulty.*4 tiles/,
+      );
+    });
   });
 });

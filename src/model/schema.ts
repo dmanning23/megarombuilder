@@ -2,7 +2,9 @@ import { z } from "zod";
 
 export const FORMAT_VERSION = 1;
 
-const idSchema = z.string().min(1).max(64);
+export const MAX_ID_LENGTH = 64;
+
+const idSchema = z.string().min(1).max(MAX_ID_LENGTH);
 const intSchema = z.number().int();
 
 export const openingSchema = z.object({

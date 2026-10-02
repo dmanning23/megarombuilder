@@ -12,6 +12,21 @@ describe("applyCommand", () => {
     expect(error).toMatch(/name/);
   });
 
+  it("refuses an argument it does not know, so a misspelling is not silently ignored", () => {
+    const error = runError(baseProject(), "renameLevel", { levelId: "L1", name: "X", nmae: "Y" });
+    expect(error).toMatch(/Invalid arguments for renameLevel/);
+    expect(error).toMatch(/nmae/);
+  });
+
+  it("refuses an unknown key inside a nested argument", () => {
+    const error = runError(baseProject(), "setTiles", {
+      levelId: "L1",
+      zoneId: "z1",
+      cells: [{ x: 0, y: 0, tile: 1, tiel: 2 }],
+    });
+    expect(error).toMatch(/tiel/);
+  });
+
   it("does not change the project when a command fails", () => {
     const project = baseProject();
     const before = JSON.stringify(project);

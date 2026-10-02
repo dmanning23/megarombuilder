@@ -17,7 +17,7 @@ import { defineCommand, idArg, nameArg } from "./types";
 
 const scrollArg = z.enum(["horizontal", "vertical"]);
 const screensArg = z.number().int().min(1).max(8);
-const openingArg = z.object({
+const openingArg = z.strictObject({
   edge: z.enum(["left", "right", "top", "bottom"]),
   from: z.number().int().min(0),
   to: z.number().int().min(0),
@@ -37,7 +37,7 @@ const addZoneCommand = defineCommand({
   name: "addZone",
   description:
     "Add a zone to a level. By default it goes just before the boss corridor. Horizontal zones can be 1 to 8 screens, vertical zones 1 to 6.",
-  args: z.object({
+  args: z.strictObject({
     levelId: idArg,
     zoneId: idArg,
     name: nameArg,
@@ -86,7 +86,7 @@ const addZoneCommand = defineCommand({
 const removeZoneCommand = defineCommand({
   name: "removeZone",
   description: "Remove a zone and any checkpoints in it. Boss zones cannot be removed.",
-  args: z.object({ levelId: idArg, zoneId: idArg }),
+  args: z.strictObject({ levelId: idArg, zoneId: idArg }),
   apply(project, args) {
     return editLevel(project, args.levelId, (level) => {
       const zone = level.zones.find((z) => z.id === args.zoneId);
@@ -107,7 +107,7 @@ const removeZoneCommand = defineCommand({
 const moveZoneCommand = defineCommand({
   name: "moveZone",
   description: "Move a zone to a new position in the level. Boss zones stay at the end.",
-  args: z.object({ levelId: idArg, zoneId: idArg, toIndex: z.number().int().min(0) }),
+  args: z.strictObject({ levelId: idArg, zoneId: idArg, toIndex: z.number().int().min(0) }),
   apply(project, args) {
     return editLevel(project, args.levelId, (level) => {
       const from = level.zones.findIndex((z) => z.id === args.zoneId);
@@ -130,7 +130,7 @@ const moveZoneCommand = defineCommand({
 const renameZoneCommand = defineCommand({
   name: "renameZone",
   description: "Change a zone's name. Names must be different within a level.",
-  args: z.object({ levelId: idArg, zoneId: idArg, name: nameArg }),
+  args: z.strictObject({ levelId: idArg, zoneId: idArg, name: nameArg }),
   apply(project, args) {
     return editZone(project, args.levelId, args.zoneId, (zone, level) => {
       const clash = nameProblem(level, args.name, zone.id);
@@ -185,7 +185,7 @@ const resizeZoneCommand = defineCommand({
   name: "resizeZone",
   description:
     "Change how many screens long a zone is. Things and checkpoints left outside are removed.",
-  args: z.object({ levelId: idArg, zoneId: idArg, screens: screensArg }),
+  args: z.strictObject({ levelId: idArg, zoneId: idArg, screens: screensArg }),
   apply(project, args, ctx) {
     return editLevel(project, args.levelId, (level) => {
       const index = level.zones.findIndex((z) => z.id === args.zoneId);
@@ -210,7 +210,7 @@ const resizeZoneCommand = defineCommand({
 const setZoneVariantCommand = defineCommand({
   name: "setZoneVariant",
   description: "Change which look of the theme a zone uses, such as outdoor or cave.",
-  args: z.object({ levelId: idArg, zoneId: idArg, variant: z.string() }),
+  args: z.strictObject({ levelId: idArg, zoneId: idArg, variant: z.string() }),
   apply(project, args, ctx) {
     return editZone(project, args.levelId, args.zoneId, (zone) => {
       return variantProblem(ctx.pack, args.variant) ?? { ...zone, variant: args.variant };
@@ -221,7 +221,7 @@ const setZoneVariantCommand = defineCommand({
 const setZoneIntentCommand = defineCommand({
   name: "setZoneIntent",
   description: "Set the one-line note on what a zone is for.",
-  args: z.object({ levelId: idArg, zoneId: idArg, intent: z.string().max(200) }),
+  args: z.strictObject({ levelId: idArg, zoneId: idArg, intent: z.string().max(200) }),
   apply(project, args) {
     return editZone(project, args.levelId, args.zoneId, (zone) => ({
       ...zone,
@@ -234,7 +234,7 @@ const setZoneOpeningsCommand = defineCommand({
   name: "setZoneOpenings",
   description:
     "Set where the player enters and leaves a zone. For left and right edges, from and to are rows; for top and bottom they are columns.",
-  args: z.object({
+  args: z.strictObject({
     levelId: idArg,
     zoneId: idArg,
     entry: openingArg.optional(),

@@ -6,7 +6,7 @@ import { defineCommand, fail, idArg, nameArg, ok } from "./types";
 const createLevelCommand = defineCommand({
   name: "createLevel",
   description: "Create a level with one starting zone, a boss corridor and a boss room.",
-  args: z.object({
+  args: z.strictObject({
     levelId: idArg,
     name: nameArg,
     brief: z.string().max(1000).default(""),
@@ -28,7 +28,7 @@ const createLevelCommand = defineCommand({
 const renameLevelCommand = defineCommand({
   name: "renameLevel",
   description: "Change a level's name.",
-  args: z.object({ levelId: idArg, name: nameArg }),
+  args: z.strictObject({ levelId: idArg, name: nameArg }),
   apply(project, args) {
     return editLevel(project, args.levelId, (level) => ({ ...level, name: args.name }));
   },
@@ -37,7 +37,7 @@ const renameLevelCommand = defineCommand({
 const setLevelBriefCommand = defineCommand({
   name: "setLevelBrief",
   description: "Set the plain-language design brief for a level.",
-  args: z.object({ levelId: idArg, brief: z.string().max(1000) }),
+  args: z.strictObject({ levelId: idArg, brief: z.string().max(1000) }),
   apply(project, args) {
     return editLevel(project, args.levelId, (level) => ({ ...level, brief: args.brief }));
   },
@@ -46,7 +46,7 @@ const setLevelBriefCommand = defineCommand({
 const deleteLevelCommand = defineCommand({
   name: "deleteLevel",
   description: "Delete a level and everything in it.",
-  args: z.object({ levelId: idArg }),
+  args: z.strictObject({ levelId: idArg }),
   apply(project, args) {
     if (!project.levels.some((l) => l.id === args.levelId)) {
       return fail(`There is no level with id "${args.levelId}".`);

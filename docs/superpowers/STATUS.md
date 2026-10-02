@@ -10,29 +10,39 @@ zone. Next.js and React, one AI proxy route, projects stored in the browser.
 
 ## Where things stand
 
-No application code exists yet. Design and planning are done for the first step.
+Plan 1 is implemented on the branch `plan-1-model-and-commands` (not yet merged
+to `main`): the Next.js app scaffold, the project model with validation and
+import parsing, and all 22 edit commands with undo, redo and grouped rollback.
+143 tests pass; typecheck and build are clean. There is no editor or game to
+see in the browser yet, only a placeholder page.
 
 | Document | State |
 |---|---|
 | `specs/2026-10-02-playable-core-ai-level-builder-design.md` | Milestone 1 spec, approved |
-| `plans/2026-10-02-plan-1-project-model-and-commands.md` | Plan 1 of 5, written, awaiting review |
+| `plans/2026-10-02-plan-1-project-model-and-commands.md` | Plan 1 of 5, implemented and reviewed |
 
-Milestone 1 is split into five plans. Only plan 1 is written:
+Milestone 1 is split into five plans. Plans 2 to 5 are not written yet:
 
-1. Project model and commands
+1. Project model and commands (done)
 2. Runtime: simulation, rendering, a playable hand-made level
 3. Snow content pack, level pieces and the checker
 4. Editor UI and IndexedDB storage
 5. AI assistant: proxy route, tools, chat loop
 
-## Open items before implementation starts
+## Open items
 
-1. **Plan 1 review.** Not yet approved.
-2. **Execution method.** Not yet chosen. The recommendation was native: one
-   session implements all nine tasks, then one fresh reviewer checks the branch.
-
-Settled: the folder is now `megarombuilder`, and plan 1 Task 1 generates the app
-with `create-next-app`.
+1. Merge `plan-1-model-and-commands` into `main`.
+2. Write plan 2 (runtime).
+3. Review findings deferred from plan 1, to decide on:
+   - Zone names differing only by internal spaces ("Zone  1") count as different.
+   - Fractional coordinates are refused with a technical message.
+   - A command that changes nothing still adds an undo step.
+   - Import accepts untrimmed or over-long names that commands would refuse.
+   - `removeCheckpoint` on a missing zone says "no checkpoint" instead of "no zone".
+   - A history test's name mentions redo but does not assert it.
+   - A zone's entry and exit can be the same opening.
+4. For plan 4: the file-import code must catch `JSON.parse` errors before
+   calling `parseProject`, which takes an already-parsed value.
 
 ## Decisions made in conversation that the spec records
 

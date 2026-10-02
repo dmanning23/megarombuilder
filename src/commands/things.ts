@@ -22,7 +22,7 @@ function editThing(zone: Zone, thingId: string, fn: (thing: Thing) => Thing): Zo
 const placeThingCommand = defineCommand({
   name: "placeThing",
   description: "Place an enemy, pickup, platform or other thing in a zone at a tile position.",
-  args: z.object({
+  args: z.strictObject({
     levelId: idArg,
     zoneId: idArg,
     thingId: idArg,
@@ -58,7 +58,7 @@ const placeThingCommand = defineCommand({
 const moveThingCommand = defineCommand({
   name: "moveThing",
   description: "Move a thing to a new tile position in its zone.",
-  args: z.object({ levelId: idArg, zoneId: idArg, thingId: idArg, x: coordArg, y: coordArg }),
+  args: z.strictObject({ levelId: idArg, zoneId: idArg, thingId: idArg, x: coordArg, y: coordArg }),
   apply(project, args) {
     return editZone(project, args.levelId, args.zoneId, (zone) => {
       const moved = editThing(zone, args.thingId, (t) => ({ ...t, x: args.x, y: args.y }));
@@ -71,7 +71,7 @@ const moveThingCommand = defineCommand({
 const removeThingCommand = defineCommand({
   name: "removeThing",
   description: "Remove a thing from a zone.",
-  args: z.object({ levelId: idArg, zoneId: idArg, thingId: idArg }),
+  args: z.strictObject({ levelId: idArg, zoneId: idArg, thingId: idArg }),
   apply(project, args) {
     return editZone(project, args.levelId, args.zoneId, (zone) => {
       if (!zone.things.some((t) => t.id === args.thingId)) {
@@ -85,7 +85,7 @@ const removeThingCommand = defineCommand({
 const setThingSettingsCommand = defineCommand({
   name: "setThingSettings",
   description: "Change some of a thing's settings. Settings not mentioned are kept.",
-  args: z.object({ levelId: idArg, zoneId: idArg, thingId: idArg, settings: thingSettingsSchema }),
+  args: z.strictObject({ levelId: idArg, zoneId: idArg, thingId: idArg, settings: thingSettingsSchema }),
   apply(project, args) {
     return editZone(project, args.levelId, args.zoneId, (zone) =>
       editThing(zone, args.thingId, (t) => ({ ...t, settings: { ...t.settings, ...args.settings } })),

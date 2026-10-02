@@ -1,6 +1,6 @@
 import { z } from "zod";
 import type { ContentPack } from "@/model/contentPack";
-import type { Project } from "@/model/schema";
+import { MAX_ID_LENGTH, type Project } from "@/model/schema";
 
 export type CommandContext = { pack: ContentPack };
 
@@ -28,6 +28,6 @@ export function defineCommand<S extends z.ZodType>(def: {
 export const ok = (project: Project): CommandResult => ({ ok: true, project });
 export const fail = (error: string): CommandResult => ({ ok: false, error });
 
-export const idArg = z.string().min(1).max(64);
+export const idArg = z.string().min(1).max(MAX_ID_LENGTH);
 export const nameArg = z.string().trim().min(1).max(40);
 export const coordArg = z.number().int();

@@ -30,10 +30,10 @@ function rectProblem(zone: Zone, size: Size, x: number, y: number, w: number, h:
 const setTilesCommand = defineCommand({
   name: "setTiles",
   description: "Set individual tiles in a zone. Tile 0 is empty.",
-  args: z.object({
+  args: z.strictObject({
     levelId: idArg,
     zoneId: idArg,
-    cells: z.array(z.object({ x: coordArg, y: coordArg, tile: tileArg })).min(1).max(2000),
+    cells: z.array(z.strictObject({ x: coordArg, y: coordArg, tile: tileArg })).min(1).max(2000),
   }),
   apply(project, args, ctx) {
     return editZone(project, args.levelId, args.zoneId, (zone) => {
@@ -55,7 +55,7 @@ const setTilesCommand = defineCommand({
 const fillRectCommand = defineCommand({
   name: "fillRect",
   description: "Fill a rectangle of a zone with one tile.",
-  args: z.object({ levelId: idArg, zoneId: idArg, ...rectArgs, tile: tileArg }),
+  args: z.strictObject({ levelId: idArg, zoneId: idArg, ...rectArgs, tile: tileArg }),
   apply(project, args, ctx) {
     return editZone(project, args.levelId, args.zoneId, (zone) => {
       const size = zoneSize(zone.scroll, zone.screens);
@@ -74,7 +74,7 @@ const fillRectCommand = defineCommand({
 const clearRectCommand = defineCommand({
   name: "clearRect",
   description: "Empty a rectangle of a zone: removes its tiles and any things inside it.",
-  args: z.object({ levelId: idArg, zoneId: idArg, ...rectArgs }),
+  args: z.strictObject({ levelId: idArg, zoneId: idArg, ...rectArgs }),
   apply(project, args) {
     return editZone(project, args.levelId, args.zoneId, (zone) => {
       const size = zoneSize(zone.scroll, zone.screens);

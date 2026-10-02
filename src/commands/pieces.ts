@@ -1,7 +1,12 @@
 import { z } from "zod";
-import { KEEP_TILE, type PieceDef } from "@/model/contentPack";
-import { rectInBounds, tileIndex, zoneSize } from "@/model/geometry";
-import type { Thing } from "@/model/schema";
+import {
+  KEEP_TILE,
+  type ContentPack,
+  type PieceDef,
+  type PieceResult,
+} from "@/model/contentPack";
+import { inBounds, rectInBounds, tileIndex, zoneSize } from "@/model/geometry";
+import { MAX_ID_LENGTH, type Thing } from "@/model/schema";
 import { editZone } from "./helpers";
 import { coordArg, defineCommand, idArg } from "./types";
 
@@ -27,11 +32,33 @@ function resolveSettings(
   return resolved;
 }
 
+// Guards against a mistake in a content pack, which would otherwise put invalid data in the project.
+function pieceFault(built: PieceResult, pack: ContentPack): string | null {
+  const cells = built.width * built.height;
+  if (built.width < 1 || built.height < 1 || built.tiles.length !== cells) {
+    return `it is ${built.width} by ${built.height} so it needs ${cells} tiles, but it has ${built.tiles.length}.`;
+  }
+  for (const tile of built.tiles) {
+    if (tile !== KEEP_TILE && tile !== 0 && !pack.tiles.some((t) => t.id === tile)) {
+      return `it uses the unknown tile ${tile}.`;
+    }
+  }
+  for (const thing of built.things) {
+    if (!pack.things.some((d) => d.type === thing.type)) {
+      return `it uses the unknown thing "${thing.type}".`;
+    }
+    if (!inBounds({ width: built.width, height: built.height }, thing.x, thing.y)) {
+      return `it puts a "${thing.type}" at (${thing.x}, ${thing.y}), outside the piece.`;
+    }
+  }
+  return null;
+}
+
 const insertPieceCommand = defineCommand({
   name: "insertPiece",
   description:
     "Stamp a ready-made level piece into a zone with its top-left corner at a tile position. It overwrites the tiles it covers and adds its things.",
-  args: z.object({
+  args: z.strictObject({
     levelId: idArg,
     zoneId: idArg,
     pieceId: z.string().min(1),
@@ -51,6 +78,8 @@ const insertPieceCommand = defineCommand({
       if (typeof settings === "string") return settings;
 
       const built = piece.build(settings);
+      const fault = pieceFault(built, ctx.pack);
+      if (fault) return `The piece "${piece.id}" is faulty: ${fault}`;
       const size = zoneSize(zone.scroll, zone.screens);
       if (!rectInBounds(size, args.x, args.y, built.width, built.height)) {
         return `The piece is ${built.width} tiles wide and ${built.height} tiles high, so it does not fit at (${args.x}, ${args.y}) in "${zone.name}", which is ${size.width} tiles wide and ${size.height} tiles high.`;
@@ -67,6 +96,9 @@ const insertPieceCommand = defineCommand({
       const things: Thing[] = zone.things.slice();
       for (const [i, placed] of built.things.entries()) {
         const id = `${args.idPrefix}-${i + 1}`;
+        if (id.length > MAX_ID_LENGTH) {
+          return `The idPrefix is too long. Use ${MAX_ID_LENGTH - 4} characters or fewer.`;
+        }
         if (things.some((t) => t.id === id)) {
           return `There is already a thing with id "${id}" in "${zone.name}". Use a different idPrefix.`;
         }

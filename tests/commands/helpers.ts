@@ -2,7 +2,7 @@ import { expect } from "vitest";
 import { applyCommand } from "@/commands/registry";
 import type { CommandContext } from "@/commands/types";
 import { createLevel, createProject } from "@/model/factory";
-import type { Project, Zone } from "@/model/schema";
+import { projectSchema, type Project, type Zone } from "@/model/schema";
 import { structureProblems } from "@/model/validate";
 import { testPack } from "../fixtures/testPack";
 
@@ -18,11 +18,12 @@ export function baseProject(): Project {
   };
 }
 
-// Runs a command that must succeed, and checks it left the project structurally valid.
+// Runs a command that must succeed, and checks it left a project that could be saved and reopened.
 export function run(project: Project, name: string, args: unknown): Project {
   const result = applyCommand(project, { name, args }, ctx);
   if (!result.ok) throw new Error(`${name} failed: ${result.error}`);
   expect(structureProblems(result.project, testPack)).toEqual([]);
+  projectSchema.parse(result.project);
   return result.project;
 }
 
