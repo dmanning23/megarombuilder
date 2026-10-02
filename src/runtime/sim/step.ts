@@ -1,3 +1,4 @@
+import { hitEntities, touchEntities } from "./combat";
 import { checkEdges } from "./edges";
 import { updateEntities } from "./entities/enemies";
 import { updateEnemyShots } from "./entities/enemyShots";
@@ -27,10 +28,15 @@ function playStep(sim: Sim, input: Input): void {
   updatePlayer(sim, input);
   if (input.shoot && !sim.prev.shoot) shoot(sim);
   updateShots(sim);
+  hitEntities(sim);
+  if (sim.phase !== "play") return; // the boss was defeated
   updateSlots(sim);
   updateEntities(sim);
   updateEnemyShots(sim);
+  touchEntities(sim);
+  if (sim.phase !== "play") return; // damage killed the player
   touchCheckpoints(sim);
   if (touchingSpike(sim) || insideSolid(sim)) kill(sim);
   else checkEdges(sim);
+  if (sim.player.invuln > 0) sim.player.invuln--;
 }

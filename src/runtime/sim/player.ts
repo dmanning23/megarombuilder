@@ -1,6 +1,6 @@
 import { TILE_SIZE } from "@/model/geometry";
 import { moveX, moveY } from "./body";
-import { ICE_ACCEL, JUMP_CUT_SPEED } from "./constants";
+import { ICE_ACCEL, JUMP_CUT_SPEED, KNOCKBACK_SPEED } from "./constants";
 import { clamp } from "./math";
 import type { Input, Sim } from "./state";
 import { firstTile, ladderAtPx, touchingLadder } from "./tilemap";
@@ -37,8 +37,28 @@ function climb(sim: Sim, input: Input, jumpPressed: boolean): void {
   }
 }
 
+// Gravity and movement for a player who is not on a ladder.
+function physics(sim: Sim): void {
+  const { map, player: p, settings } = sim;
+  p.vy = Math.min(p.vy + settings.gravity, settings.maxFallSpeed);
+  p.onGround = false;
+  p.onIce = false;
+  moveX(map, p, p.vx);
+  moveY(map, p, p.vy, false);
+}
+
 export function updatePlayer(sim: Sim, input: Input): void {
   const { map, player: p, settings, prev } = sim;
+
+  if (p.hurt > 0) {
+    // Knocked back: no control, but still falling.
+    p.hurt--;
+    p.vx = p.knockback * KNOCKBACK_SPEED;
+    if (p.vy < 0) p.vy = 0;
+    physics(sim);
+    return;
+  }
+
   const jumpPressed = input.jump && !prev.jump;
   const dir = (input.right ? 1 : 0) - (input.left ? 1 : 0);
   if (dir !== 0) p.facing = dir > 0 ? 1 : -1;
@@ -64,9 +84,5 @@ export function updatePlayer(sim: Sim, input: Input): void {
   if (jumpPressed && p.onGround) p.vy = -settings.jumpVelocity;
   else if (!input.jump && p.vy < -JUMP_CUT_SPEED) p.vy = -JUMP_CUT_SPEED;
 
-  p.vy = Math.min(p.vy + settings.gravity, settings.maxFallSpeed);
-  p.onGround = false;
-  p.onIce = false;
-  moveX(map, p, p.vx);
-  moveY(map, p, p.vy, false);
+  physics(sim);
 }
