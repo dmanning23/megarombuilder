@@ -60,7 +60,7 @@ conversation.
 
 ## 2. Architecture
 
-One Next.js app (App Router) in TypeScript. Six units with one-way dependencies:
+One Next.js app (App Router) in TypeScript. Seven units with one-way dependencies:
 
 | Unit | Path | Responsibility | Depends on |
 |---|---|---|---|
