@@ -13,9 +13,13 @@ function sourceFiles(dir: string): string[] {
 const BANNED = [/from "react/, /from "next/, /\bdocument\./, /\bwindow\./, /Math\.random/, /randomUUID/];
 
 describe("headless core", () => {
-  it("keeps React, Next.js, the DOM and randomness out of model and commands", () => {
+  it("keeps React, Next.js, the DOM and randomness out of model, commands and the simulation", () => {
     const offenders: string[] = [];
-    for (const file of [...sourceFiles("src/model"), ...sourceFiles("src/commands")]) {
+    for (const file of [
+      ...sourceFiles("src/model"),
+      ...sourceFiles("src/commands"),
+      ...sourceFiles("src/runtime/sim"),
+    ]) {
       const text = readFileSync(file, "utf8");
       for (const pattern of BANNED) {
         if (pattern.test(text)) offenders.push(`${file} matches ${pattern}`);
