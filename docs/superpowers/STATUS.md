@@ -18,20 +18,22 @@ see in the browser yet, only a placeholder page.
 | Document | State |
 |---|---|
 | `specs/2026-10-02-playable-core-ai-level-builder-design.md` | Milestone 1 spec, approved |
-| `plans/2026-10-02-plan-1-project-model-and-commands.md` | Plan 1 of 5, implemented and reviewed |
+| `plans/2026-10-02-plan-1-project-model-and-commands.md` | Plan 1 of 6, implemented, reviewed and merged |
+| `plans/2026-10-02-plan-2-runtime-core.md` | Plan 2 of 6, written, awaiting review |
 
-Milestone 1 is split into five plans. Plans 2 to 5 are not written yet:
+Milestone 1 is now six plans, because the runtime was too large for one:
 
 1. Project model and commands (done)
-2. Runtime: simulation, rendering, a playable hand-made level
-3. Snow content pack, level pieces and the checker
-4. Editor UI and IndexedDB storage
-5. AI assistant: proxy route, tools, chat loop
+2. Runtime core: player, tiles, zones, camera, rendering, a playable demo level
+3. Runtime things: enemies, moving platforms, pickups, boss, damage
+4. Snow content pack, level pieces and the checker
+5. Editor UI and IndexedDB storage
+6. AI assistant: proxy route, tools, chat loop
 
 ## Open items
 
-1. Write plan 2 (runtime).
-2. For plan 4: the file-import code must catch `JSON.parse` errors before
+1. Review plan 2, then implement it.
+2. For plan 5: the file-import code must catch `JSON.parse` errors before
    calling `parseProject`, which takes an already-parsed value.
 
 The seven minor findings deferred from the plan 1 review are fixed and merged.
