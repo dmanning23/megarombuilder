@@ -1,21 +1,36 @@
 import { describe, expect, it } from "vitest";
 import { kill } from "@/runtime/sim/hazards";
-import { BACKGROUNDS, draw, PLAYER_COLOUR, SHOT_COLOUR } from "@/runtime/render/draw";
+import {
+  BACKGROUNDS,
+  BOSS_BAR_COLOUR,
+  draw,
+  ENEMY_SHOT_COLOUR,
+  ENTITY_COLOURS,
+  PLAYER_COLOUR,
+  SHOT_COLOUR,
+} from "@/runtime/render/draw";
 import { createKeyboard } from "@/runtime/render/keyboard";
 import { MAX_STEPS_PER_FRAME, STEP_MS, stepsFor } from "@/runtime/render/loop";
 import { NO_INPUT } from "@/runtime/sim/state";
-import { flatArt } from "./helpers";
+import { flatArt, thing } from "./helpers";
 import { makeSim, run, runUntil } from "./simHelpers";
 
 type Call = { colour: string; x: number; y: number; w: number; h: number };
 
 function fakeContext() {
   const calls: Call[] = [];
+  const texts: string[] = [];
   return {
     calls,
+    texts,
     fillStyle: "" as string,
+    font: "",
+    textAlign: "start" as CanvasTextAlign,
     fillRect(x: number, y: number, w: number, h: number) {
       calls.push({ colour: this.fillStyle, x, y, w, h });
+    },
+    fillText(text: string) {
+      texts.push(text);
     },
   };
 }
@@ -69,6 +84,52 @@ describe("draw", () => {
     draw(ctx, sim);
     const backgrounds = ctx.calls.filter((c) => c.w === 256 && c.h === 240 && c.colour !== "#000000");
     expect(backgrounds.map((b) => b.x).sort((a, b) => a - b)).toEqual([-128, 128]);
+  });
+});
+
+describe("drawing things", () => {
+  it("draws enemies in their colour", () => {
+    const sim = makeSim([{ art: flatArt(), things: [thing("walker", 10, 12)] }]);
+    run(sim, {}, 1);
+    const ctx = fakeContext();
+    draw(ctx, sim);
+    expect(ctx.calls.filter((c) => c.colour === ENTITY_COLOURS.walker)).toHaveLength(1);
+  });
+
+  it("draws enemy shots", () => {
+    const sim = makeSim([{ art: flatArt() }]);
+    sim.enemyShots.push({ x: 100, y: 100, vx: -2, vy: 0, damage: 2 });
+    const ctx = fakeContext();
+    draw(ctx, sim);
+    expect(ctx.calls).toContainEqual({ colour: ENEMY_SHOT_COLOUR, x: 100, y: 100, w: 6, h: 6 });
+  });
+
+  it("blinks the player while invulnerable", () => {
+    const sim = makeSim([{ art: flatArt() }]);
+    const playerDrawn = () => {
+      const ctx = fakeContext();
+      draw(ctx, sim);
+      return ctx.calls.some((c) => c.colour === PLAYER_COLOUR);
+    };
+    sim.player.invuln = 4;
+    expect(playerDrawn()).toBe(false);
+    sim.player.invuln = 8;
+    expect(playerDrawn()).toBe(true);
+  });
+
+  it("shows the boss's health bar", () => {
+    const sim = makeSim([{ art: flatArt(), things: [thing("boss", 12, 12)] }]);
+    const ctx = fakeContext();
+    draw(ctx, sim);
+    expect(ctx.calls.filter((c) => c.colour === BOSS_BAR_COLOUR)).toHaveLength(28);
+  });
+
+  it("announces a won stage", () => {
+    const sim = makeSim([{ art: flatArt() }]);
+    sim.phase = "won";
+    const ctx = fakeContext();
+    draw(ctx, sim);
+    expect(ctx.texts).toEqual(["STAGE CLEAR"]);
   });
 });
 
