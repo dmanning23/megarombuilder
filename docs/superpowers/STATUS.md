@@ -10,7 +10,8 @@ zone. Next.js and React, one AI proxy route, projects stored in the browser.
 
 ## Where things stand
 
-Plans 1 to 3 are implemented, reviewed and merged to `main`.
+Plans 1 to 3 are implemented, reviewed and merged to `main`. Plan 4 is written
+and awaiting review.
 
 Run `npm run dev` and open `/play` for the demo stage: running, jumping, ice,
 spikes, ladders, zone transitions, six enemy types, health pickups, a moving
@@ -22,22 +23,25 @@ platform and the Blizzard Bot boss fight, all drawn as coloured rectangles.
 | `specs/2026-10-02-playable-core-ai-level-builder-design.md` | Milestone 1 spec, approved |
 | `plans/2026-10-02-plan-1-project-model-and-commands.md` | Plan 1 of 6, implemented, reviewed and merged |
 | `plans/2026-10-02-plan-2-runtime-core.md` | Plan 2 of 6, implemented, reviewed and merged |
-| `plans/2026-10-02-plan-3-runtime-things.md` | Plan 3 of 6, implemented, reviewed and merged |
+| `plans/2026-10-02-plan-3-runtime-things.md` | Plan 3, implemented, reviewed and merged |
+| `plans/2026-10-02-plan-4-snow-pack-and-art.md` | Plan 4, written, awaiting review |
 
-Milestone 1 is six plans:
+Milestone 1 is now seven plans:
 
 1. Project model and commands (done)
 2. Runtime core: player, tiles, zones, camera, rendering, a playable demo level (done)
 3. Runtime things: enemies, moving platforms, pickups, boss, damage (done)
-4. Snow content pack, level pieces and the checker
-5. Editor UI and IndexedDB storage
-6. AI assistant: proxy route, tools, chat loop
+4. Snow pack and pixel art
+5. Level pieces and the checker
+6. Editor UI and IndexedDB storage
+7. AI assistant: proxy route, tools, chat loop
 
 ## Open items
 
 1. A person needs to play `/play` through the boss fight and say whether the
    movement, enemies and boss feel right.
-2. Write plan 4 (snow pack, level pieces, checker). The checker should flag:
+2. Review plan 4, then implement it. When writing plan 5 (pieces and checker),
+   the checker should flag:
    a boss room without exactly one boss, a boss with no floor under it, and
    enemies placed within reach of an entry or checkpoint.
 3. Review findings deferred from plans 2 and 3, to decide on:
