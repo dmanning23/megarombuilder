@@ -27,17 +27,12 @@ Milestone 1 is split into five plans. Only plan 1 is written:
 
 ## Open items before implementation starts
 
-1. **Folder rename.** The folder was `MegaRomBuilder`. It is being renamed to a
-   lowercase name so `create-next-app` will accept it (npm package names cannot
-   contain capitals).
-2. **Plan 1, Task 1 scaffold.** The plan currently sets the app up by hand
-   because of the folder name. After the rename, decide whether to switch
-   Task 1 to `create-next-app`. If so, update Task 1's files, install step and
-   the "do not use create-next-app" note, and set the `name` in `package.json`
-   to match the new folder.
-3. **Plan 1 review.** Not yet approved.
-4. **Execution method.** Not yet chosen. The recommendation was native: one
+1. **Plan 1 review.** Not yet approved.
+2. **Execution method.** Not yet chosen. The recommendation was native: one
    session implements all nine tasks, then one fresh reviewer checks the branch.
+
+Settled: the folder is now `megarombuilder`, and plan 1 Task 1 generates the app
+with `create-next-app`.
 
 ## Decisions made in conversation that the spec records
 
