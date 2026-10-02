@@ -1,6 +1,7 @@
 import type { ThingBehaviour } from "@/model/contentPack";
 import { moveX } from "../body";
 import type { Sim } from "../state";
+import { updateBoss } from "./boss";
 import { fall, fireAt, patrol, towardPlayer } from "./motion";
 import { num, type Entity } from "./types";
 
@@ -90,6 +91,7 @@ const BEHAVIOURS: Partial<Record<ThingBehaviour, Update>> = {
   jumper,
   shielded,
   dropper,
+  boss: updateBoss,
 };
 
 export function updateEntities(sim: Sim): void {
