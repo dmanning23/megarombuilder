@@ -167,8 +167,10 @@ Hard rules, enforced by every command and on import:
 - An exit is never on the left edge and an entry is never on the right edge.
   Leftward travel is not supported.
 - The first zone's entry holds the player start. The boss room has no exit.
-- Zone names are unique within a level, compared case-insensitively, so chat
-  references are unambiguous.
+- Zone names are unique within a level, compared case-insensitively and
+  ignoring extra spaces, so chat references are unambiguous. Names are 1 to 40
+  characters.
+- A zone's entry and exit never overlap on the same edge.
 
 Chain rules, reported as problems but not enforced by commands, because fixing a
 connection takes two edits and the state in between must be allowed:

@@ -35,6 +35,9 @@ const removeCheckpointCommand = defineCommand({
   args: checkpointArgs,
   apply(project, args) {
     return editLevel(project, args.levelId, (level) => {
+      if (!level.zones.some((z) => z.id === args.zoneId)) {
+        return `There is no zone with id "${args.zoneId}" in level "${level.name}".`;
+      }
       const kept = level.checkpoints.filter(
         (c) => !(c.zoneId === args.zoneId && c.x === args.x && c.y === args.y),
       );

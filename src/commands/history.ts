@@ -26,6 +26,18 @@ function pushEntry(history: History, entry: HistoryEntry): History {
   };
 }
 
+// Structural equality. Unchanged parts of a project are shared by reference, so this is cheap.
+function sameValue(a: unknown, b: unknown): boolean {
+  if (a === b) return true;
+  if (typeof a !== "object" || typeof b !== "object" || a === null || b === null) return false;
+  if (Array.isArray(a) !== Array.isArray(b)) return false;
+  const keys = Object.keys(a);
+  if (keys.length !== Object.keys(b).length) return false;
+  return keys.every((key) =>
+    sameValue((a as Record<string, unknown>)[key], (b as Record<string, unknown>)[key]),
+  );
+}
+
 export function runCommand(
   history: History,
   command: Command,
@@ -33,6 +45,10 @@ export function runCommand(
 ): { history: History; result: CommandResult } {
   const result = applyCommand(history.project, command, ctx);
   if (!result.ok) return { history, result };
+  // A command that changed nothing is not an undo step.
+  if (sameValue(history.project, result.project)) {
+    return { history, result: { ok: true, project: history.project } };
+  }
   if (history.open) return { history: { ...history, project: result.project }, result };
   const entry = { label: command.name, before: history.project, after: result.project };
   return { history: pushEntry(history, entry), result };

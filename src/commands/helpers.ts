@@ -1,4 +1,4 @@
-import type { Level, Project, Zone } from "@/model/schema";
+import { tidyName, type Level, type Project, type Zone } from "@/model/schema";
 import { fail, ok, type CommandResult } from "./types";
 
 // Replaces one level. The callback returns the new level, or a string to fail with.
@@ -35,6 +35,6 @@ export function editZone(
 }
 
 export function nameTaken(level: Level, name: string, exceptZoneId?: string): boolean {
-  const key = name.trim().toLowerCase();
-  return level.zones.some((z) => z.id !== exceptZoneId && z.name.trim().toLowerCase() === key);
+  const key = tidyName(name).toLowerCase();
+  return level.zones.some((z) => z.id !== exceptZoneId && tidyName(z.name).toLowerCase() === key);
 }

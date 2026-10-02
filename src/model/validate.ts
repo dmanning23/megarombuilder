@@ -8,7 +8,7 @@ import {
   type Opening,
   type Size,
 } from "./geometry";
-import type { Level, Project, Zone } from "./schema";
+import { tidyName, type Level, type Project, type Zone } from "./schema";
 
 export function openingProblem(
   size: Size,
@@ -31,11 +31,18 @@ export function openingProblem(
   return null;
 }
 
+export function overlapProblem(entry: Opening, exit: Opening | null): string | null {
+  if (!exit || entry.edge !== exit.edge) return null;
+  if (entry.to < exit.from || exit.to < entry.from) return null;
+  return `The entry and exit overlap on the ${entry.edge} edge.`;
+}
+
 export function zoneProblems(zone: Zone, pack: ContentPack): string[] {
   const problems: string[] = [];
   const where = `Zone "${zone.name}"`;
 
   if (zone.name.trim() === "") problems.push("A zone has an empty name.");
+  else if (zone.name !== tidyName(zone.name)) problems.push(`${where} has a name with extra spaces.`);
   if (zone.kind !== "normal" && (zone.scroll !== "horizontal" || zone.screens !== 1)) {
     problems.push(`${where} is a boss zone and must be one horizontal screen.`);
   }
@@ -68,6 +75,9 @@ export function zoneProblems(zone: Zone, pack: ContentPack): string[] {
     const exitProblem = openingProblem(size, zone.exit, "exit");
     if (exitProblem) problems.push(`${where}: ${exitProblem}`);
   }
+
+  const overlap = overlapProblem(zone.entry, zone.exit);
+  if (overlap) problems.push(`${where}: ${overlap}`);
 
   const seen = new Set<string>();
   for (const thing of zone.things) {
@@ -104,14 +114,22 @@ export function levelProblems(level: Level, pack: ContentPack): string[] {
   for (const zone of zones) {
     if (ids.has(zone.id)) problems.push(`${where} has two zones with the id "${zone.id}".`);
     ids.add(zone.id);
-    const key = zone.name.trim().toLowerCase();
-    if (names.has(key)) problems.push(`${where} has more than one zone called "${zone.name.trim()}".`);
+    const key = tidyName(zone.name).toLowerCase();
+    if (names.has(key)) problems.push(`${where} has more than one zone called "${tidyName(zone.name)}".`);
     names.add(key);
     problems.push(...zoneProblems(zone, pack));
   }
 
+  const spots = new Set<string>();
   for (const checkpoint of level.checkpoints) {
     const zone = zones.find((z) => z.id === checkpoint.zoneId);
+    const spot = `${checkpoint.zoneId} ${checkpoint.x} ${checkpoint.y}`;
+    if (spots.has(spot)) {
+      problems.push(
+        `${where} has two checkpoints at (${checkpoint.x}, ${checkpoint.y}) in "${zone?.name ?? checkpoint.zoneId}".`,
+      );
+    }
+    spots.add(spot);
     if (!zone) {
       problems.push(`${where}: a checkpoint is in a zone that does not exist.`);
     } else if (!inBounds(zoneSize(zone.scroll, zone.screens), checkpoint.x, checkpoint.y)) {

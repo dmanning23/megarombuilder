@@ -53,7 +53,7 @@ describe("setTiles", () => {
         zoneId: "z1",
         cells: [{ x: 1.5, y: 0, tile: 1 }],
       }),
-    ).toMatch(/Invalid arguments/);
+    ).toMatch(/cells\.0\.x: must be a whole number of tiles/);
   });
 
   it("refuses an empty cell list", () => {

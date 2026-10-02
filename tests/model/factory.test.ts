@@ -78,7 +78,8 @@ describe("projectSchema", () => {
   it("rejects a zone with a missing field", () => {
     const project = createProject({ id: "p1", name: "My Game" }, testPack);
     const level = createLevel({ id: "L1", name: "Snow Stage", zoneIds: ["a", "b", "c"] }, testPack);
-    const { intent: _intent, ...broken } = level.zones[0];
+    const broken: Record<string, unknown> = { ...level.zones[0] };
+    delete broken.intent;
     const bad = { ...project, levels: [{ ...level, zones: [broken, level.zones[1], level.zones[2]] }] };
     expect(projectSchema.safeParse(bad).success).toBe(false);
   });

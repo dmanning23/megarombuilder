@@ -11,7 +11,7 @@ import {
   type Opening,
 } from "@/model/geometry";
 import type { Level, Zone } from "@/model/schema";
-import { openingProblem } from "@/model/validate";
+import { openingProblem, overlapProblem } from "@/model/validate";
 import { editLevel, editZone, nameTaken } from "./helpers";
 import { defineCommand, idArg, nameArg } from "./types";
 
@@ -196,6 +196,9 @@ const resizeZoneCommand = defineCommand({
         return `A ${zone.scroll} zone can be at most ${MAX_SCREENS[zone.scroll]} screens long.`;
       }
       const next = resized(zone, args.screens, ctx.pack.groundTileId);
+      if (overlapProblem(next.zone.entry, next.zone.exit)) {
+        return `Shrinking "${zone.name}" would make its entry and exit overlap. Move one of them first.`;
+      }
       const size = zoneSize(next.zone.scroll, next.zone.screens);
       const zones = level.zones.slice();
       zones[index] = next.zone;
@@ -253,7 +256,9 @@ const setZoneOpeningsCommand = defineCommand({
         const problem = openingProblem(size, args.exit, "exit");
         if (problem) return problem;
       }
-      return { ...zone, entry: args.entry ?? zone.entry, exit: args.exit ?? zone.exit };
+      const entry = args.entry ?? zone.entry;
+      const exit = args.exit ?? zone.exit;
+      return overlapProblem(entry, exit) ?? { ...zone, entry, exit };
     });
   },
 });

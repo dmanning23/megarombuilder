@@ -1,6 +1,6 @@
 import { z } from "zod";
 import type { ContentPack } from "@/model/contentPack";
-import { MAX_ID_LENGTH, type Project } from "@/model/schema";
+import { MAX_ID_LENGTH, MAX_NAME_LENGTH, tidyName, type Project } from "@/model/schema";
 
 export type CommandContext = { pack: ContentPack };
 
@@ -29,5 +29,5 @@ export const ok = (project: Project): CommandResult => ({ ok: true, project });
 export const fail = (error: string): CommandResult => ({ ok: false, error });
 
 export const idArg = z.string().min(1).max(MAX_ID_LENGTH);
-export const nameArg = z.string().trim().min(1).max(40);
-export const coordArg = z.number().int();
+export const nameArg = z.string().transform(tidyName).pipe(z.string().min(1).max(MAX_NAME_LENGTH));
+export const coordArg = z.number().int("must be a whole number of tiles");

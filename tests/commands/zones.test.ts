@@ -38,6 +38,11 @@ describe("addZone", () => {
     expect(error).toMatch(/already a zone called "ice CAVE"/);
   });
 
+  it("refuses a name that differs only by spaces inside it", () => {
+    const error = runError(baseProject(), "addZone", { levelId: L, zoneId: "z2", name: "Zone  \t 1" });
+    expect(error).toMatch(/already a zone called "Zone 1"/);
+  });
+
   it("refuses a repeated zone id", () => {
     expect(runError(baseProject(), "addZone", { levelId: L, zoneId: "z1", name: "Dup" })).toMatch(
       /already exists/,
@@ -123,6 +128,11 @@ describe("renameZone", () => {
   it("renames and trims", () => {
     const project = run(baseProject(), "renameZone", { levelId: L, zoneId: "z1", name: " Snowy Path " });
     expect(zoneOf(project, "z1").name).toBe("Snowy Path");
+  });
+
+  it("collapses runs of spaces inside a name", () => {
+    const project = run(baseProject(), "renameZone", { levelId: L, zoneId: "z1", name: "Ice \t  Cave" });
+    expect(zoneOf(project, "z1").name).toBe("Ice Cave");
   });
 
   it("lets a zone keep its own name with different case", () => {
@@ -245,6 +255,16 @@ describe("resizeZone", () => {
     expect(zoneOf(project, "v").things[0].y).toBe(2);
   });
 
+  it("refuses a shrink that would push the exit onto the entry", () => {
+    const project = patchZone(withCave(), "z2", {
+      entry: { edge: "top", from: 14, to: 15 },
+      exit: { edge: "top", from: 40, to: 41 },
+    });
+    expect(runError(project, "resizeZone", { levelId: L, zoneId: "z2", screens: 1 })).toMatch(
+      /entry and exit overlap/,
+    );
+  });
+
   it("refuses to resize a boss zone", () => {
     expect(runError(baseProject(), "resizeZone", { levelId: L, zoneId: "boss", screens: 2 })).toMatch(
       /always one screen/,
@@ -309,6 +329,26 @@ describe("setZoneOpenings", () => {
         entry: { edge: "left", from: 12, to: 15 },
       }),
     ).toMatch(/only has positions 0 to 14/);
+  });
+
+  it("refuses an entry and exit that overlap on the same edge", () => {
+    const error = runError(baseProject(), "setZoneOpenings", {
+      levelId: L,
+      zoneId: "z1",
+      entry: { edge: "top", from: 3, to: 5 },
+      exit: { edge: "top", from: 5, to: 6 },
+    });
+    expect(error).toMatch(/entry and exit overlap on the top edge/);
+  });
+
+  it("allows an entry and exit side by side on the same edge", () => {
+    const project = run(baseProject(), "setZoneOpenings", {
+      levelId: L,
+      zoneId: "z1",
+      entry: { edge: "top", from: 3, to: 4 },
+      exit: { edge: "top", from: 5, to: 6 },
+    });
+    expect(zoneOf(project, "z1").exit).toEqual({ edge: "top", from: 5, to: 6 });
   });
 
   it("refuses an exit on the boss room", () => {

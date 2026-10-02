@@ -10,10 +10,9 @@ zone. Next.js and React, one AI proxy route, projects stored in the browser.
 
 ## Where things stand
 
-Plan 1 is implemented on the branch `plan-1-model-and-commands` (not yet merged
-to `main`): the Next.js app scaffold, the project model with validation and
+Plan 1 is implemented and merged to `main`: the Next.js app scaffold, the project model with validation and
 import parsing, and all 22 edit commands with undo, redo and grouped rollback.
-143 tests pass; typecheck and build are clean. There is no editor or game to
+156 tests pass; typecheck and build are clean. There is no editor or game to
 see in the browser yet, only a placeholder page.
 
 | Document | State |
@@ -31,18 +30,11 @@ Milestone 1 is split into five plans. Plans 2 to 5 are not written yet:
 
 ## Open items
 
-1. Merge `plan-1-model-and-commands` into `main`.
-2. Write plan 2 (runtime).
-3. Review findings deferred from plan 1, to decide on:
-   - Zone names differing only by internal spaces ("Zone  1") count as different.
-   - Fractional coordinates are refused with a technical message.
-   - A command that changes nothing still adds an undo step.
-   - Import accepts untrimmed or over-long names that commands would refuse.
-   - `removeCheckpoint` on a missing zone says "no checkpoint" instead of "no zone".
-   - A history test's name mentions redo but does not assert it.
-   - A zone's entry and exit can be the same opening.
-4. For plan 4: the file-import code must catch `JSON.parse` errors before
+1. Write plan 2 (runtime).
+2. For plan 4: the file-import code must catch `JSON.parse` errors before
    calling `parseProject`, which takes an already-parsed value.
+
+The seven minor findings deferred from the plan 1 review are fixed and merged.
 
 ## Decisions made in conversation that the spec records
 

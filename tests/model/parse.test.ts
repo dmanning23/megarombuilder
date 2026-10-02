@@ -45,6 +45,13 @@ describe("parseProject", () => {
     expect(errorOf(bad)).toMatch(/name/);
   });
 
+  it("refuses names longer than the editor allows, and empty names", () => {
+    const p = project();
+    const long = p.levels[0].zones.map((z, i) => (i === 0 ? { ...z, name: "x".repeat(41) } : z));
+    expect(errorOf({ ...p, levels: [{ ...p.levels[0], zones: long }] })).toMatch(/zones\.0\.name/);
+    expect(errorOf({ ...p, levels: [{ ...p.levels[0], name: "" }] })).toMatch(/levels\.0\.name/);
+  });
+
   it("refuses a project whose content pack is missing", () => {
     expect(errorOf({ ...project(), contentPackId: "lava" })).toMatch(/content pack "lava"/);
   });

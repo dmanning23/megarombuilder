@@ -64,6 +64,16 @@ describe("single commands", () => {
     expect(canRedo(h)).toBe(false);
   });
 
+  it("adds no undo step and keeps redo when a command changes nothing", () => {
+    let h = apply(createHistory(baseProject()), rename("Snowy Path"));
+    h = undo(h);
+    const { history: next, result } = runCommand(h, rename("Zone 1"), ctx);
+    expect(result.ok).toBe(true);
+    expect(next.undoStack).toEqual([]);
+    expect(canRedo(next)).toBe(true);
+    expect(next.project).toBe(h.project);
+  });
+
   it("leaves history untouched when a command fails", () => {
     const h = createHistory(baseProject());
     const { history: next, result } = runCommand(h, bad, ctx);
@@ -110,11 +120,22 @@ describe("groups", () => {
 
   it("keeps earlier undo steps and redo when a group is rolled back", () => {
     let h = apply(createHistory(baseProject()), rename("Snowy Path"));
+    h = apply(h, rename("Icy Path"));
+    h = undo(h);
     h = beginGroup(h, "AI turn");
     h = apply(h, spike(2));
     h = rollbackGroup(h);
     expect(zoneName(h)).toBe("Snowy Path");
     expect(h.undoStack).toHaveLength(1);
+    expect(canRedo(h)).toBe(true);
+    expect(zoneName(redo(h))).toBe("Icy Path");
+  });
+
+  it("adds no undo step for a group whose commands changed nothing", () => {
+    let h = beginGroup(createHistory(baseProject()), "AI turn");
+    h = apply(h, rename("Zone 1"));
+    h = commitGroup(h);
+    expect(h.undoStack).toEqual([]);
   });
 
   it("adds no undo step for a group that changed nothing", () => {

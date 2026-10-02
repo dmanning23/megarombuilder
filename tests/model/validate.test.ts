@@ -103,6 +103,32 @@ describe("structureProblems", () => {
     expect(structureProblems(p, testPack).join(" ")).toMatch(/checkpoint is in a zone that does not exist/);
   });
 
+  it("reports a zone name with extra spaces", () => {
+    for (const name of ["  Snowy Path", "Snowy  Path"]) {
+      const problems = structureProblems(withZone(project(), 0, { name }), testPack);
+      expect(problems.join(" ")).toMatch(/name with extra spaces/);
+    }
+  });
+
+  it("reports zone names that differ only by spaces inside them", () => {
+    const problems = structureProblems(withZone(project(), 0, { name: "Boss  Room" }), testPack);
+    expect(problems.join(" ")).toMatch(/more than one zone called/);
+  });
+
+  it("reports two checkpoints in the same place", () => {
+    const spot = { zoneId: "a", x: 1, y: 1 };
+    const p = withLevel(project(), { checkpoints: [spot, { ...spot }] });
+    expect(structureProblems(p, testPack).join(" ")).toMatch(/two checkpoints at \(1, 1\)/);
+  });
+
+  it("reports an entry and exit that overlap", () => {
+    const p = withZone(project(), 0, {
+      entry: { edge: "top", from: 3, to: 5 },
+      exit: { edge: "top", from: 5, to: 6 },
+    });
+    expect(structureProblems(p, testPack).join(" ")).toMatch(/entry and exit overlap on the top edge/);
+  });
+
   it("reports a project built for a different content pack", () => {
     const p = { ...project(), contentPackId: "lava" };
     expect(structureProblems(p, testPack).join(" ")).toMatch(/content pack "lava"/);

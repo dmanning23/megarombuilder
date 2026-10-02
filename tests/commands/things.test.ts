@@ -71,7 +71,7 @@ describe("placeThing", () => {
         x: 5.5,
         y: 12,
       }),
-    ).toMatch(/Invalid arguments/);
+    ).toMatch(/x: must be a whole number of tiles/);
   });
 
   it("refuses a repeated thing id", () => {
@@ -145,6 +145,12 @@ describe("checkpoints", () => {
   it("refuses a checkpoint in a missing zone", () => {
     expect(
       runError(baseProject(), "addCheckpoint", { levelId: L, zoneId: "zz", x: 1, y: 1 }),
+    ).toMatch(/no zone with id "zz"/);
+  });
+
+  it("reports a missing zone when removing a checkpoint", () => {
+    expect(
+      runError(baseProject(), "removeCheckpoint", { levelId: L, zoneId: "zz", x: 1, y: 1 }),
     ).toMatch(/no zone with id "zz"/);
   });
 

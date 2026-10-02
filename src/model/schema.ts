@@ -4,7 +4,15 @@ export const FORMAT_VERSION = 1;
 
 export const MAX_ID_LENGTH = 64;
 
+export const MAX_NAME_LENGTH = 40;
+
+// The stored form of a name: no spaces at the ends, single spaces inside.
+export function tidyName(name: string): string {
+  return name.trim().replace(/\s+/g, " ");
+}
+
 const idSchema = z.string().min(1).max(MAX_ID_LENGTH);
+const nameSchema = z.string().min(1).max(MAX_NAME_LENGTH);
 const intSchema = z.number().int();
 
 export const openingSchema = z.object({
@@ -30,12 +38,12 @@ export const zoneKindSchema = z.enum(["normal", "bossCorridor", "bossRoom"]);
 
 export const zoneSchema = z.object({
   id: idSchema,
-  name: z.string(),
+  name: nameSchema,
   kind: zoneKindSchema,
   scroll: z.enum(["horizontal", "vertical"]),
   screens: intSchema.min(1).max(8),
   variant: z.string(),
-  intent: z.string(),
+  intent: z.string().max(200),
   tiles: z.array(intSchema.min(0)),
   things: z.array(thingSchema),
   entry: openingSchema,
@@ -46,8 +54,8 @@ export const checkpointSchema = z.object({ zoneId: idSchema, x: intSchema, y: in
 
 export const levelSchema = z.object({
   id: idSchema,
-  name: z.string(),
-  brief: z.string(),
+  name: nameSchema,
+  brief: z.string().max(1000),
   zones: z.array(zoneSchema),
   checkpoints: z.array(checkpointSchema),
 });
