@@ -10,34 +10,37 @@ zone. Next.js and React, one AI proxy route, projects stored in the browser.
 
 ## Where things stand
 
-Plans 1 and 2 are implemented, reviewed and merged to `main`. Plan 3 is
-written and awaiting review.
+Plans 1 to 3 are implemented, reviewed and merged to `main`.
 
-There is now something to see: run `npm run dev` and open `/play` for a demo
-level (running, jumping, ice, spikes, ladders, zone transitions) drawn as
-coloured rectangles. There are no enemies yet and the boss room is empty.
-258 tests pass; typecheck, lint and build are clean.
+Run `npm run dev` and open `/play` for the demo stage: running, jumping, ice,
+spikes, ladders, zone transitions, six enemy types, health pickups, a moving
+platform and the Blizzard Bot boss fight, all drawn as coloured rectangles.
+326 tests pass; typecheck, lint and build are clean.
 
 | Document | State |
 |---|---|
 | `specs/2026-10-02-playable-core-ai-level-builder-design.md` | Milestone 1 spec, approved |
 | `plans/2026-10-02-plan-1-project-model-and-commands.md` | Plan 1 of 6, implemented, reviewed and merged |
 | `plans/2026-10-02-plan-2-runtime-core.md` | Plan 2 of 6, implemented, reviewed and merged |
-| `plans/2026-10-02-plan-3-runtime-things.md` | Plan 3 of 6, written, awaiting review |
+| `plans/2026-10-02-plan-3-runtime-things.md` | Plan 3 of 6, implemented, reviewed and merged |
 
 Milestone 1 is six plans:
 
 1. Project model and commands (done)
 2. Runtime core: player, tiles, zones, camera, rendering, a playable demo level (done)
-3. Runtime things: enemies, moving platforms, pickups, boss, damage
+3. Runtime things: enemies, moving platforms, pickups, boss, damage (done)
 4. Snow content pack, level pieces and the checker
 5. Editor UI and IndexedDB storage
 6. AI assistant: proxy route, tools, chat loop
 
 ## Open items
 
-1. Review plan 3, then implement it.
-2. Review findings deferred from plan 2, to decide on:
+1. A person needs to play `/play` through the boss fight and say whether the
+   movement, enemies and boss feel right.
+2. Write plan 4 (snow pack, level pieces, checker). The checker should flag:
+   a boss room without exactly one boss, a boss with no floor under it, and
+   enemies placed within reach of an entry or checkpoint.
+3. Review findings deferred from plans 2 and 3, to decide on:
    - Player settings have no upper bounds; a run speed or fall speed of 16 or
      more passes through walls, and a ladder speed below 1 breaks climbing down
      from a ladder top. Bound them before the editor or AI can change them.
@@ -52,7 +55,16 @@ Milestone 1 is six plans:
    - Shots freeze in mid-air during the death pause.
    - Checkpoints trigger through walls.
    - No permanent fuzz test; no test for a shot held across a transition.
-3. For plan 5: the file-import code must catch `JSON.parse` errors before
+   - Thing settings have no bounds either: an enemy shot speed of 0 piles up
+     shots for ever, and odd platform speeds make platforms jump.
+   - A player killed by contact can still collect a pickup on the same step.
+   - A platform rising into a ceiling crushes its rider to death.
+   - The boss's box is wider than a tile, so a boss placed against a wall
+     starts partly inside it.
+   - Enemies placed on screen at an entry or checkpoint can hit the player
+     immediately.
+   - No test for knockback into a pit, or that the boss fight can be won.
+4. For plan 5: the file-import code must catch `JSON.parse` errors before
    calling `parseProject`, which takes an already-parsed value.
 
 ## Decisions made in conversation that the spec records

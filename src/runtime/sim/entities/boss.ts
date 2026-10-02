@@ -43,6 +43,14 @@ export function updateBoss(sim: Sim, e: Entity): void {
   }
   moveX(sim.map, e, e.vx);
   fall(sim.map, e);
+  if (e.y > sim.map.heightPx) {
+    // Fell out of the room: put it back where it started, or the fight could never end.
+    e.x = e.homeX;
+    e.y = e.homeY;
+    e.vy = 0;
+    if (e.mode === "jump" || e.mode === "dash") toIdle(e);
+    return;
+  }
   if (e.mode === "jump" && e.onGround) toIdle(e);
   if (e.mode === "dash" && e.vx === 0) toIdle(e); // hit a wall
 }

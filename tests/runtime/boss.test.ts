@@ -92,4 +92,20 @@ describe("the boss", () => {
     hit(sim, boss);
     expect(sim.phase).toBe("won");
   });
+
+  it("comes back to its spot instead of falling out of the room for ever", () => {
+    const pit = flatArt({ 13: "######..........", 14: "######.........." });
+    const sim = makeSim([{ art: pit, things: [thing("boss", 10, 12)] }]);
+    const boss = entity(sim, "boss");
+    if (!boss) throw new Error("no boss");
+    sim.player.invuln = 1_000_000;
+    const attacks = new Set<string>();
+    for (let i = 0; i < 3000; i++) {
+      run(sim, {}, 1);
+      sim.player.invuln = 1_000_000;
+      attacks.add(boss.mode);
+      expect(boss.y).toBeLessThanOrEqual(sim.map.heightPx);
+    }
+    expect([...attacks]).toEqual(expect.arrayContaining(["jump", "shot", "dash"]));
+  });
 });
