@@ -1,4 +1,10 @@
 import { describe, expect, it } from "vitest";
+import { createDemoProject, DEMO_LEVEL_ID } from "@/content/demo";
+import { snowArt } from "@/content/snow/art";
+import { GROUND, snowPack } from "@/content/snow/pack";
+import type { Sprite } from "@/runtime/render/art";
+import type { Skin } from "@/runtime/render/draw";
+import { createSim, step } from "@/runtime/sim";
 import { kill } from "@/runtime/sim/hazards";
 import {
   BACKGROUNDS,
@@ -31,6 +37,11 @@ function fakeContext() {
     },
     fillText(text: string) {
       texts.push(text);
+    },
+    images: [] as { sprite: Sprite; flip: boolean; x: number; y: number }[],
+    drawImage(image: CanvasImageSource, x: number, y: number) {
+      const { sprite, flip } = image as unknown as { sprite: Sprite; flip: boolean };
+      this.images.push({ sprite, flip, x, y });
     },
   };
 }
@@ -223,5 +234,101 @@ describe("stepsFor", () => {
 
   it("ignores negative time", () => {
     expect(stepsFor(3, -100)).toEqual({ steps: 0, accumulator: 3 });
+  });
+});
+
+// A skin whose "images" are just the sprite and direction, so tests can see what was drawn.
+const skin = (set = snowArt): Skin => ({
+  set,
+  image: (sprite, flip) => ({ sprite, flip }) as unknown as CanvasImageSource,
+});
+
+function demoSim(startZoneId?: string) {
+  const sim = createSim(createDemoProject(), DEMO_LEVEL_ID, snowPack, { startZoneId });
+  step(sim, { left: false, right: false, up: false, down: false, jump: false, shoot: false });
+  return sim;
+}
+
+describe("drawing with sprites", () => {
+  const ground = snowArt.tiles.outdoor[GROUND];
+
+  it("uses the art's background colour", () => {
+    const ctx = fakeContext();
+    draw(ctx, demoSim(), skin({ ...snowArt, backgrounds: { outdoor: "#123456", cave: "#000000" } }));
+    expect(ctx.calls[1]).toEqual({ colour: "#123456", x: 0, y: 0, w: 256, h: 240 });
+  });
+
+  it("caps the top of the ground and fills below it", () => {
+    const ctx = fakeContext();
+    draw(ctx, demoSim(), skin());
+    expect(ctx.images).toContainEqual({ sprite: ground.top, flip: false, x: 0, y: 208 });
+    expect(ctx.images).toContainEqual({ sprite: ground.fill, flip: false, x: 0, y: 224 });
+    // the one-tile step at column 10 covers the floor below it
+    expect(ctx.images).toContainEqual({ sprite: ground.top, flip: false, x: 160, y: 192 });
+    expect(ctx.images).toContainEqual({ sprite: ground.fill, flip: false, x: 160, y: 208 });
+  });
+
+  it("caps ground in the top row of a zone", () => {
+    const sim = demoSim();
+    sim.map.zone.tiles[0] = GROUND;
+    const ctx = fakeContext();
+    draw(ctx, sim, skin());
+    expect(ctx.images).toContainEqual({ sprite: ground.top, flip: false, x: 0, y: 0 });
+  });
+
+  it("draws the hero standing, bottom-centred on the player's box", () => {
+    const ctx = fakeContext();
+    draw(ctx, demoSim(), skin());
+    expect(ctx.images).toContainEqual({ sprite: snowArt.player.stand, flip: false, x: 1, y: 184 });
+    expect(ctx.calls.filter((c) => c.colour === PLAYER_COLOUR)).toEqual([]);
+  });
+
+  it("mirrors the hero when facing left", () => {
+    const sim = demoSim();
+    sim.player.facing = -1;
+    const ctx = fakeContext();
+    draw(ctx, sim, skin());
+    expect(ctx.images).toContainEqual({ sprite: snowArt.player.stand, flip: true, x: 1, y: 184 });
+  });
+
+  it("draws things with their frames", () => {
+    const sim = demoSim("boss");
+    const ctx = fakeContext();
+    draw(ctx, sim, skin());
+    const boss = sim.slots[0].entity;
+    expect(ctx.images).toContainEqual({
+      sprite: snowArt.things.boss[0],
+      flip: true,
+      x: Math.round(boss?.x ?? 0),
+      y: Math.round(boss?.y ?? 0),
+    });
+  });
+
+  it("falls back to rectangles for tiles and things with no art", () => {
+    const sim = demoSim("boss");
+    const ctx = fakeContext();
+    draw(ctx, sim, skin({ ...snowArt, tiles: {}, things: {} }));
+    expect(ctx.calls.filter((c) => c.w === 16 && c.h === 16)).toHaveLength(32);
+    expect(ctx.calls.filter((c) => c.colour === ENTITY_COLOURS.boss)).toHaveLength(1);
+  });
+
+  it("skips a flashing enemy on its blink steps", () => {
+    const sim = demoSim("boss");
+    const boss = sim.slots[0].entity;
+    if (!boss) throw new Error("no boss");
+    boss.flash = 1;
+    const ctx = fakeContext();
+    draw(ctx, sim, skin());
+    expect(ctx.images.some((i) => snowArt.things.boss.includes(i.sprite))).toBe(false);
+  });
+
+  it("draws shots as sprites", () => {
+    const sim = demoSim();
+    sim.shots.push({ x: 50, y: 190, vx: -4 });
+    sim.enemyShots.push({ x: 90, y: 100, vx: 2, vy: 0, damage: 2 });
+    const ctx = fakeContext();
+    draw(ctx, sim, skin());
+    expect(ctx.images).toContainEqual({ sprite: snowArt.playerShot, flip: true, x: 50, y: 190 });
+    expect(ctx.images).toContainEqual({ sprite: snowArt.enemyShot, flip: false, x: 90, y: 100 });
   });
 });
