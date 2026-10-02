@@ -256,7 +256,7 @@ const WALKER = [
 
 const FLYER = [
   sprite([
-    ...pad(2),
+    ...pad(6),
     "kk............kk",
     "kpk..........kpk",
     "kppk...kk...kppk",
@@ -267,10 +267,9 @@ const FLYER = [
     "....kpPPPPpk....",
     ".....kkPPkk.....",
     "......k..k......",
-    ...pad(4),
   ]),
   sprite([
-    ...pad(4),
+    ...pad(8),
     "......kkkk......",
     ".....kppppk.....",
     "..kkkppwwppkkk..",
@@ -279,7 +278,6 @@ const FLYER = [
     "kppk.kPPPPk.kppk",
     "kpk...kPPk...kpk",
     "kk.....kk.....kk",
-    ...pad(4),
   ]),
 ];
 
@@ -302,12 +300,15 @@ const TURRET = [
 
 const JUMPER = [
   sprite([
-    ...pad(7),
+    ...pad(4),
     "....kkkkkkkk....",
     "...keeeeeeeek...",
     "..keeeeeeeeeek..",
+    "..keeeeeeeeeek..",
     "..keeweeeeweek..",
+    "..keeeeeeeeeek..",
     "..kEeeeeeeeeEk..",
+    "..kEEEEEEEEEEk..",
     "..kEEEEEEEEEEk..",
     ".kEEk......kEEk.",
     "kEEEk......kEEEk",
@@ -371,16 +372,19 @@ const SHIELDED = [
 
 const DROPPER = [
   sprite([
+    ...pad(4),
     "....kkkkkkkk....",
     "....kIIIIIIk....",
     "....kIkIIkIk....",
     "....kIIIIIIk....",
+    "....kIIIIIIk....",
     ".....kIIIIk.....",
     ".....kIiIIk.....",
+    ".....kIIIIk.....",
+    "......kIIk......",
     "......kIIk......",
     "......kIIk......",
     ".......kk.......",
-    ...pad(7),
   ]),
   sprite([
     ...pad(7),
@@ -471,9 +475,6 @@ const BOSS_TUCKED = [
   ".....kwwwwwkkwwwwwk.....",
   ".....kNNNNNkkNNNNNk.....",
   ".....kkkkkkkkkkkkkk.....",
-  BLANK24,
-  BLANK24,
-  BLANK24,
 ];
 const BOSS_CANNON = [
   "..kbbbkwwwIIIIwwwkbbbbbk",
@@ -485,7 +486,7 @@ const BOSS_SHOOTING = BOSS_BODY.map((row, y) => (y >= 12 && y <= 15 ? BOSS_CANNO
 
 const BOSS = [
   sprite([...BOSS_BODY, ...BOSS_LEGS]), // standing, idle and dashing
-  sprite([...BOSS_BODY, ...BOSS_TUCKED]), // jumping
+  sprite([BLANK24, BLANK24, BLANK24, ...BOSS_BODY, ...BOSS_TUCKED]), // jumping
   sprite([...BOSS_SHOOTING, ...BOSS_LEGS]), // shooting
 ];
 

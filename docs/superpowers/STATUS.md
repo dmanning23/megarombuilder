@@ -10,13 +10,12 @@ zone. Next.js and React, one AI proxy route, projects stored in the browser.
 
 ## Where things stand
 
-Plans 1 to 3 are implemented, reviewed and merged to `main`. Plan 4 is written
-and awaiting review.
+Plans 1 to 4 are implemented, reviewed and merged to `main`.
 
 Run `npm run dev` and open `/play` for the demo stage: running, jumping, ice,
 spikes, ladders, zone transitions, six enemy types, health pickups, a moving
-platform and the Blizzard Bot boss fight, all drawn as coloured rectangles.
-326 tests pass; typecheck, lint and build are clean.
+platform and the Blizzard Bot boss fight, drawn with the snow pack's pixel art.
+366 tests pass; typecheck, lint and build are clean.
 
 | Document | State |
 |---|---|
@@ -24,14 +23,14 @@ platform and the Blizzard Bot boss fight, all drawn as coloured rectangles.
 | `plans/2026-10-02-plan-1-project-model-and-commands.md` | Plan 1 of 6, implemented, reviewed and merged |
 | `plans/2026-10-02-plan-2-runtime-core.md` | Plan 2 of 6, implemented, reviewed and merged |
 | `plans/2026-10-02-plan-3-runtime-things.md` | Plan 3, implemented, reviewed and merged |
-| `plans/2026-10-02-plan-4-snow-pack-and-art.md` | Plan 4, written, awaiting review |
+| `plans/2026-10-02-plan-4-snow-pack-and-art.md` | Plan 4, implemented, reviewed and merged |
 
 Milestone 1 is now seven plans:
 
 1. Project model and commands (done)
 2. Runtime core: player, tiles, zones, camera, rendering, a playable demo level (done)
 3. Runtime things: enemies, moving platforms, pickups, boss, damage (done)
-4. Snow pack and pixel art
+4. Snow pack and pixel art (done)
 5. Level pieces and the checker
 6. Editor UI and IndexedDB storage
 7. AI assistant: proxy route, tools, chat loop
@@ -40,8 +39,7 @@ Milestone 1 is now seven plans:
 
 1. A person needs to play `/play` through the boss fight and say whether the
    movement, enemies and boss feel right.
-2. Review plan 4, then implement it. When writing plan 5 (pieces and checker),
-   the checker should flag:
+2. Write plan 5 (level pieces and checker). The checker should flag:
    a boss room without exactly one boss, a boss with no floor under it, and
    enemies placed within reach of an entry or checkpoint.
 3. Review findings deferred from plans 2 and 3, to decide on:
@@ -68,6 +66,17 @@ Milestone 1 is now seven plans:
    - Enemies placed on screen at an entry or checkpoint can hit the player
      immediately.
    - No test for knockback into a pit, or that the boss fight can be won.
+   - Starting play directly in a zone entered from below centres the player
+     on the line between the opening's two columns, so a ladder in the first
+     column is missed and the player falls. Matters for "Play from this zone"
+     in the editor (plan 6).
+   - Art: the hurt pose floats 2px above the ground; one row of the Frost
+     Bat's second frame is a pixel short; platforms and pickups mirror
+     depending on which side the player approached from; the large health
+     sprite is bigger than its box; the snow cap will show as a stripe at the
+     seam between stacked vertical zones; the cannon muzzle sits 1.5px below
+     the shot; thing frames are not size-checked; passing art inline to
+     `PlayCanvas` would restart the game on every render.
 4. For plan 5: the file-import code must catch `JSON.parse` errors before
    calling `parseProject`, which takes an already-parsed value.
 
