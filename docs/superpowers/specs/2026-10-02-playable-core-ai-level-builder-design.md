@@ -134,7 +134,7 @@ type Zone = {
   tiles: number[];                // row-major tile IDs; 0 = empty
   things: Thing[];
   entry: Opening;
-  exit: Opening;
+  exit: Opening | null;           // null only for the boss room
 };
 
 type Opening = { edge: "left" | "right" | "top" | "bottom"; from: number; to: number };
@@ -158,15 +158,24 @@ tuned in play.
 - A vertical zone is 16 tiles wide and `screens × 15` high, 1 to 6 screens.
 - Boss corridor and boss room are each one horizontal screen.
 
-### Zone chain rules (validated)
+### Zone rules
+
+Hard rules, enforced by every command and on import:
 
 - A level has at least three zones. The last two are a `bossCorridor` then a
   `bossRoom`; no other zone has those kinds.
-- Zone N's exit edge must pair with zone N+1's entry edge: right to left, top to
-  bottom, bottom to top. Leftward travel is not supported.
+- An exit is never on the left edge and an entry is never on the right edge.
+  Leftward travel is not supported.
 - The first zone's entry holds the player start. The boss room has no exit.
 - Zone names are unique within a level, compared case-insensitively, so chat
   references are unambiguous.
+
+Chain rules, reported as problems but not enforced by commands, because fixing a
+connection takes two edits and the state in between must be allowed:
+
+- Zone N's exit edge must pair with zone N+1's entry edge: right to left, top to
+  bottom, bottom to top.
+- Paired openings must be the same length.
 
 ### Player start
 
@@ -214,15 +223,16 @@ means adding a pack.
 - **Pieces:** flat run, staircase up, staircase down, gap, spike pit, spike pit
   with moving platform, ice run, ladder climb, ladder climb with turrets,
   stepped platforms over a pit, enemy gauntlet, rest area with pickup.
-  Each piece is a function from settings (width, height, difficulty 1 to 3) to a
-  block of tiles and things.
+  Each piece is a function from whole-number settings (width, height, difficulty
+  1 to 3), each with a declared range, to a block of tiles and things.
 - **Art:** simple original pixel art generated for the project, stored as PNG
   sheets in `public/packs/snow/`.
 
 ## 4. Commands
 
-Every edit is a command: a name, validated arguments, an `apply` that returns a
-new project, and an inverse.
+Every edit is a command: a name, validated arguments, and an `apply` that
+returns a new project. Projects are immutable, so undo keeps the project from
+before each command group instead of computing an inverse.
 
 | Group | Commands |
 |---|---|
