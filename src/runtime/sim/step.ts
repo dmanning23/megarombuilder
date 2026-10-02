@@ -2,6 +2,7 @@ import { hitEntities, touchEntities } from "./combat";
 import { checkEdges } from "./edges";
 import { updateEntities } from "./entities/enemies";
 import { updateEnemyShots } from "./entities/enemyShots";
+import { updatePlatforms } from "./entities/platforms";
 import { updateSlots } from "./entities/slots";
 import { insideSolid, kill, respawn, touchCheckpoints, touchingSpike } from "./hazards";
 import { updatePlayer } from "./player";
@@ -25,6 +26,7 @@ export function step(sim: Sim, input: Input): void {
 }
 
 function playStep(sim: Sim, input: Input): void {
+  updatePlatforms(sim);
   updatePlayer(sim, input);
   if (input.shoot && !sim.prev.shoot) shoot(sim);
   updateShots(sim);

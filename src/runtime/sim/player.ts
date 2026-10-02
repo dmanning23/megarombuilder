@@ -1,5 +1,6 @@
 import { TILE_SIZE } from "@/model/geometry";
 import { moveX, moveY } from "./body";
+import { landOnPlatforms } from "./entities/platforms";
 import { ICE_ACCEL, JUMP_CUT_SPEED, KNOCKBACK_SPEED } from "./constants";
 import { clamp } from "./math";
 import type { Input, Sim } from "./state";
@@ -10,6 +11,7 @@ function climb(sim: Sim, input: Input, jumpPressed: boolean): void {
   const { map, player: p, settings } = sim;
   p.vx = 0;
   p.vy = 0;
+  p.ridingId = null;
   if (jumpPressed) {
     p.onLadder = false;
     return;
@@ -40,11 +42,14 @@ function climb(sim: Sim, input: Input, jumpPressed: boolean): void {
 // Gravity and movement for a player who is not on a ladder.
 function physics(sim: Sim): void {
   const { map, player: p, settings } = sim;
+  const prevBottom = p.y + p.h;
   p.vy = Math.min(p.vy + settings.gravity, settings.maxFallSpeed);
   p.onGround = false;
   p.onIce = false;
+  p.ridingId = null;
   moveX(map, p, p.vx);
   moveY(map, p, p.vy, false);
+  if (!p.onGround) landOnPlatforms(sim, prevBottom);
 }
 
 export function updatePlayer(sim: Sim, input: Input): void {
