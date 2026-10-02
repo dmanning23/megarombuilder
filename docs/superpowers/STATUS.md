@@ -10,21 +10,24 @@ zone. Next.js and React, one AI proxy route, projects stored in the browser.
 
 ## Where things stand
 
-Plan 1 is implemented and merged to `main`: the Next.js app scaffold, the project model with validation and
-import parsing, and all 22 edit commands with undo, redo and grouped rollback.
-156 tests pass; typecheck and build are clean. There is no editor or game to
-see in the browser yet, only a placeholder page.
+Plans 1 and 2 are implemented. Plan 1 is merged to `main`. Plan 2 is on the
+branch `plan-2-runtime-core`, reviewed, not yet merged.
+
+There is now something to see: run `npm run dev` and open `/play` for a demo
+level (running, jumping, ice, spikes, ladders, zone transitions) drawn as
+coloured rectangles. There are no enemies yet and the boss room is empty.
+258 tests pass; typecheck, lint and build are clean.
 
 | Document | State |
 |---|---|
 | `specs/2026-10-02-playable-core-ai-level-builder-design.md` | Milestone 1 spec, approved |
 | `plans/2026-10-02-plan-1-project-model-and-commands.md` | Plan 1 of 6, implemented, reviewed and merged |
-| `plans/2026-10-02-plan-2-runtime-core.md` | Plan 2 of 6, written, awaiting review |
+| `plans/2026-10-02-plan-2-runtime-core.md` | Plan 2 of 6, implemented and reviewed, on its branch |
 
-Milestone 1 is now six plans, because the runtime was too large for one:
+Milestone 1 is six plans:
 
 1. Project model and commands (done)
-2. Runtime core: player, tiles, zones, camera, rendering, a playable demo level
+2. Runtime core: player, tiles, zones, camera, rendering, a playable demo level (done)
 3. Runtime things: enemies, moving platforms, pickups, boss, damage
 4. Snow content pack, level pieces and the checker
 5. Editor UI and IndexedDB storage
@@ -32,11 +35,26 @@ Milestone 1 is now six plans, because the runtime was too large for one:
 
 ## Open items
 
-1. Review plan 2, then implement it.
-2. For plan 5: the file-import code must catch `JSON.parse` errors before
+1. A person needs to play `/play` and say whether the movement feels right.
+2. Merge `plan-2-runtime-core` into `main`.
+3. Write plan 3 (runtime things).
+4. Review findings deferred from plan 2, to decide on:
+   - Player settings have no upper bounds; a run speed or fall speed of 16 or
+     more passes through walls, and a ladder speed below 1 breaks climbing down
+     from a ladder top. Bound them before the editor or AI can change them.
+   - An exit on the last zone leaves the player alive outside the zone.
+     Validation forbids it on a boss room, but the runtime does not check.
+   - A start zone with an unsafe entry is an endless death loop with no message.
+   - The player can climb or jump above the top of the screen and walk there.
+   - The keyboard handler blocks arrows, Z and X for the whole window, which
+     will stop typing in the editor and chat (plan 5). It should ignore events
+     from text fields and with Cmd/Ctrl/Alt held.
+   - A bad level or zone id in `PlayCanvas` shows a generic error screen.
+   - Shots freeze in mid-air during the death pause.
+   - Checkpoints trigger through walls.
+   - No permanent fuzz test; no test for a shot held across a transition.
+5. For plan 5: the file-import code must catch `JSON.parse` errors before
    calling `parseProject`, which takes an already-parsed value.
-
-The seven minor findings deferred from the plan 1 review are fixed and merged.
 
 ## Decisions made in conversation that the spec records
 

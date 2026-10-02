@@ -72,6 +72,12 @@ function climb(sim: Sim, input: Input, jumpPressed: boolean): void {
   p.onGround = false;
   p.onIce = false;
   moveY(map, p, dy, true);
+  // The bottom of the zone is a floor for a climber unless the exit is there.
+  const exit = map.zone.exit;
+  const cx = p.x + p.w / 2;
+  const exitBelow =
+    exit?.edge === "bottom" && cx >= exit.from * TILE_SIZE && cx < (exit.to + 1) * TILE_SIZE;
+  if (!exitBelow) p.y = Math.min(p.y, map.heightPx - p.h);
   if (p.onGround) {
     p.onLadder = false; // climbed down onto solid ground
     return;

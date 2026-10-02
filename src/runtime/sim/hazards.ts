@@ -1,17 +1,30 @@
 import { TILE_SIZE } from "@/model/geometry";
 import { RESPAWN_STEPS } from "./constants";
 import type { Sim } from "./state";
-import { createTileMap, firstTile, lastTile, touchingLadder } from "./tilemap";
+import {
+  createTileMap,
+  firstTile,
+  isSolid,
+  lastTile,
+  touchingLadder,
+  type Cell,
+} from "./tilemap";
 
-export function touchingSpike(sim: Sim): boolean {
+function touching(sim: Sim, matches: (cell: Cell) => boolean): boolean {
   const { map, player: p } = sim;
   for (let ty = firstTile(p.y); ty <= lastTile(p.y + p.h); ty++) {
     for (let tx = firstTile(p.x); tx <= lastTile(p.x + p.w); tx++) {
-      if (map.behaviourAt(tx, ty) === "spike") return true;
+      if (matches(map.behaviourAt(tx, ty))) return true;
     }
   }
   return false;
 }
+
+export const touchingSpike = (sim: Sim): boolean => touching(sim, (cell) => cell === "spike");
+
+// Collision never leaves the player inside a solid tile, so this only happens when a level
+// puts them there: an entry or checkpoint that has been tiled over.
+export const insideSolid = (sim: Sim): boolean => touching(sim, isSolid);
 
 export function kill(sim: Sim): void {
   if (sim.phase === "dead") return;

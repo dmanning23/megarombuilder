@@ -1,5 +1,5 @@
 import { checkEdges } from "./edges";
-import { kill, respawn, touchCheckpoints, touchingSpike } from "./hazards";
+import { insideSolid, kill, respawn, touchCheckpoints, touchingSpike } from "./hazards";
 import { updatePlayer } from "./player";
 import { shoot, updateShots } from "./shots";
 import type { Input, Sim } from "./state";
@@ -19,7 +19,7 @@ export function step(sim: Sim, input: Input): void {
     if (input.shoot && !sim.prev.shoot) shoot(sim);
     updateShots(sim);
     touchCheckpoints(sim);
-    if (touchingSpike(sim)) kill(sim);
+    if (touchingSpike(sim) || insideSolid(sim)) kill(sim);
     else checkEdges(sim);
   }
   sim.prev = input;

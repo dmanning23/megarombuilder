@@ -17,6 +17,8 @@ function leave(sim: Sim, direction: Transition["direction"], carry: number): voi
   p.x = position.x;
   p.y = position.y;
   p.vy = 0;
+  p.onGround = false;
+  p.onIce = false;
   p.onLadder = touchingLadder(sim.map, p);
   sim.shots = [];
   sim.phase = "transition";
