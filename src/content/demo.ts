@@ -1,39 +1,6 @@
 import { applyCommand, type Command } from "@/commands";
-import { createProject, type ContentPack, type Project } from "@/model";
-
-const GROUND = 1;
-const ICE = 2;
-const LADDER = 3;
-const SPIKE = 4;
-const LEDGE = 5;
-
-// A stand-in pack with tiles only, until the snow pack arrives.
-export const demoPack: ContentPack = {
-    id: "demo",
-    name: "Demo",
-    variants: ["outdoor", "cave"],
-    groundTileId: GROUND,
-    tiles: [
-        { id: GROUND, name: "ground", behaviour: "solid" },
-        { id: ICE, name: "ice", behaviour: "ice" },
-        { id: LADDER, name: "ladder", behaviour: "ladder" },
-        { id: SPIKE, name: "spike", behaviour: "spike" },
-        { id: LEDGE, name: "ledge", behaviour: "oneWay" },
-    ],
-    things: [
-        { type: "walker", name: "Snow Crawler", category: "enemy", behaviour: "walker", description: "Patrols back and forth.", defaults: { speed: 0.5 } },
-        { type: "flyer", name: "Frost Bat", category: "enemy", behaviour: "flyer", description: "Swoops toward you.", defaults: {} },
-        { type: "turret", name: "Icicle Cannon", category: "enemy", behaviour: "turret", description: "Fires icicles at you.", defaults: {} },
-        { type: "jumper", name: "Hopper", category: "enemy", behaviour: "jumper", description: "Hops toward you.", defaults: {} },
-        { type: "shielded", name: "Shield Guard", category: "enemy", behaviour: "shielded", description: "Blocks shots until it opens up.", defaults: {} },
-        { type: "dropper", name: "Icicle Dropper", category: "enemy", behaviour: "dropper", description: "Drops when you pass underneath.", defaults: {} },
-        { type: "platform", name: "Moving Platform", category: "platform", behaviour: "platform", description: "Slides back and forth.", defaults: { axis: "x", distance: 4, speed: 0.5 } },
-        { type: "small-health", name: "Small Health", category: "pickup", behaviour: "health", description: "Restores a little health.", defaults: { amount: 2 } },
-        { type: "large-health", name: "Large Health", category: "pickup", behaviour: "health", description: "Restores a lot of health.", defaults: { amount: 10 } },
-        { type: "boss", name: "Blizzard Bot", category: "boss", behaviour: "boss", description: "The stage boss.", defaults: { health: 28 } },
-    ],
-    pieces: [],
-};
+import { createProject, type Project } from "@/model";
+import { GROUND, ICE, LADDER, LEDGE, SPIKE, snowPack } from "./snow/pack";
 
 export const DEMO_LEVEL_ID = "demo";
 
@@ -116,9 +83,9 @@ const COMMANDS: Command[] = [
 
 // Builds the demo project through the same commands the editor and the AI use.
 export function createDemoProject(): Project {
-    let project = createProject({ id: "demo-project", name: "Demo" }, demoPack);
+    let project = createProject({ id: "demo-project", name: "Demo" }, snowPack);
     for (const command of COMMANDS) {
-        const result = applyCommand(project, command, { pack: demoPack });
+        const result = applyCommand(project, command, { pack: snowPack });
         if (!result.ok) throw new Error(`Demo level: ${command.name} failed: ${result.error}`);
         project = result.project;
     }

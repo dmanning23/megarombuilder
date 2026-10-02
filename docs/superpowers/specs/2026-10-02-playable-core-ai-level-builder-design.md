@@ -229,8 +229,9 @@ means adding a pack.
   stepped platforms over a pit, enemy gauntlet, rest area with pickup.
   Each piece is a function from whole-number settings (width, height, difficulty
   1 to 3), each with a declared range, to a block of tiles and things.
-- **Art:** simple original pixel art generated for the project, stored as PNG
-  sheets in `public/packs/snow/`.
+- **Art:** simple original pixel art, written as text pixel maps (one character
+  per pixel, through a shared palette) in `src/content/snow/art.ts`, and painted
+  to canvases when the game starts.
 
 ## 4. Commands
 
