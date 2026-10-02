@@ -2,6 +2,8 @@ import type { ContentPack } from "@/model/contentPack";
 import { TILE_SIZE } from "@/model/geometry";
 import type { Level, PlayerSettings, Project } from "@/model/schema";
 import { PLAYER_H, PLAYER_W } from "./constants";
+import { loadZoneThings } from "./entities/slots";
+import type { EnemyShot, Slot } from "./entities/types";
 import { clamp } from "./math";
 import { createTileMap, touchingLadder, type TileMap } from "./tilemap";
 
@@ -35,13 +37,17 @@ export type Player = {
   onIce: boolean;
   onLadder: boolean;
   health: number;
+  hurt: number; // steps left of being knocked back
+  invuln: number; // steps left of not being hurt
+  knockback: 1 | -1;
+  ridingId: string | null; // the platform the player is standing on
 };
 
 export type Shot = { x: number; y: number; vx: number };
 
 export type Camera = { x: number; y: number };
 
-export type Phase = "play" | "transition" | "dead";
+export type Phase = "play" | "transition" | "dead" | "won";
 
 export type Transition = {
   fromIndex: number;
@@ -63,6 +69,9 @@ export type Sim = {
   respawn: { zoneIndex: number; x: number; y: number };
   prev: Input;
   steps: number;
+  slots: Slot[];
+  enemyShots: EnemyShot[];
+  collected: Set<string>;
 };
 
 // Where the player appears at a zone's entry. `carry` is how far along the previous
@@ -105,9 +114,13 @@ export function createSim(
     onIce: false,
     onLadder: false,
     health: project.player.maxHealth,
+    hurt: 0,
+    invuln: 0,
+    knockback: 1,
+    ridingId: null,
   };
   player.onLadder = touchingLadder(map, player);
-  return {
+  const sim: Sim = {
     level,
     pack,
     settings: project.player,
@@ -121,5 +134,10 @@ export function createSim(
     respawn: { zoneIndex, ...start },
     prev: NO_INPUT,
     steps: 0,
+    slots: [],
+    enemyShots: [],
+    collected: new Set(),
   };
+  loadZoneThings(sim);
+  return sim;
 }

@@ -6,10 +6,22 @@ export type TileDef = { id: number; name: string; behaviour: TileBehaviour };
 
 export type ThingCategory = "enemy" | "pickup" | "platform" | "boss" | "marker";
 
+export type ThingBehaviour =
+  | "walker"
+  | "flyer"
+  | "turret"
+  | "jumper"
+  | "shielded"
+  | "dropper"
+  | "platform"
+  | "health"
+  | "boss";
+
 export type ThingDef = {
   type: string;
   name: string;
   category: ThingCategory;
+  behaviour: ThingBehaviour;
   description: string;
   defaults: ThingSettings;
 };

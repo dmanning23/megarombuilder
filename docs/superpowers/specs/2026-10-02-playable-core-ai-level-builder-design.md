@@ -219,7 +219,9 @@ means adding a pack.
   | dropper | Hangs from ceilings; drops when the player passes below |
 
 - **Other things:** moving platform (horizontal or vertical path), small and
-  large health pickup, checkpoint marker, boss door.
+  large health pickup. Checkpoints are level data, not things. There is no boss
+  door thing: the boss room's entry is the door, since zones never lead back,
+  and the boss waits through a short intro.
 - **Boss:** "Blizzard Bot", an original placeholder with three attack patterns
   (jump across the room, three-way ice shot, sliding dash) chosen in sequence.
 - **Pieces:** flat run, staircase up, staircase down, gap, spike pit, spike pit

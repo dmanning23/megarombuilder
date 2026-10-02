@@ -1,11 +1,11 @@
 import { createLevel, createProject, createZone } from "@/model/factory";
 import type { Opening } from "@/model/geometry";
-import type { Checkpoint, Project, Zone } from "@/model/schema";
+import type { Checkpoint, Project, Thing, Zone } from "@/model/schema";
 import { testPack } from "../fixtures/testPack";
 
 const GLYPHS: Record<string, number> = { ".": 0, "#": 1, H: 2, "^": 3, "~": 4, "=": 5 };
 
-export type ZoneArt = { art: string[]; entry?: Opening; exit?: Opening | null };
+export type ZoneArt = { art: string[]; entry?: Opening; exit?: Opening | null; things?: Thing[] };
 
 // A row of empty tiles with the given glyphs at the given columns.
 export function rowWith(cells: Record<number, string>, width = 16): string {
@@ -20,7 +20,17 @@ export function flatArt(overrides: Record<number, string> = {}, screens = 1): st
   return Array.from({ length: 15 }, (_, y) => overrides[y] ?? (y >= 13 ? "#" : ".").repeat(width));
 }
 
-function zoneFromArt(base: Zone, { art, entry, exit }: ZoneArt): Zone {
+// A thing at tile (x, y). Its id is "<type>-<x>-<y>".
+export function thing(
+  type: string,
+  x: number,
+  y: number,
+  settings: Thing["settings"] = {},
+): Thing {
+  return { id: `${type}-${x}-${y}`, type, x, y, settings };
+}
+
+function zoneFromArt(base: Zone, { art, entry, exit, things }: ZoneArt): Zone {
   const vertical = art.length > 15;
   const width = art[0].length;
   const screens = vertical ? art.length / 15 : width / 16;
@@ -42,6 +52,7 @@ function zoneFromArt(base: Zone, { art, entry, exit }: ZoneArt): Zone {
     tiles,
     entry: entry ?? base.entry,
     exit: exit === undefined ? base.exit : exit,
+    things: things ?? base.things,
   };
 }
 

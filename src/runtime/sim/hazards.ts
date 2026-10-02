@@ -1,5 +1,6 @@
 import { TILE_SIZE } from "@/model/geometry";
 import { RESPAWN_STEPS } from "./constants";
+import { loadZoneThings } from "./entities/slots";
 import type { Sim } from "./state";
 import {
   createTileMap,
@@ -48,7 +49,11 @@ export function respawn(sim: Sim): void {
   p.onIce = false;
   p.onLadder = touchingLadder(sim.map, p);
   p.health = sim.settings.maxHealth;
+  p.hurt = 0;
+  p.invuln = 0;
+  p.ridingId = null;
   sim.shots = [];
+  loadZoneThings(sim);
   sim.phase = "play";
   sim.timer = 0;
 }

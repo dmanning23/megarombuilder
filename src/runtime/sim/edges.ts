@@ -1,5 +1,6 @@
 import { TILE_SIZE } from "@/model/geometry";
 import { TRANSITION_STEPS } from "./constants";
+import { loadZoneThings } from "./entities/slots";
 import { kill } from "./hazards";
 import { entryPosition, type Sim, type Transition } from "./state";
 import { createTileMap, touchingLadder } from "./tilemap";
@@ -19,8 +20,10 @@ function leave(sim: Sim, direction: Transition["direction"], carry: number): voi
   p.vy = 0;
   p.onGround = false;
   p.onIce = false;
+  p.ridingId = null;
   p.onLadder = touchingLadder(sim.map, p);
   sim.shots = [];
+  loadZoneThings(sim);
   sim.phase = "transition";
   sim.timer = TRANSITION_STEPS;
 }

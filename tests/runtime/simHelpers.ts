@@ -1,4 +1,5 @@
 import type { Checkpoint } from "@/model/schema";
+import type { Entity } from "@/runtime/sim/entities/types";
 import { createSim, NO_INPUT, type Input, type Sim } from "@/runtime/sim/state";
 import { step } from "@/runtime/sim/step";
 import { testPack } from "../fixtures/testPack";
@@ -41,4 +42,9 @@ export function standOn(sim: Sim, tx: number, ty: number): void {
   p.vy = 0;
   p.onLadder = false;
   step(sim, press());
+}
+
+// The live entity for the first thing of this type in the current zone, if it exists.
+export function entity(sim: Sim, type: string): Entity | null {
+  return sim.slots.find((s) => s.thing.type === type)?.entity ?? null;
 }
