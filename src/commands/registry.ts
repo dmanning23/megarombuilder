@@ -4,6 +4,7 @@ import { zoneCommands } from "./zones";
 import { tileCommands } from "./tiles";
 import { thingCommands } from "./things";
 import { checkpointCommands } from "./checkpoints";
+import { pieceCommands } from "./pieces";
 import {
   fail,
   type Command,
@@ -18,6 +19,7 @@ export const commandDefs: CommandDef[] = [
   ...tileCommands,
   ...thingCommands,
   ...checkpointCommands,
+  ...pieceCommands,
 ];
 
 const byName = new Map(commandDefs.map((def) => [def.name, def]));
