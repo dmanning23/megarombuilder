@@ -4,26 +4,32 @@ import { useEffect, useRef } from "react";
 import type { ContentPack } from "@/model/contentPack";
 import type { Project } from "@/model/schema";
 import { createSim, SCREEN_H, SCREEN_W, step } from "@/runtime/sim";
-import { draw } from "./draw";
+import type { ArtSet } from "./art";
+import { draw, type Skin } from "./draw";
 import { createKeyboard } from "./keyboard";
 import { stepsFor } from "./loop";
+import { browserCanvas, createSpriteCache } from "./sprites";
 
 type Props = {
   project: Project;
   levelId: string;
   pack: ContentPack;
+  art?: ArtSet;
   startZoneId?: string;
   scale?: number;
 };
 
 // Runs a level on a canvas until unmounted.
-export function PlayCanvas({ project, levelId, pack, startZoneId, scale = 3 }: Props) {
+export function PlayCanvas({ project, levelId, pack, art, startZoneId, scale = 3 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
     const ctx = canvasRef.current?.getContext("2d");
     if (!ctx) return;
     const sim = createSim(project, levelId, pack, { startZoneId });
+    const skin: Skin | undefined = art
+      ? { set: art, image: createSpriteCache(art.palette, browserCanvas) }
+      : undefined;
     const keyboard = createKeyboard(window);
     let accumulator = 0;
     let last = performance.now();
@@ -34,7 +40,7 @@ export function PlayCanvas({ project, levelId, pack, startZoneId, scale = 3 }: P
       last = now;
       accumulator = due.accumulator;
       for (let i = 0; i < due.steps; i++) step(sim, keyboard.read());
-      draw(ctx, sim);
+      draw(ctx, sim, skin);
       frame = requestAnimationFrame(tick);
     };
     frame = requestAnimationFrame(tick);
@@ -43,7 +49,7 @@ export function PlayCanvas({ project, levelId, pack, startZoneId, scale = 3 }: P
       cancelAnimationFrame(frame);
       keyboard.dispose();
     };
-  }, [project, levelId, pack, startZoneId]);
+  }, [project, levelId, pack, art, startZoneId]);
 
   return (
     <canvas
