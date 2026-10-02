@@ -1,5 +1,5 @@
 import { moveX, moveY, type Body } from "../body";
-import { ENEMY_GRAVITY, ENEMY_MAX_FALL } from "../constants";
+import { ENEMY_GRAVITY, ENEMY_MAX_FALL, ENEMY_SHOT_SIZE } from "../constants";
 import type { Sim } from "../state";
 import { firstTile, isPlatform, isSolid, type TileMap } from "../tilemap";
 import type { Entity } from "./types";
@@ -30,4 +30,15 @@ export function patrol(sim: Sim, e: Entity, speed: number): void {
   moveX(sim.map, e, e.vx);
   if (e.vx === 0 && speed !== 0) e.facing = e.facing > 0 ? -1 : 1; // walked into a wall
   fall(sim.map, e);
+}
+
+// Fires an enemy shot from the entity's centre.
+export function fireAt(sim: Sim, e: Entity, vx: number, vy: number, damage: number): void {
+  sim.enemyShots.push({
+    x: e.x + e.w / 2 - ENEMY_SHOT_SIZE / 2,
+    y: e.y + e.h / 2 - ENEMY_SHOT_SIZE / 2,
+    vx,
+    vy,
+    damage,
+  });
 }

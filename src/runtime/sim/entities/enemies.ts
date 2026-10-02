@@ -1,7 +1,7 @@
 import type { ThingBehaviour } from "@/model/contentPack";
 import { moveX } from "../body";
 import type { Sim } from "../state";
-import { fall, patrol, towardPlayer } from "./motion";
+import { fall, fireAt, patrol, towardPlayer } from "./motion";
 import { num, type Entity } from "./types";
 
 type Update = (sim: Sim, e: Entity) => void;
@@ -49,7 +49,48 @@ const dropper: Update = (sim, e) => {
   patrol(sim, e, num(e.settings, "speed", 0.75));
 };
 
-const BEHAVIOURS: Partial<Record<ThingBehaviour, Update>> = { walker, flyer, jumper, dropper };
+const turret: Update = (sim, e) => {
+  const p = sim.player;
+  const dx = p.x + p.w / 2 - (e.x + e.w / 2);
+  const dy = p.y + p.h / 2 - (e.y + e.h / 2);
+  e.facing = dx < 0 ? -1 : 1;
+  e.timer++;
+  if (e.timer < num(e.settings, "interval", 90)) return;
+  e.timer = 0;
+  if (Math.abs(dx) > num(e.settings, "range", 160)) return;
+  const speed = num(e.settings, "shotSpeed", 2);
+  const distance = Math.hypot(dx, dy) || 1;
+  fireAt(sim, e, (dx / distance) * speed, (dy / distance) * speed, num(e.settings, "shotDamage", 2));
+};
+
+const shielded: Update = (sim, e) => {
+  e.timer++;
+  if (e.mode === "open") {
+    fall(sim.map, e);
+    if (e.timer >= num(e.settings, "openSteps", 30)) {
+      e.mode = "walk";
+      e.timer = 0;
+    }
+    return;
+  }
+  patrol(sim, e, num(e.settings, "speed", 0.4));
+  if (e.timer >= num(e.settings, "interval", 120)) {
+    e.mode = "open";
+    e.timer = 0;
+    e.facing = towardPlayer(sim, e);
+    const speed = num(e.settings, "shotSpeed", 2);
+    fireAt(sim, e, e.facing * speed, 0, num(e.settings, "shotDamage", 2));
+  }
+};
+
+const BEHAVIOURS: Partial<Record<ThingBehaviour, Update>> = {
+  walker,
+  flyer,
+  turret,
+  jumper,
+  shielded,
+  dropper,
+};
 
 export function updateEntities(sim: Sim): void {
   for (const slot of sim.slots) {
