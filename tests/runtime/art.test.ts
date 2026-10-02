@@ -6,7 +6,11 @@ import {
   spriteProblems,
   type ArtSet,
   type Sprite,
+  playerPose,
+  thingFrame,
 } from "@/runtime/render/art";
+import type { Entity } from "@/runtime/sim/entities/types";
+import type { Player } from "@/runtime/sim/state";
 import { testPack } from "../fixtures/testPack";
 
 const palette = { k: "#000000", w: "#ffffff" };
@@ -88,5 +92,90 @@ describe("artProblems", () => {
     expect(artProblems(art, testPack)).toContain(
       'Enemy shot row 1 uses "q", which is not in the palette.',
     );
+  });
+});
+
+const player = (overrides: Partial<Player> = {}): Player => ({
+  x: 0,
+  y: 0,
+  vx: 0,
+  vy: 0,
+  w: 14,
+  h: 22,
+  facing: 1,
+  onGround: true,
+  onIce: false,
+  onLadder: false,
+  health: 28,
+  hurt: 0,
+  invuln: 0,
+  knockback: 1,
+  ridingId: null,
+  shotTimer: 0,
+  ...overrides,
+});
+
+describe("playerPose", () => {
+  it("stands, and mirrors when facing left", () => {
+    expect(playerPose(player(), 0)).toEqual({ pose: "stand", flip: false });
+    expect(playerPose(player({ facing: -1 }), 0)).toEqual({ pose: "stand", flip: true });
+  });
+
+  it("shows shooting poses while the shot timer runs", () => {
+    expect(playerPose(player({ shotTimer: 5 }), 0).pose).toBe("standShoot");
+    expect(playerPose(player({ shotTimer: 5, onGround: false }), 0).pose).toBe("jumpShoot");
+  });
+
+  it("alternates run frames every 6 steps", () => {
+    expect(playerPose(player({ vx: 1.375 }), 0).pose).toBe("run1");
+    expect(playerPose(player({ vx: 1.375 }), 6).pose).toBe("run2");
+    expect(playerPose(player({ vx: 1.375 }), 12).pose).toBe("run1");
+  });
+
+  it("jumps in the air", () => {
+    expect(playerPose(player({ onGround: false }), 0).pose).toBe("jump");
+  });
+
+  it("climbs, mirroring every 8 pixels whichever way the player faces", () => {
+    expect(playerPose(player({ onLadder: true, y: 0, facing: -1 }), 0)).toEqual({ pose: "climb", flip: false });
+    expect(playerPose(player({ onLadder: true, y: 8 }), 0)).toEqual({ pose: "climb", flip: true });
+  });
+
+  it("shows the hurt pose above everything else", () => {
+    expect(playerPose(player({ hurt: 3, onLadder: true, shotTimer: 4 }), 0).pose).toBe("hurt");
+  });
+});
+
+describe("thingFrame", () => {
+  const thing = (overrides: Partial<Entity>): Entity => ({
+    x: 0, y: 0, w: 14, h: 14, vx: 0, vy: 0, onGround: true, onIce: false,
+    id: "t", type: "walker", behaviour: "walker", facing: 1, health: 1, mode: "walk",
+    timer: 0, attack: 0, homeX: 0, homeY: 0, dx: 0, dy: 0, flash: 0, settings: {},
+    ...overrides,
+  });
+
+  it("cycles ordinary things every 8 steps", () => {
+    expect(thingFrame(thing({}), 0, 2)).toBe(0);
+    expect(thingFrame(thing({}), 8, 2)).toBe(1);
+    expect(thingFrame(thing({}), 16, 2)).toBe(0);
+    expect(thingFrame(thing({}), 99, 1)).toBe(0);
+  });
+
+  it("follows the state of shielded, dropping and jumping enemies", () => {
+    expect(thingFrame(thing({ behaviour: "shielded", mode: "open" }), 0, 2)).toBe(1);
+    expect(thingFrame(thing({ behaviour: "shielded", mode: "walk" }), 8, 2)).toBe(0);
+    expect(thingFrame(thing({ behaviour: "dropper", mode: "hang" }), 8, 2)).toBe(0);
+    expect(thingFrame(thing({ behaviour: "dropper", mode: "walk" }), 0, 2)).toBe(1);
+    expect(thingFrame(thing({ behaviour: "jumper", onGround: false }), 0, 2)).toBe(1);
+  });
+
+  it("shows the boss's attack", () => {
+    expect(thingFrame(thing({ behaviour: "boss", mode: "jump" }), 0, 3)).toBe(1);
+    expect(thingFrame(thing({ behaviour: "boss", mode: "shot" }), 0, 3)).toBe(2);
+    expect(thingFrame(thing({ behaviour: "boss", mode: "dash" }), 8, 3)).toBe(0);
+  });
+
+  it("never picks a frame that does not exist", () => {
+    expect(thingFrame(thing({ behaviour: "boss", mode: "shot" }), 0, 1)).toBe(0);
   });
 });

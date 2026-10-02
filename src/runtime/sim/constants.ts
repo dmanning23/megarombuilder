@@ -31,3 +31,6 @@ export const KNOCKBACK_SPEED = 0.75;
 export const BOSS_INTRO_STEPS = 60;
 export const BOSS_IDLE_STEPS = 40;
 export const BOSS_FLASH_STEPS = 20;
+
+// How long the hero is drawn in a shooting pose after firing.
+export const SHOT_POSE_STEPS = 12;

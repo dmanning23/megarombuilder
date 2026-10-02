@@ -1,5 +1,7 @@
 import type { ContentPack } from "@/model/contentPack";
 import { TILE_SIZE } from "@/model/geometry";
+import type { Entity } from "@/runtime/sim/entities/types";
+import type { Player } from "@/runtime/sim/state";
 
 // One character per pixel; "." is transparent and every other character is a palette key.
 export type Sprite = { w: number; h: number; rows: string[] };
@@ -82,4 +84,30 @@ export function artProblems(art: ArtSet, pack: ContentPack): string[] {
   check("Player shot", art.playerShot);
   check("Enemy shot", art.enemyShot);
   return problems;
+}
+
+export function playerPose(p: Player, steps: number): { pose: PlayerPose; flip: boolean } {
+  const flip = p.facing < 0;
+  if (p.hurt > 0) return { pose: "hurt", flip };
+  if (p.onLadder) return { pose: "climb", flip: Math.floor(p.y / 8) % 2 === 1 };
+  const shooting = p.shotTimer > 0;
+  if (!p.onGround) return { pose: shooting ? "jumpShoot" : "jump", flip };
+  if (p.vx !== 0) return { pose: Math.floor(steps / 6) % 2 === 0 ? "run1" : "run2", flip };
+  return { pose: shooting ? "standShoot" : "stand", flip };
+}
+
+export function thingFrame(e: Entity, steps: number, count: number): number {
+  const pick = (frame: number) => Math.min(frame, count - 1);
+  switch (e.behaviour) {
+    case "shielded":
+      return pick(e.mode === "open" ? 1 : 0);
+    case "dropper":
+      return pick(e.mode === "hang" ? 0 : 1);
+    case "jumper":
+      return pick(e.onGround ? 0 : 1);
+    case "boss":
+      return pick(e.mode === "jump" ? 1 : e.mode === "shot" ? 2 : 0);
+    default:
+      return Math.floor(steps / 8) % count;
+  }
 }

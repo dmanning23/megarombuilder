@@ -41,6 +41,7 @@ export type Player = {
   invuln: number; // steps left of not being hurt
   knockback: 1 | -1;
   ridingId: string | null; // the platform the player is standing on
+  shotTimer: number; // steps left of the shooting pose
 };
 
 export type Shot = { x: number; y: number; vx: number };
@@ -118,6 +119,7 @@ export function createSim(
     invuln: 0,
     knockback: 1,
     ridingId: null,
+    shotTimer: 0,
   };
   player.onLadder = touchingLadder(map, player);
   const sim: Sim = {

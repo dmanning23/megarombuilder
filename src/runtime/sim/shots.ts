@@ -1,4 +1,4 @@
-import { SCREEN_W, SHOT_H, SHOT_SPEED, SHOT_W } from "./constants";
+import { SCREEN_W, SHOT_H, SHOT_POSE_STEPS, SHOT_SPEED, SHOT_W } from "./constants";
 import type { Sim } from "./state";
 import { firstTile, isSolid } from "./tilemap";
 import { cameraFor } from "./view";
@@ -11,6 +11,7 @@ export function shoot(sim: Sim): void {
     y: p.y + 8,
     vx: p.facing * SHOT_SPEED,
   });
+  p.shotTimer = SHOT_POSE_STEPS;
 }
 
 // Moves shots, removing any that hit a solid tile or leave the screen.

@@ -52,6 +52,7 @@ export function respawn(sim: Sim): void {
   p.hurt = 0;
   p.invuln = 0;
   p.ridingId = null;
+  p.shotTimer = 0;
   sim.shots = [];
   loadZoneThings(sim);
   sim.phase = "play";

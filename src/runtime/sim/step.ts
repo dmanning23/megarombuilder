@@ -41,4 +41,5 @@ function playStep(sim: Sim, input: Input): void {
   if (touchingSpike(sim) || insideSolid(sim)) kill(sim);
   else checkEdges(sim);
   if (sim.player.invuln > 0) sim.player.invuln--;
+  if (sim.player.shotTimer > 0) sim.player.shotTimer--;
 }

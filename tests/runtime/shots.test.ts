@@ -4,6 +4,27 @@ import { flatArt, rowWith } from "./helpers";
 import { makeSim, run } from "./simHelpers";
 
 describe("shots", () => {
+  it("starts the shooting pose timer when a shot is fired, and counts it down", () => {
+    const sim = makeSim([{ art: flatArt() }]);
+    expect(sim.player.shotTimer).toBe(0);
+    run(sim, { shoot: true }, 1);
+    expect(sim.player.shotTimer).toBe(11);
+    run(sim, {}, 11);
+    expect(sim.player.shotTimer).toBe(0);
+  });
+
+  it("does not start the timer when no shot can be fired", () => {
+    const sim = makeSim([{ art: flatArt() }]);
+    for (let i = 0; i < 3; i++) {
+      run(sim, { shoot: true }, 1);
+      run(sim, {}, 1);
+    }
+    run(sim, {}, 20);
+    run(sim, { shoot: true }, 1);
+    expect(sim.shots).toHaveLength(3);
+    expect(sim.player.shotTimer).toBe(0);
+  });
+
   it("fires one shot in the facing direction when shoot is pressed", () => {
     const sim = makeSim([{ art: flatArt() }]);
     run(sim, {}, 1);
