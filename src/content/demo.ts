@@ -20,7 +20,18 @@ export const demoPack: ContentPack = {
     { id: SPIKE, name: "spike", behaviour: "spike" },
     { id: LEDGE, name: "ledge", behaviour: "oneWay" },
   ],
-  things: [],
+  things: [
+    { type: "walker", name: "Snow Crawler", category: "enemy", behaviour: "walker", description: "Patrols back and forth.", defaults: { speed: 0.5 } },
+    { type: "flyer", name: "Frost Bat", category: "enemy", behaviour: "flyer", description: "Swoops toward you.", defaults: {} },
+    { type: "turret", name: "Icicle Cannon", category: "enemy", behaviour: "turret", description: "Fires icicles at you.", defaults: {} },
+    { type: "jumper", name: "Hopper", category: "enemy", behaviour: "jumper", description: "Hops toward you.", defaults: {} },
+    { type: "shielded", name: "Shield Guard", category: "enemy", behaviour: "shielded", description: "Blocks shots until it opens up.", defaults: {} },
+    { type: "dropper", name: "Icicle Dropper", category: "enemy", behaviour: "dropper", description: "Drops when you pass underneath.", defaults: {} },
+    { type: "platform", name: "Moving Platform", category: "platform", behaviour: "platform", description: "Slides back and forth.", defaults: { axis: "x", distance: 4, speed: 0.5 } },
+    { type: "small-health", name: "Small Health", category: "pickup", behaviour: "health", description: "Restores a little health.", defaults: { amount: 2 } },
+    { type: "large-health", name: "Large Health", category: "pickup", behaviour: "health", description: "Restores a lot of health.", defaults: { amount: 10 } },
+    { type: "boss", name: "Blizzard Bot", category: "boss", behaviour: "boss", description: "The stage boss.", defaults: { health: 28 } },
+  ],
   pieces: [],
 };
 
@@ -30,6 +41,11 @@ const L = DEMO_LEVEL_ID;
 const fill = (zoneId: string, x: number, y: number, w: number, h: number, tile: number): Command => ({
   name: "fillRect",
   args: { levelId: L, zoneId, x, y, w, h, tile },
+});
+
+const place = (zoneId: string, thingId: string, type: string, x: number, y: number): Command => ({
+  name: "placeThing",
+  args: { levelId: L, zoneId, thingId, type, x, y },
 });
 
 const COMMANDS: Command[] = [
@@ -83,6 +99,20 @@ const COMMANDS: Command[] = [
     name: "setZoneOpenings",
     args: { levelId: L, zoneId: "shaft", exit: { edge: "right", from: 0, to: 3 } },
   },
+
+  // Things.
+  place("path", "crawler", "walker", 14, 12),
+  place("path", "health", "small-health", 22, 12),
+  place("path", "lift", "platform", 26, 8),
+  place("path", "bat", "flyer", 30, 6),
+  place("path", "hopper", "jumper", 44, 12),
+  place("cave", "health", "large-health", 5, 12),
+  place("cave", "cannon", "turret", 15, 9),
+  place("cave", "guard", "shielded", 20, 12),
+  place("cave", "dropper", "dropper", 24, 4),
+  place("shaft", "bat", "flyer", 10, 15),
+  place("corridor", "health", "small-health", 8, 12),
+  place("boss", "boss", "boss", 12, 12),
 ];
 
 // Builds the demo project through the same commands the editor and the AI use.
