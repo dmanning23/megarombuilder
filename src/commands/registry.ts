@@ -2,6 +2,8 @@ import type { Project } from "@/model/schema";
 import { levelCommands } from "./level";
 import { zoneCommands } from "./zones";
 import { tileCommands } from "./tiles";
+import { thingCommands } from "./things";
+import { checkpointCommands } from "./checkpoints";
 import {
   fail,
   type Command,
@@ -14,6 +16,8 @@ export const commandDefs: CommandDef[] = [
   ...levelCommands,
   ...zoneCommands,
   ...tileCommands,
+  ...thingCommands,
+  ...checkpointCommands,
 ];
 
 const byName = new Map(commandDefs.map((def) => [def.name, def]));
