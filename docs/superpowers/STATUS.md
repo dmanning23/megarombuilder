@@ -10,7 +10,8 @@ zone. Next.js and React, one AI proxy route, projects stored in the browser.
 
 ## Where things stand
 
-Plans 1 to 6 are implemented, reviewed and merged to `main`.
+Plans 1 to 6 are implemented, reviewed and merged to `main`. Plan 7 is written
+and awaiting review.
 
 Run `npm run dev` and open `/play` for the demo stage: running, jumping, ice,
 spikes, ladders, zone transitions, six enemy types, health pickups, a moving
@@ -30,6 +31,7 @@ tests: `npm run e2e` (builds and serves on port 3100).
 | `plans/2026-10-02-plan-4-snow-pack-and-art.md` | Plan 4, implemented, reviewed and merged |
 | `plans/2026-10-02-plan-5-pieces-and-checker.md` | Plan 5, implemented, reviewed and merged |
 | `plans/2026-10-03-plan-6-editor-core.md` | Plan 6, implemented, reviewed and merged |
+| `plans/2026-10-03-plan-7-editor-tools.md` | Plan 7, written, awaiting review |
 
 Milestone 1 is now eight plans (the editor became two):
 
@@ -46,7 +48,9 @@ Milestone 1 is now eight plans (the editor became two):
 
 1. A person needs to play `/play` through the boss fight and say whether the
    movement, enemies and boss feel right.
-2. Write plan 7 (editor tools).
+2. Review plan 7, then implement it. It also closes the JSON.parse item below
+   and two plan 6 minors (Escape in a text box while playing; SELECT in the
+   typing check), and the controls-live-during-play minor.
 3. Review findings deferred from plans 2 and 3, to decide on:
    - Player settings have no upper bounds; a run speed or fall speed of 16 or
      more passes through walls, and a ladder speed below 1 breaks climbing down
