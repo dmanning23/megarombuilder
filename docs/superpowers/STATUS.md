@@ -10,7 +10,8 @@ zone. Next.js and React, one AI proxy route, projects stored in the browser.
 
 ## Where things stand
 
-Plans 1 to 5 are implemented, reviewed and merged to `main`.
+Plans 1 to 5 are implemented, reviewed and merged to `main`. Plan 6 is written
+and awaiting review.
 
 Run `npm run dev` and open `/play` for the demo stage: running, jumping, ice,
 spikes, ladders, zone transitions, six enemy types, health pickups, a moving
@@ -27,22 +28,25 @@ lint and build are clean.
 | `plans/2026-10-02-plan-3-runtime-things.md` | Plan 3, implemented, reviewed and merged |
 | `plans/2026-10-02-plan-4-snow-pack-and-art.md` | Plan 4, implemented, reviewed and merged |
 | `plans/2026-10-02-plan-5-pieces-and-checker.md` | Plan 5, implemented, reviewed and merged |
+| `plans/2026-10-03-plan-6-editor-core.md` | Plan 6, written, awaiting review |
 
-Milestone 1 is now seven plans:
+Milestone 1 is now eight plans (the editor became two):
 
 1. Project model and commands (done)
-2. Runtime core: player, tiles, zones, camera, rendering, a playable demo level (done)
-3. Runtime things: enemies, moving platforms, pickups, boss, damage (done)
+2. Runtime core (done)
+3. Runtime things (done)
 4. Snow pack and pixel art (done)
 5. Level pieces and the checker (done)
-6. Editor UI and IndexedDB storage
-7. AI assistant: proxy route, tools, chat loop
+6. Editor core: projects, zone list, tile painting, undo, playtest
+7. Editor tools: things and pieces palettes, checker overlay and badges, zone menu, export and import
+8. AI assistant: proxy route, tools, chat loop
 
 ## Open items
 
 1. A person needs to play `/play` through the boss fight and say whether the
    movement, enemies and boss feel right.
-2. Write plan 6 (editor UI and IndexedDB storage).
+2. Review plan 6, then implement it. It also fixes two deferred items: game
+   keys typed into text boxes, and the start position in a bottom opening.
 3. Review findings deferred from plans 2 and 3, to decide on:
    - Player settings have no upper bounds; a run speed or fall speed of 16 or
      more passes through walls, and a ladder speed below 1 breaks climbing down
