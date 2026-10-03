@@ -1,6 +1,6 @@
 import type { PieceDef, PieceResult, PieceSettingDef, PieceThing } from "@/model/contentPack";
 import type { ThingSettings } from "@/model/schema";
-import { FLOOR, GROUND, LEDGE, SPIKE } from "./tiles";
+import { FLOOR, GROUND, ICE, LADDER, LEDGE, SPIKE } from "./tiles";
 
 const ROWS = 15;
 
@@ -42,6 +42,14 @@ function spikePit(g: Grid, width: number): void {
   g.ground(width + 2, width + 3, FLOOR);
   g.fill(2, FLOOR, width, 1, SPIKE);
   g.fill(2, FLOOR + 1, width, 1, GROUND);
+}
+
+// A ladder in column 2 up the face of a wall `height` tiles high that starts at column 3.
+function ladderWall(g: Grid, height: number): void {
+  const top = FLOOR - height;
+  g.ground(0, 2, FLOOR);
+  g.ground(3, g.width - 1, top);
+  g.fill(2, top, 1, height, LADDER);
 }
 
 export const snowPieces: PieceDef[] = [
@@ -114,6 +122,93 @@ export const snowPieces: PieceDef[] = [
       const g = new Grid(width + 4);
       spikePit(g, width);
       g.put("platform", 2, FLOOR - 2, { axis: "x", distance: width - 2, speed: 0.5 });
+      return g.done();
+    },
+  },
+  {
+    id: "ice-run",
+    name: "Ice run",
+    description: "A slippery ice floor. Harder versions add an enemy and then a pit.",
+    settings: [setting("width", "How many tiles long", 4, 16, 8), setting("difficulty", "1 easy, 3 hard", 1, 3, 1)],
+    build: ({ width, difficulty }) => {
+      const g = new Grid(width);
+      g.ground(0, width - 1, FLOOR);
+      g.fill(0, FLOOR, width, 1, ICE);
+      if (difficulty >= 3) {
+        const mid = Math.floor(width / 2) - 1;
+        g.fill(mid, FLOOR, 2, ROWS - FLOOR, 0);
+      }
+      if (difficulty >= 2) g.put("walker", width - 2, FLOOR - 1);
+      return g.done();
+    },
+  },
+  {
+    id: "ladder-climb",
+    name: "Ladder climb",
+    description: "A ladder up the face of a wall. The floor is higher afterwards, by the height.",
+    settings: [setting("height", "How many tiles high the wall is", 3, 6, 4)],
+    build: ({ height }) => {
+      const g = new Grid(6);
+      ladderWall(g, height);
+      return g.done(FLOOR, FLOOR - height);
+    },
+  },
+  {
+    id: "ladder-turrets",
+    name: "Ladder climb with turrets",
+    description: "A ladder up a wall, with Icicle Cannons waiting at the top.",
+    settings: [
+      setting("height", "How many tiles high the wall is", 3, 6, 4),
+      setting("difficulty", "How many cannons, 1 to 3", 1, 3, 2),
+    ],
+    build: ({ height, difficulty }) => {
+      const g = new Grid(6 + 2 * difficulty);
+      ladderWall(g, height);
+      for (let i = 0; i < difficulty; i++) g.put("turret", 5 + 2 * i, FLOOR - height - 1);
+      return g.done(FLOOR, FLOOR - height);
+    },
+  },
+  {
+    id: "stepped-platforms",
+    name: "Stepped platforms over a pit",
+    description: "A bottomless pit crossed by hopping between small ledges.",
+    settings: [setting("width", "How many tiles wide the pit is", 4, 8, 6)],
+    build: ({ width }) => {
+      const g = new Grid(width + 4);
+      g.ground(0, 1, FLOOR);
+      g.ground(width + 2, width + 3, FLOOR);
+      for (let k = 0, x = 2; x <= width + 1; k++, x += 3) {
+        g.fill(x, k % 2 === 0 ? FLOOR - 2 : FLOOR - 3, Math.min(2, width + 2 - x), 1, LEDGE);
+      }
+      return g.done();
+    },
+  },
+  {
+    id: "enemy-gauntlet",
+    name: "Enemy gauntlet",
+    description: "A stretch of floor packed with enemies. Harder versions add more kinds.",
+    settings: [setting("width", "How many tiles long", 6, 14, 10), setting("difficulty", "1 easy, 3 hard", 1, 3, 2)],
+    build: ({ width, difficulty }) => {
+      const g = new Grid(width);
+      g.ground(0, width - 1, FLOOR);
+      for (let x = 3; x < width - 1; x += 4) g.put("walker", x, FLOOR - 1);
+      if (difficulty >= 2) g.put("flyer", Math.floor(width / 2), FLOOR - 5);
+      if (difficulty >= 3) {
+        g.put("shielded", width - 2, FLOOR - 1);
+        g.put("jumper", Math.floor(width / 2) + 1, FLOOR - 1);
+      }
+      return g.done();
+    },
+  },
+  {
+    id: "rest-area",
+    name: "Rest area",
+    description: "A calm stretch with a health pickup, to recover before what comes next.",
+    settings: [setting("width", "How many tiles long", 4, 8, 5), setting("difficulty", "1 gives more health", 1, 3, 1)],
+    build: ({ width, difficulty }) => {
+      const g = new Grid(width);
+      g.ground(0, width - 1, FLOOR);
+      g.put(difficulty === 1 ? "large-health" : "small-health", Math.floor(width / 2), FLOOR - 1);
       return g.done();
     },
   },
