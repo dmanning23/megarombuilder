@@ -332,3 +332,46 @@
 .add + .add {
   margin-top: 0.5rem;
 }
+
+.settings {
+  display: grid;
+  gap: 0.7rem;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 2px solid var(--panel-2);
+}
+.settings .field {
+  color: var(--paper);
+}
+.fieldset {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0.5rem 0.6rem 0.6rem;
+  border: 2px solid var(--panel-2);
+  border-radius: 10px;
+}
+.fieldset legend {
+  padding: 0 0.3rem;
+  font-weight: 600;
+  font-size: 15px;
+}
+.note {
+  margin: 0;
+  font-size: 15px;
+  opacity: 0.85;
+}
+.row {
+  display: flex;
+  gap: 0.5rem;
+}
+.row .button {
+  flex: 1;
+  font-size: 15px;
+}
+.danger {
+  border-color: var(--warn);
+  background: transparent;
+  color: #ff9fb3;
+}
