@@ -2,6 +2,8 @@
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { projectToJson } from "@/editor/files";
+import { newProject } from "@/editor/newProject";
 import { ProjectsHome } from "@/editor/ProjectsHome";
 import type { Project } from "@/model/schema";
 
@@ -61,5 +63,29 @@ describe("ProjectsHome", () => {
     await userEvent.click(remove);
     expect(confirm).toHaveBeenLastCalledWith('Delete "Snow Fortress"? This can\'t be undone.');
     await waitFor(() => expect(store.remove).toHaveBeenCalledWith("a"));
+  });
+});
+
+describe("importing", () => {
+  it("imports a game file as a new game and opens it", async () => {
+    const { store, navigate, makeId } = setup();
+    render(<ProjectsHome store={store} navigate={navigate} makeId={makeId} />);
+    let k = 0;
+    const game = newProject("Shared Game", () => `original-${++k}`);
+    const file = new File([projectToJson(game)], "shared-game.megarom.json", { type: "application/json" });
+    await userEvent.upload(screen.getByLabelText("Import a game file"), file);
+    await waitFor(() => expect(navigate).toHaveBeenCalledWith("/edit/id-1"));
+    expect(store.save.mock.calls[0][0]).toMatchObject({ id: "id-1", name: "Shared Game" });
+  });
+
+  it("explains a file that isn't a game and saves nothing", async () => {
+    const { store, navigate, makeId } = setup();
+    render(<ProjectsHome store={store} navigate={navigate} makeId={makeId} />);
+    const file = new File(["not a game"], "notes.json", { type: "application/json" });
+    await userEvent.upload(screen.getByLabelText("Import a game file"), file);
+    expect((await screen.findByRole("alert")).textContent).toBe(
+      "That file can't be opened. This file isn't a MegaRomBuilder game.",
+    );
+    expect(store.save).not.toHaveBeenCalled();
   });
 });

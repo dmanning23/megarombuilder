@@ -2,9 +2,11 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { getPack } from "@/content/packs";
 import type { Project } from "@/model/schema";
 import { deleteProject, listProjects, saveProject, type ProjectSummary } from "@/storage/projects";
 import styles from "./home.module.css";
+import { readProjectText } from "./files";
 import { copyOfDemo, newProject } from "./newProject";
 
 type Store = {
@@ -33,6 +35,7 @@ export function ProjectsHome({
 }: Props) {
   const [games, setGames] = useState<ProjectSummary[] | null>(null);
   const [name, setName] = useState("");
+  const [importError, setImportError] = useState<string | null>(null);
 
   useEffect(() => {
     store.list().then(setGames, () => setGames([]));
@@ -67,7 +70,34 @@ export function ProjectsHome({
         <button type="button" className={styles.secondary} onClick={() => void open(copyOfDemo(makeId))}>
           Start from the demo stage
         </button>
+        <label className={styles.secondary}>
+          Import a game file
+          <input
+            type="file"
+            accept=".json,application/json"
+            className={styles.hiddenInput}
+            onChange={async (e) => {
+              const input = e.currentTarget;
+              const file = input.files?.[0];
+              if (!file) return;
+              const result = readProjectText(await file.text(), getPack, makeId);
+              input.value = "";
+              if (!result.ok) {
+                setImportError(result.error);
+                return;
+              }
+              setImportError(null);
+              await open(result.project);
+            }}
+          />
+        </label>
       </form>
+
+      {importError && (
+        <p className={styles.alert} role="alert">
+          That file can&apos;t be opened. {importError}
+        </p>
+      )}
 
       {games && games.length === 0 && <p>No games yet. Make one to start building.</p>}
       {games && games.length > 0 && (

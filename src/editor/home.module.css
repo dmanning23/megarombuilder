@@ -87,3 +87,22 @@
   outline: 3px solid var(--signal);
   outline-offset: 2px;
 }
+
+.hiddenInput {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+.secondary:focus-within {
+  outline: 3px solid var(--signal);
+  outline-offset: 2px;
+}
+.alert {
+  margin: 1rem 0 0;
+  padding: 0.6rem 0.9rem;
+  border-radius: 10px;
+  background: var(--warn);
+  color: #fff;
+  font-weight: 600;
+}
