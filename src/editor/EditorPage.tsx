@@ -31,6 +31,7 @@ export function EditorPage({ projectId, store = browserStore, home = "/" }: { pr
         if (!live) return;
         if (!result) setLoaded({ kind: "missing" });
         else if (!result.ok) setLoaded({ kind: "broken", error: result.error });
+        else if (result.project.levels.length === 0) setLoaded({ kind: "broken", error: "it has no levels." });
         else setLoaded({ kind: "ready", project: result.project });
       },
       (error: unknown) => live && setLoaded({ kind: "broken", error: String(error) }),

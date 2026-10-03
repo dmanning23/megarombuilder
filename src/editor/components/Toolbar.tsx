@@ -4,7 +4,7 @@ import styles from "../editor.module.css";
 
 type Props = {
   title: string;
-  saveState: "saved" | "saving" | "error";
+  saveState: "saved" | "saving" | "error" | "elsewhere";
   canUndo: boolean;
   canRedo: boolean;
   onUndo(): void;
@@ -13,14 +13,19 @@ type Props = {
   onPlayFromZone(): void;
 };
 
-const SAVE_TEXT = { saved: "Saved", saving: "Saving…", error: "Couldn't save. Keep this tab open." };
+const SAVE_TEXT = {
+  saved: "Saved",
+  saving: "Saving…",
+  error: "Couldn't save. Keep this tab open.",
+  elsewhere: "Not saving: open in another tab",
+};
 
 export function Toolbar({ title, saveState, canUndo, canRedo, onUndo, onRedo, onPlay, onPlayFromZone }: Props) {
   return (
     <header className={styles.toolbar}>
       <h1 className={styles.title}>{title}</h1>
       <span
-        className={`${styles.saveState} ${saveState === "error" ? styles.saveError : ""}`}
+        className={`${styles.saveState} ${saveState === "error" || saveState === "elsewhere" ? styles.saveError : ""}`}
         role="status"
       >
         {SAVE_TEXT[saveState]}

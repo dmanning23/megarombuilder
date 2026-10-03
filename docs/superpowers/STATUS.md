@@ -10,15 +10,16 @@ zone. Next.js and React, one AI proxy route, projects stored in the browser.
 
 ## Where things stand
 
-Plans 1 to 5 are implemented, reviewed and merged to `main`. Plan 6 is written
-and awaiting review.
+Plans 1 to 6 are implemented, reviewed and merged to `main`.
 
 Run `npm run dev` and open `/play` for the demo stage: running, jumping, ice,
 spikes, ladders, zone transitions, six enemy types, health pickups, a moving
 platform and the Blizzard Bot boss fight, drawn with the snow pack's pixel art.
-The level checker and the twelve snow level pieces exist but have no screen yet;
-the editor (plan 6) and the AI (plan 7) will use them. 442 tests pass; typecheck,
-lint and build are clean.
+Run `npm run dev` and open the home page to make a game, paint its zones with the
+snow tiles, rename and add zones, undo and redo, and playtest; games are saved in
+the browser. The checker and the twelve level pieces have no screen yet (plan 7).
+516 tests and 3 browser tests pass; typecheck, lint and build are clean. Browser
+tests: `npm run e2e` (builds and serves on port 3100).
 
 | Document | State |
 |---|---|
@@ -28,7 +29,7 @@ lint and build are clean.
 | `plans/2026-10-02-plan-3-runtime-things.md` | Plan 3, implemented, reviewed and merged |
 | `plans/2026-10-02-plan-4-snow-pack-and-art.md` | Plan 4, implemented, reviewed and merged |
 | `plans/2026-10-02-plan-5-pieces-and-checker.md` | Plan 5, implemented, reviewed and merged |
-| `plans/2026-10-03-plan-6-editor-core.md` | Plan 6, written, awaiting review |
+| `plans/2026-10-03-plan-6-editor-core.md` | Plan 6, implemented, reviewed and merged |
 
 Milestone 1 is now eight plans (the editor became two):
 
@@ -37,7 +38,7 @@ Milestone 1 is now eight plans (the editor became two):
 3. Runtime things (done)
 4. Snow pack and pixel art (done)
 5. Level pieces and the checker (done)
-6. Editor core: projects, zone list, tile painting, undo, playtest
+6. Editor core: projects, zone list, tile painting, undo, playtest (done)
 7. Editor tools: things and pieces palettes, checker overlay and badges, zone menu, export and import
 8. AI assistant: proxy route, tools, chat loop
 
@@ -45,8 +46,7 @@ Milestone 1 is now eight plans (the editor became two):
 
 1. A person needs to play `/play` through the boss fight and say whether the
    movement, enemies and boss feel right.
-2. Review plan 6, then implement it. It also fixes two deferred items: game
-   keys typed into text boxes, and the start position in a bottom opening.
+2. Write plan 7 (editor tools).
 3. Review findings deferred from plans 2 and 3, to decide on:
    - Player settings have no upper bounds; a run speed or fall speed of 16 or
      more passes through walls, and a ladder speed below 1 breaks climbing down
@@ -55,9 +55,6 @@ Milestone 1 is now eight plans (the editor became two):
      Validation forbids it on a boss room, but the runtime does not check.
    - A start zone with an unsafe entry is an endless death loop with no message.
    - The player can climb or jump above the top of the screen and walk there.
-   - The keyboard handler blocks arrows, Z and X for the whole window, which
-     will stop typing in the editor and chat (plan 5). It should ignore events
-     from text fields and with Cmd/Ctrl/Alt held.
    - A bad level or zone id in `PlayCanvas` shows a generic error screen.
    - Shots freeze in mid-air during the death pause.
    - Checkpoints trigger through walls.
@@ -76,10 +73,13 @@ Milestone 1 is now eight plans (the editor became two):
      top of the screen; difficulty divides by screens (a wider piece can score
      lower) and pits dominate the score; the boss room counts as passable once
      the player comes to rest, without checking they reach the arena floor.
-   - Starting play directly in a zone entered from below centres the player
-     on the line between the opening's two columns, so a ladder in the first
-     column is missed and the player falls. Matters for "Play from this zone"
-     in the editor (plan 6).
+   - Editor: Escape in the rename box while playing also stops playing; focus
+     drops to the page after renaming and after stopping play; F2 is the only
+     keyboard way to rename and does not select the name; right and middle
+     clicks paint; Undo, Redo, rename and Add a zone stay live during play and
+     restart the game; no automated test for interrupted strokes; the home
+     page hides a failed save, shows "No games yet" if listing fails, and a
+     double click on Make creates two games.
    - Art: the hurt pose floats 2px above the ground; one row of the Frost
      Bat's second frame is a pixel short; platforms and pickups mirror
      depending on which side the player approached from; the large health

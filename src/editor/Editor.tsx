@@ -44,23 +44,83 @@ export function Editor({ initial, store, makeId = () => crypto.randomUUID(), sav
   const zone = currentZone(state);
   const strokeOpen = state.history.open !== null;
 
-  // Save a little while after the project last changed, never in the middle of a stroke.
-  // Compared with what was last saved, so undoing back to how the game was opened saves too.
+  // Saving. A change is saved a little while after the project last changed (never in the middle
+  // of a stroke), and at once when the page is hidden or the editor closes, so the last change is
+  // never lost. If the game is opened in another tab, this tab stops saving so neither overwrites
+  // the other.
   const lastSaved = useRef(project);
+  const pending = useRef<Project | null>(null);
+  const elsewhere = useRef(false);
+  const saveRef = useRef(store.save);
   useEffect(() => {
-    if (project === lastSaved.current || strokeOpen) return;
+    saveRef.current = store.save;
+  }, [store]);
+  const [openElsewhere, setOpenElsewhere] = useState(false);
+
+  const flush = useCallback(() => {
+    const next = pending.current;
+    if (!next || elsewhere.current) return;
+    pending.current = null;
+    Promise.resolve(saveRef.current(next)).then(
+      () => {
+        lastSaved.current = next;
+        setSaveState(pending.current ? "saving" : "saved");
+      },
+      () => {
+        pending.current ??= next;
+        setSaveState("error");
+      },
+    );
+  }, []);
+
+  useEffect(() => {
+    if (strokeOpen) return;
+    if (project === lastSaved.current) {
+      pending.current = null; // undone back to what is saved
+      setSaveState("saved");
+      return;
+    }
+    pending.current = project;
     setSaveState("saving");
-    const timer = setTimeout(() => {
-      store.save(project).then(
-        () => {
-          lastSaved.current = project;
-          setSaveState("saved");
-        },
-        () => setSaveState("error"),
-      );
-    }, saveDelay);
+    const timer = setTimeout(flush, saveDelay);
     return () => clearTimeout(timer);
-  }, [project, strokeOpen, store, saveDelay]);
+  }, [project, strokeOpen, saveDelay, flush]);
+
+  useEffect(() => {
+    const onHidden = () => {
+      if (document.visibilityState === "hidden") flush();
+    };
+    const onLeave = (e: BeforeUnloadEvent) => {
+      flush();
+      if (pending.current) e.preventDefault();
+    };
+    document.addEventListener("visibilitychange", onHidden);
+    window.addEventListener("pagehide", flush);
+    window.addEventListener("beforeunload", onLeave);
+    return () => {
+      document.removeEventListener("visibilitychange", onHidden);
+      window.removeEventListener("pagehide", flush);
+      window.removeEventListener("beforeunload", onLeave);
+      flush();
+    };
+  }, [flush]);
+
+  // The newest tab to open a game keeps it; any older tab stops saving and says why.
+  const gameId = initial.id;
+  useEffect(() => {
+    if (typeof BroadcastChannel === "undefined") return;
+    const channel = new BroadcastChannel("megarombuilder-editors");
+    const tab = makeId();
+    channel.onmessage = (e: MessageEvent<{ gameId: string; tab: string }>) => {
+      if (e.data?.gameId !== gameId || e.data.tab === tab) return;
+      elsewhere.current = true;
+      setOpenElsewhere(true);
+    };
+    channel.postMessage({ gameId, tab });
+    return () => channel.close();
+    // makeId is only used for a token; a new one each render must not reopen the channel
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [gameId]);
 
   // Keyboard: undo and redo, and Escape to stop playing.
   useEffect(() => {
@@ -107,7 +167,7 @@ export function Editor({ initial, store, makeId = () => crypto.randomUUID(), sav
     <div className={styles.app}>
       <Toolbar
         title={project.name}
-        saveState={saveState}
+        saveState={openElsewhere ? "elsewhere" : saveState}
         canUndo={canUndo(state.history)}
         canRedo={canRedo(state.history)}
         onUndo={() => dispatch({ type: "undo" })}
@@ -140,6 +200,12 @@ export function Editor({ initial, store, makeId = () => crypto.randomUUID(), sav
       ) : (
         <main className={styles.work}>
           <div className={styles.stage}>
+            {openElsewhere && (
+              <p className={styles.alert} role="alert">
+                This game is open in another tab, so changes here aren&apos;t saved. Keep building in the
+                other tab.
+              </p>
+            )}
             {state.error && (
               <p className={styles.alert} role="alert">
                 {state.error}
