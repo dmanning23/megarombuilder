@@ -20,7 +20,7 @@ describe("Editor", () => {
     render(<Editor initial={newProject("Snow Fortress", makeId)} store={{ save: vi.fn() }} />);
     expect(screen.getByRole("heading", { name: "Snow Fortress" })).toBeTruthy();
     expect(screen.getByRole("list", { name: "Zones" })).toBeTruthy();
-    expect(screen.getByRole("toolbar", { name: "Tiles" })).toBeTruthy();
+    expect(screen.getByRole("tablist", { name: "Palette" })).toBeTruthy();
     expect(screen.getByLabelText("Zone 1, 1 screen")).toBeTruthy();
   });
 

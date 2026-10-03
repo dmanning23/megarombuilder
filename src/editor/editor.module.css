@@ -158,12 +158,66 @@
   box-shadow: 0 0 0 3px var(--ink);
 }
 .palette {
+  padding: 0.6rem 1rem 0.75rem;
+  border-top: 3px solid var(--ink);
+  background: #dde4ee;
+}
+.tabs {
+  display: flex;
+  gap: 0.25rem;
+  margin-bottom: 0.6rem;
+}
+.tab {
+  font: inherit;
+  font-weight: 600;
+  font-size: 15px;
+  padding: 0.3rem 0.8rem;
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+}
+.tab[aria-selected="true"] {
+  background: var(--ink);
+  color: var(--paper);
+}
+.tab:focus-visible,
+.field select:focus-visible,
+.field textarea:focus-visible {
+  outline: 3px solid var(--signal);
+  outline-offset: 2px;
+}
+.choices {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
-  padding: 0.75rem 1rem;
-  border-top: 3px solid var(--ink);
-  background: #dde4ee;
+}
+.pieceSettings {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.25rem;
+  align-items: end;
+  margin-top: 0.6rem;
+}
+.pieceSettings p {
+  flex-basis: 100%;
+  margin: 0;
+}
+.field {
+  display: grid;
+  gap: 0.2rem;
+  font-size: 15px;
+  font-weight: 600;
+}
+.field select,
+.field textarea {
+  font: inherit;
+  font-weight: 400;
+  font-size: 15px;
+  padding: 0.3rem 0.4rem;
+  border-radius: 8px;
+  border: 2px solid var(--panel-2);
 }
 .swatch {
   display: flex;
@@ -186,6 +240,7 @@
 .swatchArt {
   width: 32px;
   height: 32px;
+  object-fit: contain;
   image-rendering: pixelated;
   background: var(--panel);
   border-radius: 4px;

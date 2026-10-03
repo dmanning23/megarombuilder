@@ -18,18 +18,51 @@ const makeId = () => `id-${++n}`;
 const level = newProject("Parts", makeId).levels[0];
 
 describe("Palette", () => {
-  it("offers every tile and erase, showing which is chosen", async () => {
+  function setup(tool: Parameters<typeof Palette>[0]["tool"] = { kind: "tile", tile: GROUND }) {
     const onTool = vi.fn();
-    render(<Palette pack={snowPack} art={snowArt} tool={{ kind: "tile", tile: GROUND }} onTool={onTool} />);
+    const view = render(<Palette pack={snowPack} art={snowArt} tool={tool} onTool={onTool} />);
+    return { onTool, rerender: (t: typeof tool) => view.rerender(<Palette pack={snowPack} art={snowArt} tool={t} onTool={onTool} />) };
+  }
+
+  it("starts on the tiles, showing which is chosen", async () => {
+    const { onTool } = setup();
+    expect(screen.getByRole("tab", { name: "Tiles" }).getAttribute("aria-selected")).toBe("true");
     for (const name of ["Ground", "Ice", "Ladder", "Spike", "Ledge", "Erase"]) {
       expect(screen.getByRole("button", { name })).toBeTruthy();
     }
     expect(screen.getByRole("button", { name: "Ground" }).getAttribute("aria-pressed")).toBe("true");
-    expect(screen.getByRole("button", { name: "Spike" }).getAttribute("aria-pressed")).toBe("false");
     await userEvent.click(screen.getByRole("button", { name: "Spike" }));
     expect(onTool).toHaveBeenCalledWith({ kind: "tile", tile: SPIKE });
     await userEvent.click(screen.getByRole("button", { name: "Erase" }));
     expect(onTool).toHaveBeenCalledWith({ kind: "erase" });
+  });
+
+  it("offers every enemy and item by name", async () => {
+    const { onTool } = setup();
+    await userEvent.click(screen.getByRole("tab", { name: "Enemies and items" }));
+    for (const def of snowPack.things) expect(screen.getByRole("button", { name: def.name })).toBeTruthy();
+    await userEvent.click(screen.getByRole("button", { name: "Snow Crawler" }));
+    expect(onTool).toHaveBeenCalledWith({ kind: "thing", type: "walker" });
+    expect(screen.queryByRole("button", { name: "Ground" })).toBeNull();
+  });
+
+  it("offers every piece, chosen with its default settings", async () => {
+    const { onTool } = setup();
+    await userEvent.click(screen.getByRole("tab", { name: "Pieces" }));
+    for (const piece of snowPack.pieces) expect(screen.getByRole("button", { name: piece.name })).toBeTruthy();
+    await userEvent.click(screen.getByRole("button", { name: "Gap" }));
+    expect(onTool).toHaveBeenCalledWith({ kind: "piece", pieceId: "gap", settings: { width: 2 } });
+  });
+
+  it("lets a chosen piece's settings be changed", async () => {
+    const { onTool, rerender } = setup();
+    await userEvent.click(screen.getByRole("tab", { name: "Pieces" }));
+    rerender({ kind: "piece", pieceId: "stairs-up", settings: { steps: 3, rise: 1 } });
+    expect(screen.getByText(/Steps rising to the right/)).toBeTruthy();
+    const steps = screen.getByRole("combobox", { name: "How many steps" }) as HTMLSelectElement;
+    expect([...steps.options].map((o) => o.value)).toEqual(["1", "2", "3", "4"]);
+    await userEvent.selectOptions(steps, "4");
+    expect(onTool).toHaveBeenLastCalledWith({ kind: "piece", pieceId: "stairs-up", settings: { steps: 4, rise: 1 } });
   });
 });
 
