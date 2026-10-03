@@ -45,13 +45,17 @@ export function Editor({ initial, store, makeId = () => crypto.randomUUID(), sav
   const strokeOpen = state.history.open !== null;
 
   // Save a little while after the project last changed, never in the middle of a stroke.
-  const firstProject = useRef(project);
+  // Compared with what was last saved, so undoing back to how the game was opened saves too.
+  const lastSaved = useRef(project);
   useEffect(() => {
-    if (project === firstProject.current || strokeOpen) return;
+    if (project === lastSaved.current || strokeOpen) return;
     setSaveState("saving");
     const timer = setTimeout(() => {
       store.save(project).then(
-        () => setSaveState("saved"),
+        () => {
+          lastSaved.current = project;
+          setSaveState("saved");
+        },
         () => setSaveState("error"),
       );
     }, saveDelay);

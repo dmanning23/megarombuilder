@@ -79,6 +79,24 @@ describe("Editor", () => {
     expect(save.mock.calls[0][0].levels[0].zones).toHaveLength(4);
   });
 
+  it("saves again after undoing back to how the game was opened", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    const save = vi.fn<(project: Project) => Promise<void>>(async () => {});
+    const initial = newProject("Game", makeId);
+    render(<Editor initial={initial} store={{ save }} makeId={makeId} saveDelay={500} />);
+    await userEvent.click(screen.getByRole("button", { name: "Add a zone" }));
+    await act(async () => {
+      vi.advanceTimersByTime(600);
+    });
+    await waitFor(() => expect(save).toHaveBeenCalledTimes(1));
+    await userEvent.click(screen.getByRole("button", { name: "Undo" }));
+    await act(async () => {
+      vi.advanceTimersByTime(600);
+    });
+    await waitFor(() => expect(save).toHaveBeenCalledTimes(2));
+    expect(save.mock.calls[1][0]).toBe(initial);
+  });
+
   it("keeps working and says so when saving fails", async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     const save = vi.fn(async () => {

@@ -84,10 +84,10 @@
 .chain li + li::before {
   content: "";
   position: absolute;
-  left: 1.35rem;
+  left: 1.25rem;
   top: -0.85rem;
   height: 0.85rem;
-  border-left: 3px dotted var(--panel-2);
+  border-left: 4px dotted #7f95bd;
 }
 .zone {
   display: flex;
