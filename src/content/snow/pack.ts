@@ -1,10 +1,9 @@
 import type { ContentPack } from "@/model/contentPack";
 
-export const GROUND = 1;
-export const ICE = 2;
-export const LADDER = 3;
-export const SPIKE = 4;
-export const LEDGE = 5;
+import { snowPieces } from "./pieces";
+import { GROUND, ICE, LADDER, LEDGE, SPIKE } from "./tiles";
+
+export { FLOOR, GROUND, ICE, LADDER, LEDGE, SPIKE } from "./tiles";
 
 export const snowPack: ContentPack = {
   id: "snow",
@@ -30,5 +29,5 @@ export const snowPack: ContentPack = {
         { type: "large-health", name: "Large Health", category: "pickup", behaviour: "health", description: "Restores a lot of health.", defaults: { amount: 10 } },
         { type: "boss", name: "Blizzard Bot", category: "boss", behaviour: "boss", description: "The stage boss.", defaults: { health: 28 } },
     ],
-    pieces: [],
+    pieces: snowPieces,
 };

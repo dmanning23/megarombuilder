@@ -44,6 +44,8 @@ export type PieceResult = {
   height: number;
   tiles: number[]; // row by row; KEEP_TILE leaves the existing tile alone
   things: PieceThing[]; // positions relative to the piece's top-left corner
+  enterRow?: number; // the row the player stands on at the left edge (13, the normal floor, if absent)
+  exitRow?: number; // the row the player stands on at the right edge (13 if absent)
 };
 
 export type PieceDef = {
