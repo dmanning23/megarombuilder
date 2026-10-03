@@ -18,7 +18,9 @@ async function savedTiles(page: Page): Promise<number[]> {
 async function clickTile(page: Page, x: number, y: number) {
   const box = await page.getByTestId("zone-canvas").boundingBox();
   if (!box) throw new Error("no canvas");
-  await page.mouse.click(box.x + x * 32 + 16, box.y + y * 32 + 16);
+  // The canvas zooms to fit, so measure a tile rather than assume a size.
+  const t = box.height / 15;
+  await page.mouse.click(box.x + (x + 0.5) * t, box.y + (y + 0.5) * t);
 }
 
 test("make a game, paint, undo, save, play and come back", async ({ page }) => {
@@ -49,9 +51,10 @@ test("make a game, paint, undo, save, play and come back", async ({ page }) => {
   const box = await page.getByTestId("zone-canvas").boundingBox();
   if (!box) throw new Error("no canvas");
   await page.getByRole("button", { name: "Ice" }).click();
-  await page.mouse.move(box.x + 1 * 32 + 16, box.y + 6 * 32 + 16);
+  const t = box.height / 15;
+  await page.mouse.move(box.x + 1.5 * t, box.y + 6.5 * t);
   await page.mouse.down();
-  await page.mouse.move(box.x + 4 * 32 + 16, box.y + 6 * 32 + 16, { steps: 8 });
+  await page.mouse.move(box.x + 4.5 * t, box.y + 6.5 * t, { steps: 8 });
   await page.mouse.up();
   const row = () => expect.poll(async () => (await savedTiles(page)).slice(6 * 16 + 1, 6 * 16 + 5));
   await row().toEqual([2, 2, 2, 2]);

@@ -162,6 +162,20 @@ export function Editor({
     return () => window.removeEventListener("keydown", onKey);
   }, [state.playing]);
 
+  // Sideways zones zoom to fit the height of the zone area (between 1x and 2x), so the floor,
+  // where most building happens, is always in view. Climbing zones stay at 2x and scroll.
+  const stageRef = useRef<HTMLDivElement>(null);
+  const [stageHeight, setStageHeight] = useState<number | null>(null);
+  useEffect(() => {
+    const el = stageRef.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver(([entry]) => setStageHeight(entry.contentRect.height));
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [playing]);
+  const zoom =
+    zone.scroll === "horizontal" && stageHeight ? Math.min(2, Math.max(1, (stageHeight - 8) / 240)) : 2;
+
   // The checker, rerun once editing pauses.
   const check = useLevelCheck(project, level.id, pack, strokeOpen || playing);
   const zoneCheck = check?.zones.find((z) => z.zoneId === zone.id);
@@ -262,7 +276,7 @@ export function Editor({
         </main>
       ) : (
         <main className={styles.work}>
-          <div className={styles.stage}>
+          <div className={styles.stage} ref={stageRef}>
             {openElsewhere && (
               <p className={styles.alert} role="alert">
                 This game is open in another tab, so changes here aren&apos;t saved. Keep building in the
@@ -282,14 +296,14 @@ export function Editor({
               pack={pack}
               skin={skin}
               checkpoints={level.checkpoints}
-              zoom={2}
+              zoom={zoom}
               marker={marker}
               onPress={press}
               onDrag={dragTo}
               onRelease={release}
             />
-            <CheckPanel zoneCheck={zoneCheck} problems={check?.problems ?? []} />
           </div>
+          <CheckPanel zoneCheck={zoneCheck} problems={check?.problems ?? []} />
           <Palette pack={pack} art={art} tool={state.tool} onTool={(tool) => dispatch({ type: "tool", tool })} />
         </main>
       )}
