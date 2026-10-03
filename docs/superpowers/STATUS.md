@@ -10,7 +10,8 @@ zone. Next.js and React, one AI proxy route, projects stored in the browser.
 
 ## Where things stand
 
-Plans 1 to 4 are implemented, reviewed and merged to `main`.
+Plans 1 to 4 are implemented, reviewed and merged to `main`. Plan 5 is written
+and awaiting review.
 
 Run `npm run dev` and open `/play` for the demo stage: running, jumping, ice,
 spikes, ladders, zone transitions, six enemy types, health pickups, a moving
@@ -24,6 +25,7 @@ platform and the Blizzard Bot boss fight, drawn with the snow pack's pixel art.
 | `plans/2026-10-02-plan-2-runtime-core.md` | Plan 2 of 6, implemented, reviewed and merged |
 | `plans/2026-10-02-plan-3-runtime-things.md` | Plan 3, implemented, reviewed and merged |
 | `plans/2026-10-02-plan-4-snow-pack-and-art.md` | Plan 4, implemented, reviewed and merged |
+| `plans/2026-10-02-plan-5-pieces-and-checker.md` | Plan 5, written, awaiting review |
 
 Milestone 1 is now seven plans:
 
@@ -39,7 +41,7 @@ Milestone 1 is now seven plans:
 
 1. A person needs to play `/play` through the boss fight and say whether the
    movement, enemies and boss feel right.
-2. Write plan 5 (level pieces and checker). The checker should flag:
+2. Review plan 5, then implement it. It covers these checker rules:
    a boss room without exactly one boss, a boss with no floor under it, and
    enemies placed within reach of an entry or checkpoint.
 3. Review findings deferred from plans 2 and 3, to decide on:
