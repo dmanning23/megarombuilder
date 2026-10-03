@@ -1,13 +1,9 @@
-import Link from "next/link";
+"use client";
+
+import { useRouter } from "next/navigation";
+import { ProjectsHome } from "@/editor/ProjectsHome";
 
 export default function HomePage() {
-  return (
-    <main>
-      <h1>MegaRomBuilder</h1>
-      <p>The editor arrives in a later plan.</p>
-      <p>
-        <Link href="/play">Play the demo stage</Link>
-      </p>
-    </main>
-  );
+  const router = useRouter();
+  return <ProjectsHome navigate={(href) => router.push(href)} />;
 }

@@ -1,0 +1,89 @@
+.page {
+  min-height: 100vh;
+  background: var(--paper);
+  color: var(--ink);
+  padding: 3rem 1.5rem;
+  max-width: 44rem;
+  margin: 0 auto;
+}
+.heading {
+  font-size: 30px;
+  font-weight: 700;
+  margin: 0 0 1.5rem;
+}
+.make {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  align-items: center;
+  padding: 1rem;
+  border-radius: 14px;
+  background: var(--panel);
+  color: var(--paper);
+}
+.make label {
+  font-weight: 600;
+  font-size: 17px;
+}
+.make input {
+  flex: 1 1 12rem;
+  font: inherit;
+  font-size: 17px;
+  padding: 0.5rem 0.7rem;
+  border-radius: 10px;
+  border: 2px solid var(--panel-2);
+}
+.primary,
+.secondary {
+  font: inherit;
+  font-weight: 600;
+  font-size: 17px;
+  padding: 0.5rem 0.9rem;
+  border-radius: 10px;
+  cursor: pointer;
+}
+.primary {
+  background: var(--signal);
+  border: 2px solid var(--signal);
+  color: var(--ink);
+}
+.secondary {
+  background: var(--panel-2);
+  border: 2px solid var(--panel-2);
+  color: var(--paper);
+}
+.games {
+  list-style: none;
+  margin: 2rem 0;
+  padding: 0;
+}
+.game {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 0;
+  border-bottom: 2px solid rgba(16, 33, 58, 0.12);
+}
+.gameName {
+  font-weight: 700;
+  font-size: 22px;
+}
+.when {
+  font-size: 15px;
+  opacity: 0.7;
+  margin-right: auto;
+}
+.link {
+  color: var(--ink);
+  font-weight: 600;
+}
+.message {
+  font-size: 22px;
+}
+.primary:focus-visible,
+.secondary:focus-visible,
+.link:focus-visible,
+.make input:focus-visible {
+  outline: 3px solid var(--signal);
+  outline-offset: 2px;
+}
