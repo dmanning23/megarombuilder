@@ -149,6 +149,36 @@ function key(type: string, code: string) {
 }
 
 describe("createKeyboard", () => {
+  it("ignores keys typed into a text box", () => {
+    const target = new EventTarget();
+    const keyboard = createKeyboard(target);
+    const typed = key("keydown", "KeyZ");
+    Object.defineProperty(typed, "target", { value: { tagName: "INPUT" } });
+    target.dispatchEvent(typed);
+    expect(keyboard.read()).toEqual(NO_INPUT);
+    expect(typed.defaultPrevented).toBe(false);
+  });
+
+  it("ignores shortcuts made with Cmd, Ctrl or Alt", () => {
+    const target = new EventTarget();
+    const keyboard = createKeyboard(target);
+    for (const modifier of ["metaKey", "ctrlKey", "altKey"]) {
+      const event = Object.assign(key("keydown", "KeyZ"), { [modifier]: true });
+      target.dispatchEvent(event);
+      expect(event.defaultPrevented).toBe(false);
+    }
+    expect(keyboard.read()).toEqual(NO_INPUT);
+  });
+
+  it("still releases a key whose release happens in a text box", () => {
+    const target = new EventTarget();
+    const keyboard = createKeyboard(target);
+    target.dispatchEvent(key("keydown", "ArrowRight"));
+    const release = key("keyup", "ArrowRight");
+    Object.defineProperty(release, "target", { value: { tagName: "TEXTAREA" } });
+    target.dispatchEvent(release);
+    expect(keyboard.read()).toEqual(NO_INPUT);
+  });
   it("reports held keys", () => {
     const target = new EventTarget();
     const keyboard = createKeyboard(target);

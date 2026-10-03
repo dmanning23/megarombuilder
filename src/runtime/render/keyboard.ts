@@ -9,12 +9,22 @@ export const KEY_MAP: Record<string, keyof Input> = {
   KeyX: "shoot",
 };
 
+// Key presses meant for something else: typing in a text box, or a shortcut with Cmd, Ctrl or Alt.
+function meantForSomethingElse(event: Event): boolean {
+  const e = event as KeyboardEvent;
+  if (e.metaKey || e.ctrlKey || e.altKey) return true;
+  const target = e.target as { tagName?: string; isContentEditable?: boolean } | null;
+  const tag = target?.tagName;
+  return tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || target?.isContentEditable === true;
+}
+
 export function createKeyboard(
   target: Pick<EventTarget, "addEventListener" | "removeEventListener">,
 ): { read(): Input; dispose(): void } {
   let held: Input = { ...NO_INPUT };
 
   const set = (down: boolean) => (event: Event) => {
+    if (down && meantForSomethingElse(event)) return;
     const control = KEY_MAP[(event as KeyboardEvent).code];
     if (!control) return;
     held[control] = down;

@@ -85,9 +85,22 @@ export function entryPosition(map: TileMap, carry: number | null): { x: number; 
     const feet = carry === null ? end : clamp(start + carry, start + PLAYER_H, end);
     return { x: 2, y: feet - PLAYER_H };
   }
+  const y = entry.edge === "bottom" ? map.heightPx - PLAYER_H : 0;
+  if (carry === null) {
+    // A fresh start: stand in the first column with a ladder at this edge, or the first column.
+    const row = entry.edge === "bottom" ? map.height - 1 : 0;
+    let col = entry.from;
+    for (let c = entry.from; c <= entry.to; c++) {
+      if (map.behaviourAt(c, row) === "ladder") {
+        col = c;
+        break;
+      }
+    }
+    return { x: col * TILE_SIZE + (TILE_SIZE - PLAYER_W) / 2, y };
+  }
   const half = PLAYER_W / 2;
-  const centre = carry === null ? (start + end) / 2 : clamp(start + carry, start + half, end - half);
-  return { x: centre - half, y: entry.edge === "bottom" ? map.heightPx - PLAYER_H : 0 };
+  const centre = clamp(start + carry, start + half, end - half);
+  return { x: centre - half, y };
 }
 
 export function createSim(

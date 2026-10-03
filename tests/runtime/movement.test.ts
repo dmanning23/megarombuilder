@@ -21,13 +21,20 @@ describe("createSim", () => {
     expect(sim.map.zone.id).toBe("boss");
   });
 
-  it("centres the player in a bottom entry and grabs a ladder there", () => {
-    // The centre of a two-tile opening falls in its second column.
-    const art = Array.from({ length: 30 }, () => rowWith({ 8: "H" }));
+  it("starts on the ladder in a bottom opening, whichever column it is in", () => {
+    for (const col of [7, 8]) {
+      const art = Array.from({ length: 30 }, () => rowWith({ [col]: "H" }));
+      const sim = makeSim([{ art, entry: { edge: "bottom", from: 7, to: 8 } }]);
+      expect(sim.player.x, `ladder in column ${col}`).toBe(col * 16 + 1);
+      expect(sim.player.y).toBe(480 - 22);
+      expect(sim.player.onLadder).toBe(true);
+    }
+  });
+
+  it("starts in the first column of a bottom opening with no ladder", () => {
+    const art = Array.from({ length: 30 }, () => rowWith({}));
     const sim = makeSim([{ art, entry: { edge: "bottom", from: 7, to: 8 } }]);
-    expect(sim.player.x).toBe(121);
-    expect(sim.player.y).toBe(480 - 22);
-    expect(sim.player.onLadder).toBe(true);
+    expect(sim.player.x).toBe(7 * 16 + 1);
   });
 
   it("throws a clear error for an unknown level or zone", () => {
