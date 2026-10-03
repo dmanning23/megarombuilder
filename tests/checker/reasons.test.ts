@@ -30,13 +30,13 @@ describe("stuckReason", () => {
   it("names a gap, where it is, and how far the player can jump", () => {
     const row = "######....######";
     expect(reasonFor({ art: flatArt({ 13: row, 14: row }) })).toBe(
-      "Cannot get past column 5: a gap 4 tiles wide at column 6, and the longest jump is about 3 tiles.",
+      "Cannot get past column 5: a gap 4 tiles wide at column 6, and the longest gap the player can clear on flat ground is about 3 tiles.",
     );
   });
 
   it("calls a pit full of spikes a spike pit", () => {
     expect(reasonFor({ art: flatArt({ 13: "####^^^^^#######" }) })).toBe(
-      "Cannot get past column 3: a spike pit 5 tiles wide at column 4, and the longest jump is about 3 tiles.",
+      "Cannot get past column 3: a spike pit 5 tiles wide at column 4, and the longest gap the player can clear on flat ground is about 3 tiles.",
     );
   });
 

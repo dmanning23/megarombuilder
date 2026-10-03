@@ -2,7 +2,8 @@ import { TILE_SIZE } from "@/model/geometry";
 import type { PlayerSettings } from "@/model/schema";
 import type { Player } from "@/runtime/sim/state";
 import { firstTile, isPlatform, isSolid, lastTile, type TileMap } from "@/runtime/sim/tilemap";
-import type { Probe } from "./probe";
+import { MAX_OVERHANG } from "./moves";
+import { FAIR_RUN_SPEED, type Probe } from "./probe";
 
 // The highest and furthest a full jump from flat ground reaches, in pixels.
 export function jumpReach(settings: PlayerSettings): { height: number; distance: number } {
@@ -19,9 +20,16 @@ export function jumpReach(settings: PlayerSettings): { height: number; distance:
   return { height: -top, distance: steps * settings.runSpeed };
 }
 
-// Whether column c has somewhere to stand at or just below the surface row, and whether spikes are in the way.
+// The widest gap the checker accepts on flat ground, in tiles: a fair-speed jump plus the most
+// a take-off may overhang the edge.
+export function clearableGap(settings: PlayerSettings): number {
+  const fair = jumpReach({ ...settings, runSpeed: settings.runSpeed * FAIR_RUN_SPEED });
+  return Math.floor((fair.distance + MAX_OVERHANG) / TILE_SIZE);
+}
+
+// Whether column c has anywhere to stand at or below the surface row, and whether spikes come first.
 function footing(map: TileMap, c: number, surface: number): { stand: boolean; spikes: boolean } {
-  for (let r = surface; r <= surface + 2; r++) {
+  for (let r = surface; r < map.height; r++) {
     const cell = map.behaviourAt(c, r);
     if (cell === "spike") return { stand: false, spikes: true };
     if (isSolid(cell) || isPlatform(map, c, r) || cell === "ladder") return { stand: true, spikes: false };
@@ -68,7 +76,7 @@ export function stuckReason(probe: Probe, furthest: Player, settings: PlayerSett
         spikes ||= here.spikes;
         width++;
       }
-      return `Cannot get past column ${col}: a ${spikes ? "spike pit" : "gap"} ${width} tiles wide at column ${c}, and the longest jump is about ${Math.floor(reach.distance / TILE_SIZE)} tiles.`;
+      return `Cannot get past column ${col}: a ${spikes ? "spike pit" : "gap"} ${width} tiles wide at column ${c}, and the longest gap the player can clear on flat ground is about ${clearableGap(settings)} tiles.`;
     }
   }
   return `Cannot get past column ${col}.`;

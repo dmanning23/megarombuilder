@@ -72,6 +72,8 @@ export function checkZone(project: Project, levelId: string, zoneId: string, pac
         x: standingColumn(probe.map, found.furthest, probe.zone.exit?.edge),
         y: surfaceRow(found.furthest) - 1,
       };
+    } else if (found.arrival === "dies") {
+      reason = "The player dies as soon as they arrive: something deadly is at the entry.";
     } else {
       reason = "The player has nothing to stand on or climb where they arrive.";
     }

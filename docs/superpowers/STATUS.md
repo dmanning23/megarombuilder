@@ -10,13 +10,14 @@ zone. Next.js and React, one AI proxy route, projects stored in the browser.
 
 ## Where things stand
 
-Plans 1 to 4 are implemented, reviewed and merged to `main`. Plan 5 is written
-and awaiting review.
+Plans 1 to 5 are implemented, reviewed and merged to `main`.
 
 Run `npm run dev` and open `/play` for the demo stage: running, jumping, ice,
 spikes, ladders, zone transitions, six enemy types, health pickups, a moving
 platform and the Blizzard Bot boss fight, drawn with the snow pack's pixel art.
-366 tests pass; typecheck, lint and build are clean.
+The level checker and the twelve snow level pieces exist but have no screen yet;
+the editor (plan 6) and the AI (plan 7) will use them. 442 tests pass; typecheck,
+lint and build are clean.
 
 | Document | State |
 |---|---|
@@ -25,7 +26,7 @@ platform and the Blizzard Bot boss fight, drawn with the snow pack's pixel art.
 | `plans/2026-10-02-plan-2-runtime-core.md` | Plan 2 of 6, implemented, reviewed and merged |
 | `plans/2026-10-02-plan-3-runtime-things.md` | Plan 3, implemented, reviewed and merged |
 | `plans/2026-10-02-plan-4-snow-pack-and-art.md` | Plan 4, implemented, reviewed and merged |
-| `plans/2026-10-02-plan-5-pieces-and-checker.md` | Plan 5, written, awaiting review |
+| `plans/2026-10-02-plan-5-pieces-and-checker.md` | Plan 5, implemented, reviewed and merged |
 
 Milestone 1 is now seven plans:
 
@@ -33,7 +34,7 @@ Milestone 1 is now seven plans:
 2. Runtime core: player, tiles, zones, camera, rendering, a playable demo level (done)
 3. Runtime things: enemies, moving platforms, pickups, boss, damage (done)
 4. Snow pack and pixel art (done)
-5. Level pieces and the checker
+5. Level pieces and the checker (done)
 6. Editor UI and IndexedDB storage
 7. AI assistant: proxy route, tools, chat loop
 
@@ -41,9 +42,7 @@ Milestone 1 is now seven plans:
 
 1. A person needs to play `/play` through the boss fight and say whether the
    movement, enemies and boss feel right.
-2. Review plan 5, then implement it. It covers these checker rules:
-   a boss room without exactly one boss, a boss with no floor under it, and
-   enemies placed within reach of an entry or checkpoint.
+2. Write plan 6 (editor UI and IndexedDB storage).
 3. Review findings deferred from plans 2 and 3, to decide on:
    - Player settings have no upper bounds; a run speed or fall speed of 16 or
      more passes through walls, and a ladder speed below 1 breaks climbing down
@@ -68,6 +67,11 @@ Milestone 1 is now seven plans:
    - Enemies placed on screen at an entry or checkpoint can hit the player
      immediately.
    - No test for knockback into a pit, or that the boss fight can be won.
+   - Checker: routes are recorded at 90% run speed, so they replay only in the
+     checker's own simulation, not the real game; it approves routes over the
+     top of the screen; difficulty divides by screens (a wider piece can score
+     lower) and pits dominate the score; the boss room counts as passable once
+     the player comes to rest, without checking they reach the arena floor.
    - Starting play directly in a zone entered from below centres the player
      on the line between the opening's two columns, so a ladder in the first
      column is missed and the player falls. Matters for "Play from this zone"

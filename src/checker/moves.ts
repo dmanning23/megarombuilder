@@ -31,17 +31,26 @@ const walk = (d: Dir): Move => ({
   start: () => (sim, t) => (t < stepsPerTile(sim) ? keys(toward(d)) : null),
 });
 
-// Runs toward an edge and jumps at the last moment, holding jump for full height.
-const runJump = (d: Dir): Move => ({
-  name: `running jump ${side(d)}`,
+// The most a take-off may overhang an edge: the player's box is 14 pixels wide, so 12 still leaves
+// 2 pixels standing on the edge.
+export const MAX_OVERHANG = 12;
+
+// Runs toward an edge and jumps once the player overhangs it by `overhang` pixels, holding jump for
+// full height. Trying several overhangs means the verdict does not depend on where the player
+// happened to come to rest before the edge.
+const runJump = (d: Dir, overhang: number): Move => ({
+  name: `running jump ${side(d)} (overhang ${overhang})`,
   jump: true,
   start: () => {
+    let edgeAt = -1;
     let jumpedAt = -1;
     return (sim, t) => {
       const p = sim.player;
       if (jumpedAt < 0) {
         if (t > 4 * stepsPerTile(sim)) return null;
-        if (p.onGround && !groundAhead(sim, d)) {
+        if (edgeAt < 0 && p.onGround && !groundAhead(sim, d)) edgeAt = t;
+        if (edgeAt >= 0 && t >= edgeAt + Math.ceil(overhang / sim.settings.runSpeed)) {
+          if (!p.onGround) return null; // walked off before the jump
           jumpedAt = t;
           return keys({ ...toward(d), jump: true });
         }
@@ -53,12 +62,23 @@ const runJump = (d: Dir): Move => ({
   },
 });
 
+// Jumps holding up, to grab a ladder that does not reach the floor.
+const jumpGrab = (d: Dir): Move => ({
+  name: `jump and grab ${side(d)}`,
+  jump: true,
+  start: () => (sim, t) => {
+    const p = sim.player;
+    if ((t > 0 && p.onLadder) || (t > 2 && p.onGround) || t > 600) return null;
+    return keys({ ...toward(d), jump: true, up: true });
+  },
+});
+
 // Jumps from where the player stands, holding jump for `hold` steps and the direction from step `drift`.
 const standJump = (d: Dir, hold: number, drift: number): Move => ({
   name: `jump ${side(d)}${hold < 99 ? " (short)" : ""}${drift > 0 ? ` (drift after ${drift})` : ""}`,
   jump: true,
   start: () => (sim, t) => {
-    if ((t > 2 && sim.player.onGround) || t > 200) return null;
+    if ((t > 2 && sim.player.onGround) || t > 600) return null;
     return keys({ ...(t >= drift ? toward(d) : {}), jump: t < hold });
   },
 });
@@ -82,8 +102,7 @@ const climb = (dir: "up" | "down"): Move => ({
 export const MOVES: Move[] = [
   walk(1),
   walk(-1),
-  runJump(1),
-  runJump(-1),
+  ...[0, 4, 8, MAX_OVERHANG].flatMap((o) => [runJump(1, o), runJump(-1, o)]),
   standJump(0, 99, 0),
   standJump(1, 99, 0),
   standJump(-1, 99, 0),
@@ -93,6 +112,9 @@ export const MOVES: Move[] = [
   standJump(-1, 99, 12),
   standJump(1, 99, 24),
   standJump(-1, 99, 24),
+  jumpGrab(0),
+  jumpGrab(1),
+  jumpGrab(-1),
   climb("up"),
   climb("down"),
 ];

@@ -8,7 +8,7 @@ import { MOVES, type Script } from "./moves";
 import { createProbe, leftZone, reset, type Probe } from "./probe";
 
 const SCRIPT_STEPS = 1300; // the longest a move's script may run (long ladders)
-const SETTLE_STEPS = 120; // after the script, how long to wait for the player to come to rest
+const SETTLE_STEPS = 400; // after the script, how long to wait for the player to come to rest (a long drop)
 const MAX_NODES = 4000;
 
 export type Passage = {
@@ -18,6 +18,7 @@ export type Passage = {
   moves: string[]; // the names of the moves along the route
   jumps: number; // how many of those moves were jumps
   furthest: Player | null; // the resting state nearest the exit
+  arrival: "rests" | "dies" | "falls"; // what happens to the player where they arrive
   explored: number; // how many resting places were searched
 };
 
@@ -56,6 +57,14 @@ function play(probe: Probe, from: Player, script: Script | null): Outcome {
   return { kind: "dropped", inputs };
 }
 
+// Arriving from above, the player can steer while falling: no keys, or holding left or right until they land.
+const ARRIVAL_SCRIPTS: (Script | null)[] = [null, -1, 1].map((d) =>
+  d === null
+    ? null
+    : (sim) =>
+        sim.player.onGround || sim.player.onLadder ? null : { ...NO_INPUT, left: d < 0, right: d > 0 },
+);
+
 // Where the player can start: the normal start, or each column of a top or bottom opening.
 function startStates(probe: Probe, fresh: Player): Player[] {
   const entry = probe.zone.entry;
@@ -83,8 +92,18 @@ export function findPassage(zone: Zone, pack: ContentPack, settings: PlayerSetti
   const probe = createProbe(zone, pack, settings);
   const fresh = { ...probe.sim.player };
   const exit = probe.zone.exit;
+  // Progress is closeness to the middle of the exit opening.
+  const target = !exit
+    ? null
+    : exit.edge === "right"
+      ? { x: probe.map.widthPx, y: ((exit.from + exit.to + 1) / 2) * TILE_SIZE }
+      : {
+          x: ((exit.from + exit.to + 1) / 2) * TILE_SIZE,
+          y: exit.edge === "top" ? 0 : probe.map.heightPx,
+        };
   const progress = (p: Player) =>
-    !exit ? 0 : exit.edge === "right" ? p.x : exit.edge === "top" ? -p.y : p.y;
+    target ? -Math.hypot(p.x + p.w / 2 - target.x, p.y + p.h / 2 - target.y) : 0;
+  let arrival: Passage["arrival"] = "falls";
 
   // Searched in order of how many jumps it took to get somewhere, so the route found uses as few
   // jumps as it can. byJumps[k] holds the places reached with k jumps.
@@ -98,16 +117,22 @@ export function findPassage(zone: Zone, pack: ContentPack, settings: PlayerSetti
       found.moves.push(move.name);
       if (move.jump) found.jumps++;
     }
-    return { passable: true, start: origin, ...found, furthest: node?.player ?? null, explored };
+    return { passable: true, start: origin, ...found, furthest: node?.player ?? null, explored, arrival: "rests" };
   };
 
   for (const start of startStates(probe, fresh)) {
-    const out = play(probe, start, null);
+    for (const script of ARRIVAL_SCRIPTS) {
+    const out = play(probe, start, script);
     if (out.kind === "exit") return passed(null, start, out.inputs);
+      // Dying by falling out of the zone is "nothing to stand on"; dying anywhere else is the entry's fault.
+      const fellOut = probe.sim.player.y > probe.map.heightPx;
+      if (out.kind === "dead" && !fellOut && arrival === "falls") arrival = "dies";
     if (out.kind !== "rest") continue;
+    arrival = "rests";
     const node: Node = { player: out.player, parent: null, inputs: out.inputs, move: null, jump: false, origin: start };
     if (!exit) return passed(node, start, []);
     byJumps[0].push(node);
+    }
   }
 
   for (let jumps = 0; jumps < byJumps.length && explored < MAX_NODES; jumps++) {
@@ -150,5 +175,6 @@ export function findPassage(zone: Zone, pack: ContentPack, settings: PlayerSetti
     jumps: 0,
     furthest: furthest?.player ?? null,
     explored,
+    arrival,
   };
 }
