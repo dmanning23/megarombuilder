@@ -128,43 +128,54 @@ describe("Toolbar", () => {
 });
 
 describe("ZoneCanvas", () => {
+  function setup() {
+    const handlers = { onPress: vi.fn(), onDrag: vi.fn(), onRelease: vi.fn() };
+    render(<ZoneCanvas zone={level.zones[0]} pack={snowPack} checkpoints={[]} zoom={2} {...handlers} />);
+    const canvas = screen.getByTestId("zone-canvas");
+    // jsdom does no layout, so give the canvas the size it would have on screen.
+    canvas.getBoundingClientRect = () =>
+      ({ left: 0, top: 0, width: 512, height: 480, right: 512, bottom: 480, x: 0, y: 0, toJSON() {} }) as DOMRect;
+    const at = (tx: number, ty: number) => ({ clientX: tx * 32 + 16, clientY: ty * 32 + 16 });
+    return { handlers, canvas, at };
+  }
+
   it("is named after the zone and sized to it at the zoom", () => {
-    render(
-      <ZoneCanvas
-        zone={level.zones[0]}
-        pack={snowPack}
-        checkpoints={[]}
-        zoom={2}
-        onStrokeStart={vi.fn()}
-        onPaint={vi.fn()}
-        onStrokeEnd={vi.fn()}
-      />,
-    );
+    setup();
     const canvas = screen.getByLabelText("Zone 1, 1 screen") as HTMLCanvasElement;
     expect(canvas.width).toBe(256);
     expect(canvas.style.width).toBe("512px");
   });
 
-  it("starts and ends a stroke even when the pointer is somewhere it cannot paint", () => {
-    const onStrokeStart = vi.fn();
-    const onPaint = vi.fn();
-    const onStrokeEnd = vi.fn();
-    render(
-      <ZoneCanvas
-        zone={level.zones[0]}
-        pack={snowPack}
-        checkpoints={[]}
-        zoom={2}
-        onStrokeStart={onStrokeStart}
-        onPaint={onPaint}
-        onStrokeEnd={onStrokeEnd}
-      />,
-    );
-    const canvas = screen.getByTestId("zone-canvas");
-    fireEvent.pointerDown(canvas);
-    fireEvent.pointerUp(canvas);
-    expect(onStrokeStart).toHaveBeenCalledTimes(1);
-    expect(onPaint).not.toHaveBeenCalled(); // jsdom gives the canvas no size
-    expect(onStrokeEnd).toHaveBeenCalledTimes(1);
+  it("reports a press, each new tile dragged over, and the release", () => {
+    const { handlers, canvas, at } = setup();
+    fireEvent.pointerDown(canvas, { ...at(2, 3), button: 0 });
+    expect(handlers.onPress).toHaveBeenCalledWith({ tile: { x: 2, y: 3 }, point: { x: 40, y: 56 } });
+    fireEvent.pointerMove(canvas, at(2, 3));
+    fireEvent.pointerMove(canvas, at(3, 3));
+    fireEvent.pointerMove(canvas, at(3, 3));
+    expect(handlers.onDrag).toHaveBeenCalledTimes(1);
+    expect(handlers.onDrag).toHaveBeenCalledWith(expect.objectContaining({ tile: { x: 3, y: 3 } }));
+    fireEvent.pointerUp(canvas, at(3, 3));
+    expect(handlers.onRelease).toHaveBeenCalledWith(expect.objectContaining({ tile: { x: 3, y: 3 } }));
+  });
+
+  it("reports a release off the canvas as nowhere, and only once", () => {
+    const { handlers, canvas, at } = setup();
+    fireEvent.pointerDown(canvas, { ...at(2, 3), button: 0 });
+    fireEvent.pointerUp(canvas, { clientX: 900, clientY: 900 });
+    fireEvent.lostPointerCapture(canvas);
+    expect(handlers.onRelease).toHaveBeenCalledTimes(1);
+    expect(handlers.onRelease).toHaveBeenCalledWith(null);
+  });
+
+  it("ignores moves without a press, and right or middle clicks", () => {
+    const { handlers, canvas, at } = setup();
+    fireEvent.pointerMove(canvas, at(1, 1));
+    fireEvent.pointerDown(canvas, { ...at(1, 1), button: 2 });
+    fireEvent.pointerDown(canvas, { ...at(1, 1), button: 1 });
+    fireEvent.pointerUp(canvas, at(1, 1));
+    expect(handlers.onPress).not.toHaveBeenCalled();
+    expect(handlers.onDrag).not.toHaveBeenCalled();
+    expect(handlers.onRelease).not.toHaveBeenCalled();
   });
 });

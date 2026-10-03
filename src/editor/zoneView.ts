@@ -9,6 +9,7 @@ export const SCREEN_LINE_COLOUR = "rgba(16, 33, 58, 0.45)";
 export const ENTRY_COLOUR = "#2ec4b6";
 export const EXIT_COLOUR = "#ffcc33";
 export const CHECKPOINT_COLOUR = "#3a86ff";
+export const MARKER_COLOUR = "#ef476f";
 
 export function zonePixels(zone: Zone): { width: number; height: number } {
   const size = zoneSize(zone.scroll, zone.screens);
@@ -36,6 +37,7 @@ export function drawZoneView(
   pack: ContentPack,
   skin: Skin | undefined,
   checkpoints: Checkpoint[],
+  marker: { x: number; y: number } | null = null,
 ): void {
   const { width, height } = zonePixels(zone);
   drawZone(ctx, zone, pack, { x: 0, y: 0 }, 0, 0, skin, width, height);
@@ -69,6 +71,15 @@ export function drawZoneView(
   for (const c of checkpoints) {
     if (c.zoneId !== zone.id) continue;
     rect(ctx, CHECKPOINT_COLOUR, c.x * TILE_SIZE + 6, c.y * TILE_SIZE + 6, 4, 10);
+  }
+
+  if (marker) {
+    const x = marker.x * TILE_SIZE;
+    const y = marker.y * TILE_SIZE;
+    rect(ctx, MARKER_COLOUR, x - 2, y - 2, TILE_SIZE + 4, 2);
+    rect(ctx, MARKER_COLOUR, x - 2, y + TILE_SIZE, TILE_SIZE + 4, 2);
+    rect(ctx, MARKER_COLOUR, x - 2, y, 2, TILE_SIZE);
+    rect(ctx, MARKER_COLOUR, x + TILE_SIZE, y, 2, TILE_SIZE);
   }
 }
 

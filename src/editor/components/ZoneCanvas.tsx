@@ -5,7 +5,7 @@ import type { ContentPack } from "@/model/contentPack";
 import type { Checkpoint, Zone } from "@/model/schema";
 import type { Skin } from "@/runtime/render/draw";
 import styles from "../editor.module.css";
-import { drawZoneView, tileFromPointer, zonePixels } from "../zoneView";
+import { drawZoneView, spotFromPointer, zonePixels, type Spot } from "../zoneView";
 
 type Props = {
   zone: Zone;
@@ -13,38 +13,31 @@ type Props = {
   skin?: Skin;
   checkpoints: Checkpoint[];
   zoom: number;
-  onStrokeStart(): void;
-  onPaint(x: number, y: number): void;
-  onStrokeEnd(): void;
+  marker?: { x: number; y: number } | null;
+  onPress(spot: Spot): void;
+  onDrag(spot: Spot): void;
+  onRelease(spot: Spot | null): void;
 };
 
-export function ZoneCanvas({ zone, pack, skin, checkpoints, zoom, onStrokeStart, onPaint, onStrokeEnd }: Props) {
+export function ZoneCanvas({ zone, pack, skin, checkpoints, zoom, marker = null, onPress, onDrag, onRelease }: Props) {
   const ref = useRef<HTMLCanvasElement>(null);
-  const painting = useRef(false);
+  const pressed = useRef(false);
   const lastTile = useRef<string | null>(null);
   const { width, height } = zonePixels(zone);
 
   useEffect(() => {
     const ctx = ref.current?.getContext("2d");
-    if (ctx) drawZoneView(ctx, zone, pack, skin, checkpoints);
-  }, [zone, pack, skin, checkpoints]);
+    if (ctx) drawZoneView(ctx, zone, pack, skin, checkpoints, marker);
+  }, [zone, pack, skin, checkpoints, marker]);
 
-  const paintAt = (clientX: number, clientY: number) => {
-    const canvas = ref.current;
-    if (!canvas) return;
-    const tile = tileFromPointer(clientX, clientY, canvas.getBoundingClientRect(), zone);
-    if (!tile) return;
-    const key = `${tile.x},${tile.y}`;
-    if (key === lastTile.current) return;
-    lastTile.current = key;
-    onPaint(tile.x, tile.y);
-  };
+  const spotAt = (clientX: number, clientY: number) =>
+    ref.current ? spotFromPointer(clientX, clientY, ref.current.getBoundingClientRect(), zone) : null;
 
-  const end = () => {
-    if (!painting.current) return;
-    painting.current = false;
+  const end = (clientX: number, clientY: number) => {
+    if (!pressed.current) return;
+    pressed.current = false;
     lastTile.current = null;
-    onStrokeEnd();
+    onRelease(spotAt(clientX, clientY));
   };
 
   const label = `${zone.name}, ${zone.screens} screen${zone.screens === 1 ? "" : "s"}`;
@@ -58,19 +51,28 @@ export function ZoneCanvas({ zone, pack, skin, checkpoints, zoom, onStrokeStart,
       height={height}
       className={styles.zoneCanvas}
       style={{ width: width * zoom, height: height * zoom }}
+      onContextMenu={(e) => e.preventDefault()}
       onPointerDown={(e) => {
+        if (e.button !== 0) return;
+        const spot = spotAt(e.clientX, e.clientY);
+        if (!spot) return;
         e.currentTarget.setPointerCapture?.(e.pointerId);
-        painting.current = true;
-        lastTile.current = null;
-        onStrokeStart();
-        paintAt(e.clientX, e.clientY);
+        pressed.current = true;
+        lastTile.current = `${spot.tile.x},${spot.tile.y}`;
+        onPress(spot);
       }}
       onPointerMove={(e) => {
-        if (painting.current) paintAt(e.clientX, e.clientY);
+        if (!pressed.current) return;
+        const spot = spotAt(e.clientX, e.clientY);
+        if (!spot) return;
+        const key = `${spot.tile.x},${spot.tile.y}`;
+        if (key === lastTile.current) return;
+        lastTile.current = key;
+        onDrag(spot);
       }}
-      onPointerUp={end}
-      onPointerCancel={end}
-      onLostPointerCapture={end}
+      onPointerUp={(e) => end(e.clientX, e.clientY)}
+      onPointerCancel={() => end(Number.NaN, Number.NaN)}
+      onLostPointerCapture={(e) => end(e.clientX, e.clientY)}
     />
   );
 }

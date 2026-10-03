@@ -13,6 +13,8 @@ import { ZoneCanvas } from "./components/ZoneCanvas";
 import { ZoneList } from "./components/ZoneList";
 import styles from "./editor.module.css";
 import { currentLevel, currentZone, editorReducer, initialEditor, nextZoneName } from "./state";
+import { paintCommand } from "./tools";
+import type { Spot } from "./zoneView";
 
 type Props = {
   initial: Project;
@@ -144,14 +146,11 @@ export function Editor({ initial, store, makeId = () => crypto.randomUUID(), sav
   }, [state.playing]);
 
   const paint = useCallback(
-    (x: number, y: number) => {
-      const tile = state.tool.kind === "tile" ? state.tool.tile : 0;
-      dispatch({
-        type: "run",
-        command: { name: "setTiles", args: { levelId: level.id, zoneId: zone.id, cells: [{ x, y, tile }] } },
-      });
+    (spot: Spot) => {
+      if (state.tool.kind !== "tile" && state.tool.kind !== "erase") return;
+      dispatch({ type: "run", command: paintCommand(state.tool, level.id, zone, pack, spot) });
     },
-    [state.tool, level.id, zone.id],
+    [state.tool, level.id, zone, pack],
   );
 
   const addZone = () => {
@@ -220,9 +219,12 @@ export function Editor({ initial, store, makeId = () => crypto.randomUUID(), sav
               skin={skin}
               checkpoints={level.checkpoints}
               zoom={2}
-              onStrokeStart={() => dispatch({ type: "begin", label: "Paint" })}
-              onPaint={paint}
-              onStrokeEnd={() => dispatch({ type: "commit" })}
+              onPress={(spot) => {
+                dispatch({ type: "begin", label: "Paint" });
+                paint(spot);
+              }}
+              onDrag={paint}
+              onRelease={() => dispatch({ type: "commit" })}
             />
           </div>
           <Palette pack={pack} art={art} tool={state.tool} onTool={(tool) => dispatch({ type: "tool", tool })} />

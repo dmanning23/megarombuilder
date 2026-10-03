@@ -8,6 +8,7 @@ import {
   ENTRY_COLOUR,
   EXIT_COLOUR,
   GRID_COLOUR,
+  MARKER_COLOUR,
   SCREEN_LINE_COLOUR,
   tileFromPointer,
   zonePixels,
@@ -58,6 +59,16 @@ describe("zonePixels", () => {
 });
 
 describe("drawZoneView", () => {
+  it("frames a marked tile", () => {
+    const ctx = fakeContext();
+    drawZoneView(ctx, first, snowPack, skin, [], { x: 5, y: 12 });
+    expect(ctx.calls.filter((c) => c.colour === MARKER_COLOUR)).toEqual([
+      { colour: MARKER_COLOUR, x: 78, y: 190, w: 20, h: 2 },
+      { colour: MARKER_COLOUR, x: 78, y: 208, w: 20, h: 2 },
+      { colour: MARKER_COLOUR, x: 78, y: 192, w: 2, h: 16 },
+      { colour: MARKER_COLOUR, x: 96, y: 192, w: 2, h: 16 },
+    ]);
+  });
   it("draws the background over the whole zone and the floor with the art", () => {
     const ctx = fakeContext();
     drawZoneView(ctx, wide, snowPack, skin, []);
