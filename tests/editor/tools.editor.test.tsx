@@ -44,7 +44,15 @@ function setup(confirm = () => true) {
     view.unmount();
     return save.mock.calls[save.mock.calls.length - 1][0];
   };
-  return { click, drag, saved, save };
+  // Presses at an exact point in zone pixels (the canvas is shown at twice size here).
+  const dragPoints = (from: [number, number], to: [number, number]) => {
+    const el = canvas();
+    const point = ([x, y]: [number, number]) => ({ clientX: x * 2, clientY: y * 2, button: 0 });
+    fireEvent.pointerDown(el, point(from));
+    fireEvent.pointerMove(el, point(to));
+    fireEvent.pointerUp(el, point(to));
+  };
+  return { click, drag, dragPoints, saved, save };
 }
 
 const firstZone = (p: Project) => p.levels[0].zones[0];
@@ -67,6 +75,28 @@ describe("building with tools", () => {
     const things = firstZone(saved()).things;
     expect(things).toHaveLength(1);
     expect(things[0]).toMatchObject({ x: 9, y: 12 });
+  });
+
+  it("does not move a wide thing when it is just clicked, and keeps the grab point when dragged", async () => {
+    const { click, dragPoints, saved } = setup();
+    await userEvent.click(screen.getByRole("tab", { name: "Enemies and items" }));
+    await userEvent.click(screen.getByRole("button", { name: "Moving Platform" }));
+    click(5, 8);
+    // The platform is 8 pixels tall along the top of row 8, two tiles wide: press its right half.
+    dragPoints([104, 130], [104, 130]);
+    dragPoints([104, 130], [152, 130]);
+    const things = firstZone(saved()).things;
+    expect(things).toHaveLength(1);
+    expect(things[0]).toMatchObject({ type: "platform", x: 8, y: 8 });
+  });
+
+  it("does not move the boss into the air when its head is clicked", async () => {
+    const { click, saved } = setup();
+    await userEvent.click(screen.getByRole("tab", { name: "Enemies and items" }));
+    await userEvent.click(screen.getByRole("button", { name: "Blizzard Bot" }));
+    click(10, 12);
+    click(10, 11);
+    expect(firstZone(saved()).things.find((t) => t.type === "boss")).toMatchObject({ x: 10, y: 12 });
   });
 
   it("erases an enemy before the tile under it", async () => {

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { snowPack } from "@/content/snow/pack";
 import { SPIKE } from "@/content/snow/tiles";
+import { snowPack as pack } from "@/content/snow/pack";
 import { newProject } from "@/editor/newProject";
 import { paintCommand, placeCommand, thingAt } from "@/editor/tools";
 import { spotFromPointer } from "@/editor/zoneView";
@@ -84,5 +85,11 @@ describe("placeCommand", () => {
     const tool = { kind: "piece" as const, pieceId: "gap", settings: { width: 2 } };
     expect(placeCommand(tool, level.id, climb, spot(4, 6), () => "p").args).toMatchObject({ y: 6 });
     expect(placeCommand(tool, level.id, climb, spot(4, 25), () => "p").args).toMatchObject({ y: 15 });
+  });
+
+  it("slides a piece in from the right edge so it fits", () => {
+    const tool = { kind: "piece" as const, pieceId: "flat-run", settings: { width: 6 } };
+    expect(placeCommand(tool, level.id, first, spot(12, 5), () => "p", pack).args).toMatchObject({ x: 10 });
+    expect(placeCommand(tool, level.id, first, spot(3, 5), () => "p", pack).args).toMatchObject({ x: 3 });
   });
 });

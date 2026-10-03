@@ -48,6 +48,42 @@ describe("useLevelCheck", () => {
   });
 });
 
+describe("useLevelCheck reuse", () => {
+  it("rechecks only the zones that changed", () => {
+    vi.useFakeTimers();
+    const project = newProject("Reuse", makeId);
+    const level = project.levels[0];
+    const { result, rerender } = renderHook(({ p }) => useLevelCheck(p, level.id, snowPack, false, 400), {
+      initialProps: { p: project },
+    });
+    act(() => vi.advanceTimersByTime(400));
+    const before = result.current;
+    const edited = {
+      ...project,
+      levels: [{ ...level, zones: level.zones.map((z, i) => (i === 0 ? { ...z, intent: "changed" } : z)) }],
+    };
+    rerender({ p: edited });
+    act(() => vi.advanceTimersByTime(400));
+    expect(result.current?.zones[1]).toBe(before?.zones[1]);
+    expect(result.current?.zones[2]).toBe(before?.zones[2]);
+    expect(result.current?.zones[0]).not.toBe(before?.zones[0]);
+  });
+
+  it("rechecks every zone when the player's settings change", () => {
+    vi.useFakeTimers();
+    const project = newProject("Settings", makeId);
+    const level = project.levels[0];
+    const { result, rerender } = renderHook(({ p }) => useLevelCheck(p, level.id, snowPack, false, 400), {
+      initialProps: { p: project },
+    });
+    act(() => vi.advanceTimersByTime(400));
+    const before = result.current;
+    rerender({ p: { ...project, player: { ...project.player, runSpeed: 1 } } });
+    act(() => vi.advanceTimersByTime(400));
+    expect(result.current?.zones[1]).not.toBe(before?.zones[1]);
+  });
+});
+
 describe("CheckPanel", () => {
   it("waits for the first check", () => {
     render(<CheckPanel problems={[]} />);

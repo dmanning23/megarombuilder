@@ -78,3 +78,14 @@ test("a file that isn't a game is refused on the home page", async ({ page }) =>
   // Next.js adds its own hidden alert region to every page, so find ours by its text.
   await expect(page.getByText("That file can't be opened. This file isn't a MegaRomBuilder game.")).toBeVisible();
 });
+
+test("narrow screens keep the zone at full size", async ({ page }) => {
+  await page.setViewportSize({ width: 700, height: 1000 });
+  await page.goto("/");
+  await page.getByRole("textbox", { name: "Game name" }).fill("Narrow");
+  await page.getByRole("button", { name: "Make a new game" }).click();
+  await expect(page.getByTestId("zone-canvas")).toBeVisible();
+  await page.waitForTimeout(800);
+  const box = await page.getByTestId("zone-canvas").boundingBox();
+  expect(box?.height).toBe(480);
+});

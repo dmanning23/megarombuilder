@@ -36,7 +36,12 @@ const typing = (target: EventTarget | null) => {
   );
 };
 
-type Drag = { kind: "stroke" } | { kind: "move"; thingId: string } | null;
+// A move remembers where the thing was grabbed, so a wide thing (a platform, the boss) keeps the
+// grab point under the pointer, and a click that doesn't drag doesn't move it.
+type Drag =
+  | { kind: "stroke" }
+  | { kind: "move"; thingId: string; from: { x: number; y: number }; dx: number; dy: number }
+  | null;
 
 export function Editor({
   initial,
@@ -164,12 +169,17 @@ export function Editor({
 
   // Sideways zones zoom to fit the height of the zone area (between 1x and 2x), so the floor,
   // where most building happens, is always in view. Climbing zones stay at 2x and scroll.
+  // Only in the wide layout, where the zone area has a set height: in the narrow layout its height
+  // comes from the canvas, and fitting to it would shrink the canvas step by step to 1x.
   const stageRef = useRef<HTMLDivElement>(null);
   const [stageHeight, setStageHeight] = useState<number | null>(null);
   useEffect(() => {
     const el = stageRef.current;
-    if (!el || typeof ResizeObserver === "undefined") return;
-    const observer = new ResizeObserver(([entry]) => setStageHeight(entry.contentRect.height));
+    if (!el || typeof ResizeObserver === "undefined" || typeof window.matchMedia !== "function") return;
+    const wide = window.matchMedia("(min-width: 761px)");
+    const observer = new ResizeObserver(([entry]) =>
+      setStageHeight(wide.matches ? entry.contentRect.height : null),
+    );
     observer.observe(el);
     return () => observer.disconnect();
   }, [playing]);
@@ -196,11 +206,11 @@ export function Editor({
     if (tool.kind === "thing") {
       const hit = thingAt(zone, pack, spot.point);
       if (hit) {
-        drag.current = { kind: "move", thingId: hit.id };
+        drag.current = { kind: "move", thingId: hit.id, from: spot.tile, dx: hit.x - spot.tile.x, dy: hit.y - spot.tile.y };
         return;
       }
     }
-    run(placeCommand(tool, level.id, zone, spot, makeId));
+    run(placeCommand(tool, level.id, zone, spot, makeId, pack));
   };
   const dragTo = (spot: Spot) => {
     const tool = state.tool;
@@ -212,10 +222,16 @@ export function Editor({
     const ended = drag.current;
     drag.current = null;
     if (ended?.kind === "stroke") dispatch({ type: "commit" });
-    else if (ended?.kind === "move" && spot) {
+    else if (ended?.kind === "move" && spot && (spot.tile.x !== ended.from.x || spot.tile.y !== ended.from.y)) {
       run({
         name: "moveThing",
-        args: { levelId: level.id, zoneId: zone.id, thingId: ended.thingId, x: spot.tile.x, y: spot.tile.y },
+        args: {
+          levelId: level.id,
+          zoneId: zone.id,
+          thingId: ended.thingId,
+          x: spot.tile.x + ended.dx,
+          y: spot.tile.y + ended.dy,
+        },
       });
     }
   };

@@ -42,6 +42,7 @@ export function placeCommand(
   zone: Zone,
   spot: Spot,
   makeId: () => string,
+  pack?: ContentPack,
 ): Command {
   if (tool.kind === "thing") {
     return {
@@ -49,15 +50,18 @@ export function placeCommand(
       args: { levelId, zoneId: zone.id, thingId: makeId(), type: tool.type, x: spot.tile.x, y: spot.tile.y },
     };
   }
-  const height = zoneSize(zone.scroll, zone.screens).height;
-  const y = zone.scroll === "horizontal" ? 0 : Math.max(0, Math.min(spot.tile.y, height - 15));
+  const size = zoneSize(zone.scroll, zone.screens);
+  const y = zone.scroll === "horizontal" ? 0 : Math.max(0, Math.min(spot.tile.y, size.height - 15));
+  // A piece pressed near the right edge slides left so it fits, when the pack says how wide it is.
+  const width = pack?.pieces.find((p) => p.id === tool.pieceId)?.build(tool.settings).width ?? 1;
+  const x = Math.max(0, Math.min(spot.tile.x, size.width - width));
   return {
     name: "insertPiece",
     args: {
       levelId,
       zoneId: zone.id,
       pieceId: tool.pieceId,
-      x: spot.tile.x,
+      x,
       y,
       settings: tool.settings,
       idPrefix: makeId(),

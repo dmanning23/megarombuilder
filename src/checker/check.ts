@@ -118,10 +118,16 @@ function bossProblems(level: Level, pack: ContentPack): string[] {
   return problems;
 }
 
+// Problems with the level as a whole: zones that don't connect, and the boss rules.
+export function levelProblems(project: Project, levelId: string, pack: ContentPack): string[] {
+  const level = findLevel(project, levelId);
+  return [...chainProblems(level), ...bossProblems(level, pack)];
+}
+
 export function checkLevel(project: Project, levelId: string, pack: ContentPack): LevelCheck {
   const level = findLevel(project, levelId);
   return {
     zones: level.zones.map((z) => checkZone(project, levelId, z.id, pack)),
-    problems: [...chainProblems(level), ...bossProblems(level, pack)],
+    problems: levelProblems(project, levelId, pack),
   };
 }
