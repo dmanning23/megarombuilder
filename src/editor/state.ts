@@ -13,7 +13,11 @@ import {
 import type { Command, CommandContext } from "@/commands/types";
 import { tidyName, type Level, type Project, type Zone } from "@/model/schema";
 
-export type Tool = { kind: "tile"; tile: number } | { kind: "erase" };
+export type Tool =
+  | { kind: "tile"; tile: number }
+  | { kind: "erase" }
+  | { kind: "thing"; type: string }
+  | { kind: "piece"; pieceId: string; settings: Record<string, number> };
 
 export type EditorState = {
   history: History;

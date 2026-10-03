@@ -86,3 +86,24 @@ export function tileFromPointer(
   if (x < 0 || y < 0 || x >= size.width || y >= size.height) return null;
   return { x, y };
 }
+
+// Where a pointer is in a zone: the tile, and the exact point in zone pixels.
+export type Spot = { tile: { x: number; y: number }; point: { x: number; y: number } };
+
+export function spotFromPointer(
+  clientX: number,
+  clientY: number,
+  rect: { left: number; top: number; width: number; height: number },
+  zone: Zone,
+): Spot | null {
+  const tile = tileFromPointer(clientX, clientY, rect, zone);
+  if (!tile) return null;
+  const { width, height } = zonePixels(zone);
+  return {
+    tile,
+    point: {
+      x: ((clientX - rect.left) / rect.width) * width,
+      y: ((clientY - rect.top) / rect.height) * height,
+    },
+  };
+}
