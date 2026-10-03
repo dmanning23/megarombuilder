@@ -59,7 +59,7 @@ function healthBar(ctx: Ctx2D, x: number, value: number, max: number, colour: st
   for (let i = 0; i < value; i++) rect(ctx, colour, x, 14 + (max - i) * 2, 6, 1);
 }
 
-function drawZone(
+export function drawZone(
   ctx: Ctx2D,
   zone: Zone,
   pack: ContentPack,
@@ -67,6 +67,8 @@ function drawZone(
   dx: number,
   dy: number,
   skin: Skin | undefined,
+  width = SCREEN_W,
+  height = SCREEN_H,
 ): void {
   const size = zoneSize(zone.scroll, zone.screens);
   const behaviours = new Map(pack.tiles.map((t) => [t.id, t.behaviour]));
@@ -74,12 +76,12 @@ function drawZone(
   const camX = Math.round(camera.x);
   const camY = Math.round(camera.y);
   const background = skin?.set.backgrounds[zone.variant] ?? BACKGROUNDS[zone.variant] ?? "#404040";
-  rect(ctx, background, dx, dy, SCREEN_W, SCREEN_H);
+  rect(ctx, background, dx, dy, width, height);
 
   const x0 = Math.max(0, firstTile(camX));
-  const x1 = Math.min(size.width - 1, lastTile(camX + SCREEN_W));
+  const x1 = Math.min(size.width - 1, lastTile(camX + width));
   const y0 = Math.max(0, firstTile(camY));
-  const y1 = Math.min(size.height - 1, lastTile(camY + SCREEN_H));
+  const y1 = Math.min(size.height - 1, lastTile(camY + height));
   for (let ty = y0; ty <= y1; ty++) {
     for (let tx = x0; tx <= x1; tx++) {
       const id = zone.tiles[tileIndex(size, tx, ty)];
