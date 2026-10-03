@@ -73,6 +73,7 @@ describe("ZoneList", () => {
     onSelect: vi.fn(),
     onRename: vi.fn(),
     onAdd: vi.fn(),
+    onAddClimb: vi.fn(),
   });
 
   it("lists the zones in order, numbered, marking the selected one", () => {

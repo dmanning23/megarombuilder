@@ -182,6 +182,7 @@ export function Editor({ initial, store, makeId = () => crypto.randomUUID(), sav
           dispatch({ type: "run", command: { name: "renameZone", args: { levelId: level.id, zoneId, name } } })
         }
         onAdd={addZone}
+        onAddClimb={addZone}
       />
       {state.playing ? (
         <main className={styles.playing}>

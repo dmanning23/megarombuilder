@@ -285,3 +285,50 @@
     order: 3;
   }
 }
+
+.badge,
+.badgeBad {
+  flex: none;
+  min-width: 1.5rem;
+  padding: 0 0.35rem;
+  border-radius: 999px;
+  font-size: 15px;
+  font-weight: 700;
+  text-align: center;
+  background: var(--ok);
+  color: var(--ink);
+}
+.badgeBad {
+  background: var(--warn);
+  color: #fff;
+}
+.checks {
+  max-width: 44rem;
+  margin-top: 0.9rem;
+  font-size: 15px;
+}
+.checks p {
+  margin: 0.25rem 0;
+}
+.good {
+  font-weight: 600;
+  color: #137a70;
+}
+.bad {
+  font-weight: 700;
+  color: #c2214a;
+}
+.warning {
+  color: #8a5a00;
+}
+.problemsTitle {
+  font-size: 17px;
+  margin: 0.75rem 0 0.25rem;
+}
+.problems {
+  margin: 0;
+  padding-left: 1.2rem;
+}
+.add + .add {
+  margin-top: 0.5rem;
+}
