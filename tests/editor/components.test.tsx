@@ -136,6 +136,8 @@ describe("Toolbar", () => {
     onRedo: vi.fn(),
     onPlay: vi.fn(),
     onPlayFromZone: vi.fn(),
+    playing: false,
+    onExport: vi.fn(),
   });
 
   it("shows the name and save state, and disables what cannot happen", () => {

@@ -1,19 +1,24 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
+import type { Command } from "@/commands/types";
 import { canRedo, canUndo } from "@/commands/history";
 import { getArt, getPack } from "@/content/packs";
 import type { Project } from "@/model/schema";
 import type { Skin } from "@/runtime/render/draw";
 import { PlayCanvas } from "@/runtime/render/PlayCanvas";
 import { browserCanvas, createSpriteCache } from "@/runtime/render/sprites";
+import { CheckPanel } from "./components/CheckPanel";
 import { Palette } from "./components/Palette";
 import { Toolbar } from "./components/Toolbar";
 import { ZoneCanvas } from "./components/ZoneCanvas";
 import { ZoneList } from "./components/ZoneList";
+import { ZoneSettings } from "./components/ZoneSettings";
 import styles from "./editor.module.css";
+import { downloadProject } from "./files";
 import { currentLevel, currentZone, editorReducer, initialEditor, nextZoneName } from "./state";
-import { paintCommand } from "./tools";
+import { paintCommand, placeCommand, thingAt } from "./tools";
+import { useLevelCheck } from "./useLevelCheck";
 import type { Spot } from "./zoneView";
 
 type Props = {
@@ -21,14 +26,25 @@ type Props = {
   store: { save(project: Project): Promise<void> };
   makeId?: () => string;
   saveDelay?: number;
+  confirm?: (message: string) => boolean;
 };
 
 const typing = (target: EventTarget | null) => {
   const el = target as HTMLElement | null;
-  return el?.tagName === "INPUT" || el?.tagName === "TEXTAREA" || el?.isContentEditable === true;
+  return (
+    el?.tagName === "INPUT" || el?.tagName === "TEXTAREA" || el?.tagName === "SELECT" || el?.isContentEditable === true
+  );
 };
 
-export function Editor({ initial, store, makeId = () => crypto.randomUUID(), saveDelay = 600 }: Props) {
+type Drag = { kind: "stroke" } | { kind: "move"; thingId: string } | null;
+
+export function Editor({
+  initial,
+  store,
+  makeId = () => crypto.randomUUID(),
+  saveDelay = 600,
+  confirm = (message) => window.confirm(message),
+}: Props) {
   const pack = getPack(initial.contentPackId);
   if (!pack) throw new Error(`The content pack "${initial.contentPackId}" is not available.`);
   const art = getArt(initial.contentPackId);
@@ -45,6 +61,7 @@ export function Editor({ initial, store, makeId = () => crypto.randomUUID(), sav
   const level = currentLevel(state);
   const zone = currentZone(state);
   const strokeOpen = state.history.open !== null;
+  const playing = state.playing !== null;
 
   // Saving. A change is saved a little while after the project last changed (never in the middle
   // of a stroke), and at once when the page is hidden or the editor closes, so the last change is
@@ -128,7 +145,7 @@ export function Editor({ initial, store, makeId = () => crypto.randomUUID(), sav
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (state.playing) {
-        if (e.key === "Escape") dispatch({ type: "stopPlaying" });
+        if (e.key === "Escape" && !typing(e.target)) dispatch({ type: "stopPlaying" });
         return;
       }
       if (typing(e.target)) return;
@@ -145,21 +162,62 @@ export function Editor({ initial, store, makeId = () => crypto.randomUUID(), sav
     return () => window.removeEventListener("keydown", onKey);
   }, [state.playing]);
 
-  const paint = useCallback(
-    (spot: Spot) => {
-      if (state.tool.kind !== "tile" && state.tool.kind !== "erase") return;
-      dispatch({ type: "run", command: paintCommand(state.tool, level.id, zone, pack, spot) });
-    },
-    [state.tool, level.id, zone, pack],
-  );
+  // The checker, rerun once editing pauses.
+  const check = useLevelCheck(project, level.id, pack, strokeOpen || playing);
+  const zoneCheck = check?.zones.find((z) => z.zoneId === zone.id);
+  const marker = zoneCheck && !zoneCheck.passable ? zoneCheck.furthest : null;
 
-  const addZone = () => {
+  const run = (command: Command) => dispatch({ type: "run", command });
+
+  // What the canvas does with the current tool.
+  const drag = useRef<Drag>(null);
+  const press = (spot: Spot) => {
+    const tool = state.tool;
+    if (tool.kind === "tile" || tool.kind === "erase") {
+      dispatch({ type: "begin", label: tool.kind === "erase" ? "Erase" : "Paint" });
+      run(paintCommand(tool, level.id, zone, pack, spot));
+      drag.current = { kind: "stroke" };
+      return;
+    }
+    if (tool.kind === "thing") {
+      const hit = thingAt(zone, pack, spot.point);
+      if (hit) {
+        drag.current = { kind: "move", thingId: hit.id };
+        return;
+      }
+    }
+    run(placeCommand(tool, level.id, zone, spot, makeId));
+  };
+  const dragTo = (spot: Spot) => {
+    const tool = state.tool;
+    if (drag.current?.kind === "stroke" && (tool.kind === "tile" || tool.kind === "erase")) {
+      run(paintCommand(tool, level.id, zone, pack, spot));
+    }
+  };
+  const release = (spot: Spot | null) => {
+    const ended = drag.current;
+    drag.current = null;
+    if (ended?.kind === "stroke") dispatch({ type: "commit" });
+    else if (ended?.kind === "move" && spot) {
+      run({
+        name: "moveThing",
+        args: { levelId: level.id, zoneId: zone.id, thingId: ended.thingId, x: spot.tile.x, y: spot.tile.y },
+      });
+    }
+  };
+
+  const addZone = (climb: boolean) => {
     const zoneId = makeId();
-    dispatch({
-      type: "run",
-      command: { name: "addZone", args: { levelId: level.id, zoneId, name: nextZoneName(level) } },
-    });
+    const args = climb
+      ? { levelId: level.id, zoneId, name: nextZoneName(level), scroll: "vertical", screens: 2 }
+      : { levelId: level.id, zoneId, name: nextZoneName(level) };
+    run({ name: "addZone", args });
     dispatch({ type: "selectZone", zoneId });
+  };
+
+  const deleteZone = () => {
+    if (!confirm(`Delete "${zone.name}"? You can undo this.`)) return;
+    run({ name: "removeZone", args: { levelId: level.id, zoneId: zone.id } });
   };
 
   return (
@@ -169,21 +227,26 @@ export function Editor({ initial, store, makeId = () => crypto.randomUUID(), sav
         saveState={openElsewhere ? "elsewhere" : saveState}
         canUndo={canUndo(state.history)}
         canRedo={canRedo(state.history)}
+        playing={playing}
         onUndo={() => dispatch({ type: "undo" })}
         onRedo={() => dispatch({ type: "redo" })}
         onPlay={() => dispatch({ type: "play", fromZoneId: null })}
         onPlayFromZone={() => dispatch({ type: "play", fromZoneId: zone.id })}
+        onExport={() => downloadProject(project)}
       />
-      <ZoneList
-        level={level}
-        selectedId={zone.id}
-        onSelect={(zoneId) => dispatch({ type: "selectZone", zoneId })}
-        onRename={(zoneId, name) =>
-          dispatch({ type: "run", command: { name: "renameZone", args: { levelId: level.id, zoneId, name } } })
-        }
-        onAdd={addZone}
-        onAddClimb={addZone}
-      />
+      <aside className={styles.side}>
+        <ZoneList
+          level={level}
+          selectedId={zone.id}
+          checks={check?.zones}
+          disabled={playing}
+          onSelect={(zoneId) => dispatch({ type: "selectZone", zoneId })}
+          onRename={(zoneId, name) => run({ name: "renameZone", args: { levelId: level.id, zoneId, name } })}
+          onAdd={() => addZone(false)}
+          onAddClimb={() => addZone(true)}
+        />
+        {!playing && <ZoneSettings level={level} zone={zone} pack={pack} onCommand={run} onDelete={deleteZone} />}
+      </aside>
       {state.playing ? (
         <main className={styles.playing}>
           <PlayCanvas
@@ -220,13 +283,12 @@ export function Editor({ initial, store, makeId = () => crypto.randomUUID(), sav
               skin={skin}
               checkpoints={level.checkpoints}
               zoom={2}
-              onPress={(spot) => {
-                dispatch({ type: "begin", label: "Paint" });
-                paint(spot);
-              }}
-              onDrag={paint}
-              onRelease={() => dispatch({ type: "commit" })}
+              marker={marker}
+              onPress={press}
+              onDrag={dragTo}
+              onRelease={release}
             />
+            <CheckPanel zoneCheck={zoneCheck} problems={check?.problems ?? []} />
           </div>
           <Palette pack={pack} art={art} tool={state.tool} onTool={(tool) => dispatch({ type: "tool", tool })} />
         </main>

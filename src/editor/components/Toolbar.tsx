@@ -11,6 +11,8 @@ type Props = {
   onRedo(): void;
   onPlay(): void;
   onPlayFromZone(): void;
+  playing: boolean;
+  onExport(): void;
 };
 
 const SAVE_TEXT = {
@@ -20,7 +22,18 @@ const SAVE_TEXT = {
   elsewhere: "Not saving: open in another tab",
 };
 
-export function Toolbar({ title, saveState, canUndo, canRedo, onUndo, onRedo, onPlay, onPlayFromZone }: Props) {
+export function Toolbar({
+  title,
+  saveState,
+  canUndo,
+  canRedo,
+  onUndo,
+  onRedo,
+  onPlay,
+  onPlayFromZone,
+  playing,
+  onExport,
+}: Props) {
   return (
     <header className={styles.toolbar}>
       <h1 className={styles.title}>{title}</h1>
@@ -30,16 +43,19 @@ export function Toolbar({ title, saveState, canUndo, canRedo, onUndo, onRedo, on
       >
         {SAVE_TEXT[saveState]}
       </span>
-      <button type="button" className={styles.button} disabled={!canUndo} onClick={onUndo}>
+      <button type="button" className={styles.button} onClick={onExport}>
+        Export
+      </button>
+      <button type="button" className={styles.button} disabled={!canUndo || playing} onClick={onUndo}>
         Undo
       </button>
-      <button type="button" className={styles.button} disabled={!canRedo} onClick={onRedo}>
+      <button type="button" className={styles.button} disabled={!canRedo || playing} onClick={onRedo}>
         Redo
       </button>
-      <button type="button" className={styles.button} onClick={onPlayFromZone}>
+      <button type="button" className={styles.button} disabled={playing} onClick={onPlayFromZone}>
         Play from this zone
       </button>
-      <button type="button" className={styles.primary} onClick={onPlay}>
+      <button type="button" className={styles.primary} disabled={playing} onClick={onPlay}>
         Play
       </button>
     </header>
