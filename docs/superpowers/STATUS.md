@@ -1,6 +1,6 @@
 # Project status
 
-Last updated: 2026-10-02
+Last updated: 2026-10-05
 
 ## What this project is
 
@@ -33,6 +33,7 @@ tests pass; typecheck, lint and build are clean. Browser tests: `npm run e2e`
 | `plans/2026-10-02-plan-5-pieces-and-checker.md` | Plan 5, implemented, reviewed and merged |
 | `plans/2026-10-03-plan-6-editor-core.md` | Plan 6, implemented, reviewed and merged |
 | `plans/2026-10-03-plan-7-editor-tools.md` | Plan 7, implemented, reviewed and merged |
+| `plans/2026-10-05-plan-8-ai-assistant.md` | Plan 8, written, waiting for approval |
 
 Milestone 1 is now eight plans (the editor became two):
 
@@ -49,7 +50,7 @@ Milestone 1 is now eight plans (the editor became two):
 
 1. A person needs to play `/play` through the boss fight and say whether the
    movement, enemies and boss feel right.
-2. Write plan 8 (AI assistant).
+2. Approve and implement plan 8 (AI assistant).
 3. Review findings deferred from plans 2 and 3, to decide on:
    - Player settings have no upper bounds; a run speed or fall speed of 16 or
      more passes through walls, and a ladder speed below 1 breaks climbing down
