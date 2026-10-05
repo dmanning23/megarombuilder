@@ -11,7 +11,7 @@ import {
   type History,
 } from "@/commands/history";
 import type { Command, CommandContext } from "@/commands/types";
-import { tidyName, type Level, type Project, type Zone } from "@/model/schema";
+import { tidyName, type ChatMessage, type Level, type Project, type Zone } from "@/model/schema";
 
 export type Tool =
   | { kind: "tile"; tile: number }
@@ -39,7 +39,8 @@ export type EditorAction =
   | { type: "tool"; tool: Tool }
   | { type: "play"; fromZoneId: string | null }
   | { type: "stopPlaying" }
-  | { type: "dismissError" };
+  | { type: "dismissError" }
+  | { type: "chat"; messages: ChatMessage[] };
 
 export function initialEditor(project: Project, tile: number): EditorState {
   const level = project.levels[0];
@@ -76,6 +77,14 @@ function settle(state: EditorState): EditorState {
   return zone.id === state.zoneId ? state : { ...state, zoneId: zone.id };
 }
 
+export const MAX_CHAT = 200;
+
+// The chat is a record of what was said, not part of the level, so undo, redo and rollback keep
+// the conversation as it is now.
+function keepChat(history: History, chat: ChatMessage[]): History {
+  return history.project.chat === chat ? history : { ...history, project: { ...history.project, chat } };
+}
+
 export function editorReducer(ctx: CommandContext) {
   return (state: EditorState, action: EditorAction): EditorState => {
     switch (action.type) {
@@ -89,11 +98,17 @@ export function editorReducer(ctx: CommandContext) {
       case "commit":
         return state.history.open ? settle({ ...state, history: commitGroup(state.history) }) : state;
       case "rollback":
-        return state.history.open ? settle({ ...state, history: rollbackGroup(state.history) }) : state;
+        return state.history.open
+          ? settle({ ...state, history: keepChat(rollbackGroup(state.history), state.history.project.chat) })
+          : state;
       case "undo":
-        return canUndo(state.history) ? settle({ ...state, history: undo(state.history), error: null }) : state;
+        return canUndo(state.history)
+          ? settle({ ...state, history: keepChat(undo(state.history), state.history.project.chat), error: null })
+          : state;
       case "redo":
-        return canRedo(state.history) ? settle({ ...state, history: redo(state.history), error: null }) : state;
+        return canRedo(state.history)
+          ? settle({ ...state, history: keepChat(redo(state.history), state.history.project.chat), error: null })
+          : state;
       case "selectZone":
         return currentLevel(state).zones.some((z) => z.id === action.zoneId)
           ? { ...state, zoneId: action.zoneId }
@@ -106,6 +121,11 @@ export function editorReducer(ctx: CommandContext) {
         return { ...state, playing: null };
       case "dismissError":
         return { ...state, error: null };
+      case "chat": {
+        const project = state.history.project;
+        const chat = [...project.chat, ...action.messages].slice(-MAX_CHAT);
+        return { ...state, history: { ...state.history, project: { ...project, chat } } };
+      }
     }
   };
 }
