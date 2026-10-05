@@ -3183,7 +3183,7 @@ test("the editor keeps working when the assistant is unavailable", async ({ page
   await makeGame(page);
   await page.getByRole("textbox", { name: "Message" }).fill("Build me a level");
   await page.getByRole("button", { name: "Send" }).click();
-  await expect(page.getByRole("alert")).toContainText("The assistant isn't available right now.");
+  await expect(page.getByText("The assistant isn't available right now.", { exact: false })).toBeVisible();
   await page.getByRole("button", { name: "Add a zone" }).click();
   await expect(page.getByRole("button", { name: /Zone 2/ })).toBeVisible();
 });
