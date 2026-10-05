@@ -2,7 +2,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { SYSTEM_PROMPT } from "@/ai/prompt";
 import { createChatHandler, DEFAULT_MODEL, errorKind, type ChatDeps } from "@/ai/server/handler";
-import { createRateLimiter } from "@/ai/server/rateLimit";
+import { createChatLimiter, createRateLimiter } from "@/ai/server/rateLimit";
 import { parseChatRequest } from "@/ai/server/request";
 import { AI_TOOLS } from "@/ai/tools";
 
@@ -50,9 +50,25 @@ describe("POST /api/chat", () => {
     const response = await createChatHandler(() => deps({ allow }))(post(conversation, { "x-forwarded-for": "1.2.3.4, 10.0.0.1" }));
     expect(response.status).toBe(429);
     expect(await response.json()).toEqual({ error: "busy" });
-    expect(allow).toHaveBeenCalledWith("1.2.3.4");
+    expect(allow).toHaveBeenCalledWith("1.2.3.4", true);
     await createChatHandler(() => deps({ allow }))(post(conversation));
-    expect(allow).toHaveBeenLastCalledWith("local");
+    expect(allow).toHaveBeenLastCalledWith("local", true);
+  });
+
+  it("tells the limiter whether a request starts a turn or carries tool results", async () => {
+    const allow = vi.fn(() => true);
+    const handler = createChatHandler(() => deps({ allow }));
+    await (await handler(post(conversation))).text();
+    expect(allow).toHaveBeenLastCalledWith("local", true);
+    const round = {
+      messages: [
+        { role: "user", content: "Add spikes" },
+        { role: "assistant", content: [{ type: "tool_use", id: "tu-1", name: "get_catalogue", input: {} }] },
+        { role: "user", content: [{ type: "tool_result", tool_use_id: "tu-1", content: "Tiles..." }] },
+      ],
+    };
+    await (await handler(post(round))).text();
+    expect(allow).toHaveBeenLastCalledWith("local", false);
   });
 
   it("refuses a request that is not a conversation", async () => {
@@ -138,7 +154,42 @@ describe("createRateLimiter", () => {
   });
 });
 
+describe("createChatLimiter", () => {
+  it("limits turns to 20 a minute without cutting off the tool rounds of a long turn", () => {
+    let now = 0;
+    const allow = createChatLimiter(() => now);
+    expect(allow("a", true)).toBe(true);
+    for (let i = 0; i < 45; i++) expect(allow("a", false)).toBe(true);
+    for (let i = 1; i < 20; i++) expect(allow("a", true)).toBe(true);
+    expect(allow("a", true)).toBe(false);
+    expect(allow("a", false)).toBe(true);
+    now = 60_000;
+    expect(allow("a", true)).toBe(true);
+  });
+
+  it("still caps tool rounds", () => {
+    const allow = createChatLimiter(() => 0);
+    for (let i = 0; i < 120; i++) allow("a", false);
+    expect(allow("a", false)).toBe(false);
+  });
+});
+
 describe("parseChatRequest", () => {
+  it("refuses blocks the assistant never sends, like documents and images", () => {
+    for (const block of [
+      { type: "document", source: { type: "url", url: "https://example.com/big.pdf" } },
+      { type: "image", source: { type: "url", url: "https://example.com/a.png" } },
+      { type: "tool_result", tool_use_id: "tu-1", content: [{ type: "image", source: { type: "url", url: "https://x/a.png" } }] },
+    ]) {
+      expect(parseChatRequest(JSON.stringify({ messages: [{ role: "user", content: [block] }] })), block.type).toBeNull();
+    }
+  });
+
+  it("removes cache settings sent by the browser", () => {
+    const messages = [{ role: "user", content: [{ type: "text", text: "Hi", cache_control: { type: "ephemeral", ttl: "1h" } }] }];
+    expect(parseChatRequest(JSON.stringify({ messages }))).toEqual([{ role: "user", content: [{ type: "text", text: "Hi" }] }]);
+  });
+
   it("accepts tool results and Claude's own blocks, and refuses huge requests", () => {
     const messages = [
       { role: "user", content: "Add spikes" },

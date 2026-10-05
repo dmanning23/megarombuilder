@@ -145,7 +145,9 @@ export async function runTurn(request: TurnRequest, hooks: TurnHooks): Promise<T
     }
 
     const uses = reply.content.filter((b): b is Anthropic.ToolUseBlock => b.type === "tool_use");
-    messages.push({ role: "assistant", content: reply.content });
+    // The API refuses an empty assistant message anywhere but last, and the forced check round
+    // continues after this one.
+    messages.push({ role: "assistant", content: reply.content.length > 0 ? reply.content : [{ type: "text", text: "Done." }] });
 
     if (uses.length === 0) {
       const forced = forcedCheck ? null : checkUnchecked(state, ctx);

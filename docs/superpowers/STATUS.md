@@ -24,7 +24,7 @@ The chat beside the level builds and changes levels: ask for a change and the
 assistant looks at the level, builds with pieces and small edits, checks every
 zone it changed, and replies in a few sentences; one undo removes a whole turn,
 and Stop puts the level back. It needs `ANTHROPIC_API_KEY` in `.env.local` (see
-the README). 648 tests and 8 browser tests pass; typecheck, lint and build are clean. Browser tests: `npm run e2e`
+the README). 655 tests and 8 browser tests pass; typecheck, lint and build are clean. Browser tests: `npm run e2e`
 (builds and serves on port 3100).
 
 | Document | State |
@@ -57,6 +57,18 @@ Milestone 1 is now eight plans (the editor became two):
 2. Try the assistant with a real API key using `docs/superpowers/ai-prompts.md`,
    and play what it builds.
 3. Review findings deferred from plans 2 and 3, to decide on:
+   - Plan 8: mid-stream "overloaded" errors show "Something went wrong" instead
+     of "busy"; dropped connections are retried twice as if the tool input was
+     unreadable.
+   - Plan 8: the assistant's zone lookup compares stored names without tidying
+     spaces.
+   - Plan 8: the key boundary test misses relative `./server` imports; add a
+     `server-only` guard to `src/ai/server/anthropic.ts`.
+   - Plan 8: `/api/chat` reads the whole body before checking its size.
+   - Plan 8: a thing drag that started before a chat turn and ends during it
+     lands in the assistant's undo step.
+   - Plan 8: the rate limit trusts `x-forwarded-for`; put a real limiter in
+     front before running the app on the public internet.
    - Player settings have no upper bounds; a run speed or fall speed of 16 or
      more passes through walls, and a ladder speed below 1 breaks climbing down
      from a ladder top. Bound them before the editor or AI can change them.

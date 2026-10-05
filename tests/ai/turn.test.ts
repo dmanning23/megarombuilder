@@ -83,6 +83,14 @@ describe("runTurn", () => {
     expect(forced.content).toContain('"Zone 1" passes');
   });
 
+  it("never sends Claude an empty reply of its own when it forces the check round", async () => {
+    const { turn, requests } = setup([useTools(spikes), { content: [], stop_reason: "end_turn" }, say("Checked.")]);
+    expect(await turn()).toMatchObject({ ok: true, reply: "Checked." });
+    const assistant = requests[2][requests[2].length - 2];
+    expect(assistant.role).toBe("assistant");
+    expect(assistant.content).not.toEqual([]);
+  });
+
   it("forces the check round only once per turn", async () => {
     const { turn, requests } = setup([useTools(spikes), say("Done."), useTools(spikes), say("Finished.")]);
     expect(await turn()).toMatchObject({ ok: true, reply: "Finished." });

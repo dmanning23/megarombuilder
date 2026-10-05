@@ -19,7 +19,7 @@ Open http://localhost:3000 to make a game or open the demo. `/play` plays the de
 The assistant needs an Anthropic API key in `ANTHROPIC_API_KEY`. Without one, everything else
 works and the chat says the assistant isn't available. `ANTHROPIC_MODEL` picks the model (the
 default is `claude-opus-5-5`). The key stays on the server: the browser talks to `/api/chat`,
-which adds the key, and allows 20 requests a minute from each address.
+which adds the key, and allows 20 chat turns a minute from each address.
 
 ## Tests
 

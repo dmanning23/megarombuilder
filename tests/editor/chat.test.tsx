@@ -95,6 +95,22 @@ describe("the assistant in the editor", () => {
     expect(save.mock.calls.some(([project]) => spikeIn(project) === SPIKE)).toBe(false);
   });
 
+  it("unlocks the level and puts it back if something unexpected breaks the turn", async () => {
+    // A reply that breaks the turn itself, outside the model call (as a bug in a tool would).
+    const content = Object.assign([], {
+      filter() {
+        throw new Error("boom");
+      },
+    });
+    const broken = { content, stop_reason: "end_turn" } as unknown as Step;
+    const { save } = setup([useTools(spikes), broken]);
+    await ask("Add spikes");
+    expect((await screen.findByRole("alert")).textContent).toContain("Something went wrong");
+    expect(screen.getByRole("button", { name: "Send" })).toHaveProperty("disabled", false);
+    expect(screen.getByRole("button", { name: "Add a zone" })).toHaveProperty("disabled", false);
+    expect(save.mock.calls.some(([project]) => spikeIn(project) === SPIKE)).toBe(false);
+  });
+
   it("says when the assistant is unavailable, and the editor keeps working", async () => {
     setup([new ModelError("unavailable")]);
     await ask("Add spikes");

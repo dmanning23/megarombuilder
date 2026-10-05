@@ -1,8 +1,8 @@
 import { streamMessage } from "@/ai/server/anthropic";
 import { createChatHandler, DEFAULT_MODEL } from "@/ai/server/handler";
-import { createRateLimiter } from "@/ai/server/rateLimit";
+import { createChatLimiter } from "@/ai/server/rateLimit";
 
-const allow = createRateLimiter(20, 60_000);
+const allow = createChatLimiter();
 
 export const POST = createChatHandler(() => ({
   apiKey: process.env.ANTHROPIC_API_KEY,

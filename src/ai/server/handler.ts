@@ -13,7 +13,12 @@ export type StreamFn = (
   onText: (delta: string) => void,
 ) => Promise<Anthropic.Message>;
 
-export type ChatDeps = { apiKey: string | undefined; model: string; stream: StreamFn; allow(key: string): boolean };
+export type ChatDeps = {
+  apiKey: string | undefined;
+  model: string;
+  stream: StreamFn;
+  allow(key: string, newTurn: boolean): boolean;
+};
 
 const TOOLS = toolDefinitions();
 
@@ -36,9 +41,12 @@ export function createChatHandler(getDeps: () => ChatDeps) {
     const deps = getDeps();
     if (!deps.apiKey) return refuse(503, "unavailable");
     const address = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "local";
-    if (!deps.allow(address)) return refuse(429, "busy");
     const messages = parseChatRequest(await request.text());
     if (!messages) return refuse(400, "failed");
+    // A request that answers tool calls continues a turn; anything else starts one.
+    const last = messages[messages.length - 1].content;
+    const newTurn = !(Array.isArray(last) && last.some((b) => b.type === "tool_result"));
+    if (!deps.allow(address, newTurn)) return refuse(429, "busy");
 
     const params: Anthropic.MessageStreamParams = {
       model: deps.model,

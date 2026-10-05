@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
 import type { Command } from "@/commands/types";
 import { createHttpModel } from "@/ai/httpModel";
-import { runTurn, type ModelFn } from "@/ai/turn";
+import { FAILURE_TEXT, runTurn, type ModelFn } from "@/ai/turn";
 import { canRedo, canUndo } from "@/commands/history";
 import { getArt, getPack } from "@/content/packs";
 import type { Project } from "@/model/schema";
@@ -98,6 +98,7 @@ export function Editor({
     setDraft("");
     setActivity(null);
     dispatch({ type: "begin", label: "Assistant" });
+    // Anything unexpected inside the turn counts as a failed turn, so the level is never left locked.
     const result = await runTurn(
       { project, levelId: level.id, zoneId: zone.id, history: project.chat, text },
       {
@@ -113,7 +114,10 @@ export function Editor({
           if (typeof zoneId === "string") dispatch({ type: "selectZone", zoneId });
         },
       },
-    );
+    ).catch((error: unknown) => {
+      console.error("The chat turn failed:", error);
+      return { ok: false as const, reason: "failed" as const, message: FAILURE_TEXT.failed };
+    });
     turn.current = null;
     if (result.ok) {
       dispatch({ type: "commit" });

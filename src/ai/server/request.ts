@@ -4,7 +4,28 @@ import { z } from "zod";
 export const MAX_BODY_CHARS = 2_000_000;
 
 // The browser sends only the conversation. The model, system prompt and tools are the server's.
-const block = z.looseObject({ type: z.string() });
+// Only the kinds of block a chat turn uses are accepted (no documents or images for the server's key
+// to pay for), and cache settings are the server's too.
+function withoutCache<T extends Record<string, unknown>>(block: T): T {
+  const copy = { ...block };
+  delete copy.cache_control;
+  return copy;
+}
+const text = z.looseObject({ type: z.literal("text"), text: z.string() }).transform(withoutCache);
+const block = z
+  .union([
+    text,
+    z.looseObject({ type: z.literal("tool_use"), id: z.string(), name: z.string(), input: z.unknown() }),
+    z.looseObject({
+      type: z.literal("tool_result"),
+      tool_use_id: z.string(),
+      content: z.union([z.string(), z.array(text).max(20)]),
+      is_error: z.boolean().optional(),
+    }),
+    z.looseObject({ type: z.literal("thinking"), thinking: z.string(), signature: z.string() }),
+    z.looseObject({ type: z.literal("redacted_thinking"), data: z.string() }),
+  ])
+  .transform(withoutCache);
 const message = z.strictObject({
   role: z.enum(["user", "assistant"]),
   content: z.union([z.string(), z.array(block).max(200)]),
