@@ -2628,7 +2628,7 @@ const spikes = ["fill_rect", { zone: "Zone 1", x: 3, y: 13, w: 2, h: 1, tile: SP
 const spikeIn = (project: Project | undefined) => project?.levels[0].zones[0].tiles[13 * 16 + 4];
 
 function setup(steps: Step[], initial: Project = newProject("Game", makeId)) {
-  const save = vi.fn(async (_project: Project) => {});
+  const save = vi.fn<(project: Project) => Promise<void>>(async () => {});
   const { model } = scriptedModel(steps);
   render(<Editor initial={initial} store={{ save }} makeId={makeId} saveDelay={0} model={model} />);
   const lastSaved = () => save.mock.calls.at(-1)?.[0];
@@ -2681,7 +2681,10 @@ describe("the assistant in the editor", () => {
   });
 
   it("follows the zone the assistant is changing", async () => {
-    setup([useTools(["fill_rect", { zone: "Boss Corridor", x: 3, y: 13, w: 1, h: 1, tile: SPIKE }]), say("Done.")]);
+    setup([
+      useTools(["fill_rect", { zone: "Boss Corridor", x: 3, y: 13, w: 1, h: 1, tile: SPIKE }], ["check_zone", { zone: "Boss Corridor" }]),
+      say("Done."),
+    ]);
     await ask("Spikes in the corridor");
     await screen.findByText("Done.");
     expect(screen.getByLabelText("Boss Corridor, 1 screen")).toBeTruthy();
