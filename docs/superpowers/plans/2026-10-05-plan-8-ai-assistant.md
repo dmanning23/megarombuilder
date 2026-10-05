@@ -2103,7 +2103,7 @@ const message = z.strictObject({
 });
 const chatRequest = z
   .strictObject({ messages: z.array(message).min(1).max(400) })
-  .refine((r) => r.messages[0].role === "user" && r.messages[r.messages.length - 1].role === "user");
+  .refine((r) => r.messages[0]?.role === "user" && r.messages[r.messages.length - 1]?.role === "user");
 
 export function parseChatRequest(text: string): Anthropic.MessageParam[] | null {
   if (text.length > MAX_BODY_CHARS) return null;

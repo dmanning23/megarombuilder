@@ -48,3 +48,17 @@ describe("command registry", () => {
     for (const def of commandDefs) expect(def.description.length).toBeGreaterThan(10);
   });
 });
+
+describe("API key", () => {
+  it("keeps the Anthropic SDK and the chat server code out of everything the browser loads", () => {
+    const offenders: string[] = [];
+    for (const file of sourceFiles("src")) {
+      if (file.startsWith(join("src", "ai", "server")) || file.startsWith(join("src", "app", "api"))) continue;
+      const text = readFileSync(file, "utf8");
+      if (/^import (?!type )[^;]*from "@anthropic-ai\/sdk"/m.test(text)) offenders.push(`${file} imports the SDK`);
+      if (/from "@\/ai\/server/.test(text)) offenders.push(`${file} imports server code`);
+      if (/ANTHROPIC_API_KEY/.test(text)) offenders.push(`${file} mentions the API key`);
+    }
+    expect(offenders).toEqual([]);
+  });
+});
