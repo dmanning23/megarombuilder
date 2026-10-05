@@ -1,6 +1,6 @@
 # Project status
 
-Last updated: 2026-10-02
+Last updated: 2026-10-05
 
 ## What this project is
 
@@ -10,7 +10,7 @@ zone. Next.js and React, one AI proxy route, projects stored in the browser.
 
 ## Where things stand
 
-Plans 1 to 7 are implemented, reviewed and merged to `main`.
+Plans 1 to 8 are implemented, reviewed and merged to `main`. Milestone 1 is complete.
 
 Run `npm run dev` and open `/play` for the demo stage: running, jumping, ice,
 spikes, ladders, zone transitions, six enemy types, health pickups, a moving
@@ -19,8 +19,12 @@ Run `npm run dev` and open the home page to make a game and build it: paint tile
 place and drag enemies and items, stamp the twelve level pieces, see each zone's
 checker verdict and difficulty as you build, change a zone's length, look,
 purpose and ways in and out, reorder, add and delete zones, playtest, and export
-or import game files. Games are saved in the browser. 568 tests and 6 browser
-tests pass; typecheck, lint and build are clean. Browser tests: `npm run e2e`
+or import game files. Games are saved in the browser.
+The chat beside the level builds and changes levels: ask for a change and the
+assistant looks at the level, builds with pieces and small edits, checks every
+zone it changed, and replies in a few sentences; one undo removes a whole turn,
+and Stop puts the level back. It needs `ANTHROPIC_API_KEY` in `.env.local` (see
+the README). 655 tests and 8 browser tests pass; typecheck, lint and build are clean. Browser tests: `npm run e2e`
 (builds and serves on port 3100).
 
 | Document | State |
@@ -33,6 +37,7 @@ tests pass; typecheck, lint and build are clean. Browser tests: `npm run e2e`
 | `plans/2026-10-02-plan-5-pieces-and-checker.md` | Plan 5, implemented, reviewed and merged |
 | `plans/2026-10-03-plan-6-editor-core.md` | Plan 6, implemented, reviewed and merged |
 | `plans/2026-10-03-plan-7-editor-tools.md` | Plan 7, implemented, reviewed and merged |
+| `plans/2026-10-05-plan-8-ai-assistant.md` | Plan 8, implemented, reviewed and merged |
 
 Milestone 1 is now eight plans (the editor became two):
 
@@ -43,14 +48,27 @@ Milestone 1 is now eight plans (the editor became two):
 5. Level pieces and the checker (done)
 6. Editor core: projects, zone list, tile painting, undo, playtest (done)
 7. Editor tools: things and pieces palettes, checker overlay and badges, zone menu, export and import (done)
-8. AI assistant: proxy route, tools, chat loop
+8. AI assistant: proxy route, tools, chat loop (done)
 
 ## Open items
 
 1. A person needs to play `/play` through the boss fight and say whether the
    movement, enemies and boss feel right.
-2. Write plan 8 (AI assistant).
+2. Try the assistant with a real API key using `docs/superpowers/ai-prompts.md`,
+   and play what it builds.
 3. Review findings deferred from plans 2 and 3, to decide on:
+   - Plan 8: mid-stream "overloaded" errors show "Something went wrong" instead
+     of "busy"; dropped connections are retried twice as if the tool input was
+     unreadable.
+   - Plan 8: the assistant's zone lookup compares stored names without tidying
+     spaces.
+   - Plan 8: the key boundary test misses relative `./server` imports; add a
+     `server-only` guard to `src/ai/server/anthropic.ts`.
+   - Plan 8: `/api/chat` reads the whole body before checking its size.
+   - Plan 8: a thing drag that started before a chat turn and ends during it
+     lands in the assistant's undo step.
+   - Plan 8: the rate limit trusts `x-forwarded-for`; put a real limiter in
+     front before running the app on the public internet.
    - Player settings have no upper bounds; a run speed or fall speed of 16 or
      more passes through walls, and a ladder speed below 1 breaks climbing down
      from a ladder top. Bound them before the editor or AI can change them.

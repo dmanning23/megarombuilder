@@ -953,13 +953,13 @@ describe("executeTool", () => {
   });
 
   it("makes a change with the zone's id filled in, and returns the command for the editor", () => {
-    const out = executeTool(startTurn(game(), "L1"), "fill_rect", { zone: "Zone 1", x: 3, y: 12, w: 2, h: 1, tile: SPIKE }, context());
+    const out = executeTool(startTurn(game(), "L1"), "fill_rect", { zone: "Zone 1", x: 3, y: 13, w: 2, h: 1, tile: SPIKE }, context());
     expect(out).toMatchObject({ isError: false, content: "Done.", activity: "Building Zone 1…" });
     expect(out.command).toEqual({
       name: "fillRect",
-      args: { levelId: "L1", zoneId: "z1", x: 3, y: 12, w: 2, h: 1, tile: SPIKE },
+      args: { levelId: "L1", zoneId: "z1", x: 3, y: 13, w: 2, h: 1, tile: SPIKE },
     });
-    expect(tileAt(out.state.project, "z1", 4, 12)).toBe(SPIKE);
+    expect(tileAt(out.state.project, "z1", 4, 13)).toBe(SPIKE);
     expect(uncheckedZones(out.state)).toEqual(["z1"]);
   });
 
@@ -1009,7 +1009,7 @@ describe("executeTool", () => {
 
   it("counts a zone as checked once check_zone or check_level has run since its last change", () => {
     const ctx = context();
-    let state = executeTool(startTurn(game(), "L1"), "fill_rect", { zone: "Zone 1", x: 3, y: 12, w: 1, h: 1, tile: SPIKE }, ctx).state;
+    let state = executeTool(startTurn(game(), "L1"), "fill_rect", { zone: "Zone 1", x: 3, y: 13, w: 1, h: 1, tile: SPIKE }, ctx).state;
     state = executeTool(state, "set_zone_intent", { zone: "Boss Corridor", intent: "a calm walk" }, ctx).state;
     expect(uncheckedZones(state)).toEqual(["z1", "corridor"]);
 
@@ -1023,7 +1023,7 @@ describe("executeTool", () => {
     expect(all.content).toContain("No problems with how the zones connect.");
     expect(uncheckedZones(all.state)).toEqual([]);
 
-    const again = executeTool(all.state, "fill_rect", { zone: "Zone 1", x: 4, y: 12, w: 1, h: 1, tile: SPIKE }, ctx);
+    const again = executeTool(all.state, "fill_rect", { zone: "Zone 1", x: 4, y: 13, w: 1, h: 1, tile: SPIKE }, ctx);
     expect(uncheckedZones(again.state)).toEqual(["z1"]);
   });
 
@@ -1337,7 +1337,7 @@ import type { ChatMessage } from "@/model/schema";
 import { scriptedModel, say, useTools, waitForAbort, type Step } from "./fakeModel";
 import { counter, game, pack } from "./helpers";
 
-const spikes = ["fill_rect", { zone: "Zone 1", x: 3, y: 12, w: 2, h: 1, tile: SPIKE }] as [string, unknown];
+const spikes = ["fill_rect", { zone: "Zone 1", x: 3, y: 13, w: 2, h: 1, tile: SPIKE }] as [string, unknown];
 const checkZone1 = ["check_zone", { zone: "Zone 1" }] as [string, unknown];
 
 function setup(steps: Step[], request: Partial<TurnRequest> = {}) {
@@ -1369,8 +1369,8 @@ describe("runTurn", () => {
     const result = await turn();
     expect(result).toMatchObject({ ok: true, reply: "I added spikes to Zone 1." });
     if (!result.ok) throw new Error("unreachable");
-    expect(result.project.levels[0].zones[0].tiles[12 * 16 + 4]).toBe(SPIKE);
-    expect(commands).toEqual([{ name: "fillRect", args: { levelId: "L1", zoneId: "z1", x: 3, y: 12, w: 2, h: 1, tile: SPIKE } }]);
+    expect(result.project.levels[0].zones[0].tiles[13 * 16 + 4]).toBe(SPIKE);
+    expect(commands).toEqual([{ name: "fillRect", args: { levelId: "L1", zoneId: "z1", x: 3, y: 13, w: 2, h: 1, tile: SPIKE } }]);
     expect(activity).toEqual(["Building Zone 1…", "Checking Zone 1…"]);
     expect(requests).toHaveLength(3);
     const results = toolResults(lastUser(requests[1]));
@@ -1832,6 +1832,7 @@ Good level design
 - Make the difficulty rise through the level, with the hardest normal zone just before the boss corridor.
 - Put a checkpoint near the end of the zone just before the boss corridor.
 - Keep the place where the player arrives in each zone clear of enemies and hazards.
+- Set spikes into the floor (replace the top floor row, as the spike-pit pieces do). Spikes sitting on top of the floor are much harder: the player cannot jump a patch of them wider than one tile.
 - Match the theme the user describes, for example their enemy, their boss or their setting.`;
 ```
 
@@ -2102,7 +2103,7 @@ const message = z.strictObject({
 });
 const chatRequest = z
   .strictObject({ messages: z.array(message).min(1).max(400) })
-  .refine((r) => r.messages[0].role === "user" && r.messages[r.messages.length - 1].role === "user");
+  .refine((r) => r.messages[0]?.role === "user" && r.messages[r.messages.length - 1]?.role === "user");
 
 export function parseChatRequest(text: string): Anthropic.MessageParam[] | null {
   if (text.length > MAX_BODY_CHARS) return null;
@@ -2623,11 +2624,11 @@ afterEach(cleanup);
 
 let n = 0;
 const makeId = () => `id-${++n}`;
-const spikes = ["fill_rect", { zone: "Zone 1", x: 3, y: 12, w: 2, h: 1, tile: SPIKE }] as [string, unknown];
-const spikeIn = (project: Project | undefined) => project?.levels[0].zones[0].tiles[12 * 16 + 4];
+const spikes = ["fill_rect", { zone: "Zone 1", x: 3, y: 13, w: 2, h: 1, tile: SPIKE }] as [string, unknown];
+const spikeIn = (project: Project | undefined) => project?.levels[0].zones[0].tiles[13 * 16 + 4];
 
 function setup(steps: Step[], initial: Project = newProject("Game", makeId)) {
-  const save = vi.fn(async (_project: Project) => {});
+  const save = vi.fn<(project: Project) => Promise<void>>(async () => {});
   const { model } = scriptedModel(steps);
   render(<Editor initial={initial} store={{ save }} makeId={makeId} saveDelay={0} model={model} />);
   const lastSaved = () => save.mock.calls.at(-1)?.[0];
@@ -2668,7 +2669,7 @@ describe("the assistant in the editor", () => {
     expect(lastSaved()!.chat.map((m) => m.text)).toEqual(["Add spikes", "I added spikes to Zone 1."]);
 
     await userEvent.click(screen.getByRole("button", { name: "Undo" }));
-    await waitFor(() => expect(spikeIn(lastSaved())).toBe(0));
+    await waitFor(() => expect(spikeIn(lastSaved())).toBe(1)); // the floor is back
     expect(lastSaved()!.chat).toHaveLength(2);
     expect(screen.getByRole("button", { name: "Undo" })).toHaveProperty("disabled", true);
   });
@@ -2680,7 +2681,10 @@ describe("the assistant in the editor", () => {
   });
 
   it("follows the zone the assistant is changing", async () => {
-    setup([useTools(["fill_rect", { zone: "Boss Corridor", x: 3, y: 12, w: 1, h: 1, tile: SPIKE }]), say("Done.")]);
+    setup([
+      useTools(["fill_rect", { zone: "Boss Corridor", x: 3, y: 13, w: 1, h: 1, tile: SPIKE }], ["check_zone", { zone: "Boss Corridor" }]),
+      say("Done."),
+    ]);
     await ask("Spikes in the corridor");
     await screen.findByText("Done.");
     expect(screen.getByLabelText("Boss Corridor, 1 screen")).toBeTruthy();
@@ -3143,7 +3147,7 @@ async function makeGame(page: Page) {
 
 test("ask the assistant for spikes, see them saved, and undo them in one step", async ({ page }) => {
   const replies = [
-    done([{ type: "tool_use", id: "tu-1", name: "fill_rect", input: { zone: "Zone 1", x: 3, y: 12, w: 2, h: 1, tile: 4 } }], "tool_use"),
+    done([{ type: "tool_use", id: "tu-1", name: "fill_rect", input: { zone: "Zone 1", x: 3, y: 13, w: 2, h: 1, tile: 4 } }], "tool_use"),
     done([{ type: "tool_use", id: "tu-2", name: "check_zone", input: { zone: "Zone 1" } }], "tool_use"),
     line({ type: "text", text: "I added two spikes " }) +
       line({ type: "text", text: "to Zone 1." }) +
@@ -3162,13 +3166,13 @@ test("ask the assistant for spikes, see them saved, and undo them in one step", 
   await expect(page.getByText("I added two spikes to Zone 1.")).toBeVisible();
   expect(requests).toHaveLength(3);
 
-  const spike = () => expect.poll(async () => (await saved(page)).levels[0].zones[0].tiles[12 * 16 + 4]);
+  const spike = () => expect.poll(async () => (await saved(page)).levels[0].zones[0].tiles[13 * 16 + 4]);
   await spike().toBe(4);
   await expect.poll(async () => (await saved(page)).chat.length).toBe(2);
   await page.screenshot({ path: "test-results/chat.png", fullPage: true });
 
   await page.getByRole("button", { name: "Undo" }).click();
-  await spike().toBe(0);
+  await spike().toBe(1); // the floor is back
   await expect(page.getByText("I added two spikes to Zone 1.")).toBeVisible();
 });
 
@@ -3179,7 +3183,7 @@ test("the editor keeps working when the assistant is unavailable", async ({ page
   await makeGame(page);
   await page.getByRole("textbox", { name: "Message" }).fill("Build me a level");
   await page.getByRole("button", { name: "Send" }).click();
-  await expect(page.getByRole("alert")).toContainText("The assistant isn't available right now.");
+  await expect(page.getByText("The assistant isn't available right now.", { exact: false })).toBeVisible();
   await page.getByRole("button", { name: "Add a zone" }).click();
   await expect(page.getByRole("button", { name: /Zone 2/ })).toBeVisible();
 });

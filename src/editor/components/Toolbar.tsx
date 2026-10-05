@@ -13,6 +13,7 @@ type Props = {
   onPlayFromZone(): void;
   playing: boolean;
   onExport(): void;
+  busy?: boolean;
 };
 
 const SAVE_TEXT = {
@@ -33,6 +34,7 @@ export function Toolbar({
   onPlayFromZone,
   playing,
   onExport,
+  busy = false,
 }: Props) {
   return (
     <header className={styles.toolbar}>
@@ -43,7 +45,7 @@ export function Toolbar({
       >
         {SAVE_TEXT[saveState]}
       </span>
-      <button type="button" className={styles.button} onClick={onExport}>
+      <button type="button" className={styles.button} disabled={busy} onClick={onExport}>
         Export
       </button>
       <button type="button" className={styles.button} disabled={!canUndo || playing} onClick={onUndo}>
@@ -52,10 +54,10 @@ export function Toolbar({
       <button type="button" className={styles.button} disabled={!canRedo || playing} onClick={onRedo}>
         Redo
       </button>
-      <button type="button" className={styles.button} disabled={playing} onClick={onPlayFromZone}>
+      <button type="button" className={styles.button} disabled={playing || busy} onClick={onPlayFromZone}>
         Play from this zone
       </button>
-      <button type="button" className={styles.primary} disabled={playing} onClick={onPlay}>
+      <button type="button" className={styles.primary} disabled={playing || busy} onClick={onPlay}>
         Play
       </button>
     </header>

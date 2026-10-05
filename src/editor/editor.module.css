@@ -2,7 +2,7 @@
    and the sidebar scroll on their own. */
 .app {
   display: grid;
-  grid-template-columns: 15rem 1fr;
+  grid-template-columns: 15rem 1fr 21rem;
   grid-template-rows: auto minmax(0, 1fr);
   height: 100vh;
   background: var(--paper);
@@ -399,4 +399,92 @@
 .settings textarea {
   width: 100%;
   min-width: 0;
+}
+
+/* Chat: the assistant, always beside the level */
+.chat {
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto auto auto;
+  gap: 0.6rem;
+  padding: 1rem 0.75rem;
+  background: var(--panel);
+  color: var(--paper);
+}
+.chatLog {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.chatHint {
+  font-size: 16px;
+  line-height: 1.45;
+  opacity: 0.8;
+}
+.fromUser,
+.fromAssistant {
+  max-width: 88%;
+  padding: 0.5rem 0.75rem;
+  font-size: 16px;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.fromUser {
+  align-self: flex-end;
+  background: var(--signal);
+  color: var(--ink);
+  border-radius: 12px 12px 4px 12px;
+}
+.fromAssistant {
+  align-self: flex-start;
+  background: var(--panel-2);
+  color: var(--paper);
+  border-radius: 12px 12px 12px 4px;
+}
+.activity {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ok);
+}
+.chatForm {
+  display: grid;
+  gap: 0.5rem;
+}
+.chatForm textarea {
+  font: inherit;
+  font-size: 16px;
+  resize: none;
+  padding: 0.5rem 0.6rem;
+  border-radius: 10px;
+  border: 2px solid var(--panel-2);
+  background: var(--paper);
+  color: var(--ink);
+}
+.chatForm textarea:disabled {
+  opacity: 0.6;
+}
+.chatForm textarea:focus-visible {
+  outline: 3px solid var(--signal);
+  outline-offset: 2px;
+}
+.lock {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+@media (max-width: 760px) {
+  .chat {
+    order: 2;
+  }
+  .chatLog {
+    max-height: 22rem;
+  }
 }

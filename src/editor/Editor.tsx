@@ -2,12 +2,15 @@
 
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
 import type { Command } from "@/commands/types";
+import { createHttpModel } from "@/ai/httpModel";
+import { FAILURE_TEXT, runTurn, type ModelFn } from "@/ai/turn";
 import { canRedo, canUndo } from "@/commands/history";
 import { getArt, getPack } from "@/content/packs";
 import type { Project } from "@/model/schema";
 import type { Skin } from "@/runtime/render/draw";
 import { PlayCanvas } from "@/runtime/render/PlayCanvas";
 import { browserCanvas, createSpriteCache } from "@/runtime/render/sprites";
+import { ChatPanel } from "./components/ChatPanel";
 import { CheckPanel } from "./components/CheckPanel";
 import { Palette } from "./components/Palette";
 import { Toolbar } from "./components/Toolbar";
@@ -27,7 +30,10 @@ type Props = {
   makeId?: () => string;
   saveDelay?: number;
   confirm?: (message: string) => boolean;
+  model?: ModelFn;
 };
+
+const defaultModel = createHttpModel();
 
 const typing = (target: EventTarget | null) => {
   const el = target as HTMLElement | null;
@@ -49,6 +55,7 @@ export function Editor({
   makeId = () => crypto.randomUUID(),
   saveDelay = 600,
   confirm = (message) => window.confirm(message),
+  model = defaultModel,
 }: Props) {
   const pack = getPack(initial.contentPackId);
   if (!pack) throw new Error(`The content pack "${initial.contentPackId}" is not available.`);
@@ -67,6 +74,64 @@ export function Editor({
   const zone = currentZone(state);
   const strokeOpen = state.history.open !== null;
   const playing = state.playing !== null;
+
+  // The assistant. A turn runs in one command group: each change is replayed into the editor as it
+  // happens (and the editor follows the zone being changed), the group is committed when the turn
+  // finishes, and rolled back if it fails or is stopped. The level is locked while it runs.
+  const [chatText, setChatText] = useState("");
+  const [asking, setAsking] = useState<string | null>(null);
+  const [draft, setDraft] = useState("");
+  const [activity, setActivity] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+  const turn = useRef<AbortController | null>(null);
+  const busy = asking !== null;
+  useEffect(() => () => turn.current?.abort(), []);
+
+  const sendChat = async () => {
+    const text = chatText.trim();
+    if (!text || busy || playing || strokeOpen) return;
+    const controller = new AbortController();
+    turn.current = controller;
+    setAsking(text);
+    setChatText("");
+    setNotice(null);
+    setDraft("");
+    setActivity(null);
+    dispatch({ type: "begin", label: "Assistant" });
+    // Anything unexpected inside the turn counts as a failed turn, so the level is never left locked.
+    const result = await runTurn(
+      { project, levelId: level.id, zoneId: zone.id, history: project.chat, text },
+      {
+        model,
+        pack,
+        makeId,
+        signal: controller.signal,
+        onDraft: setDraft,
+        onActivity: setActivity,
+        onCommand: (command) => {
+          dispatch({ type: "run", command });
+          const zoneId = (command.args as { zoneId?: unknown }).zoneId;
+          if (typeof zoneId === "string") dispatch({ type: "selectZone", zoneId });
+        },
+      },
+    ).catch((error: unknown) => {
+      console.error("The chat turn failed:", error);
+      return { ok: false as const, reason: "failed" as const, message: FAILURE_TEXT.failed };
+    });
+    turn.current = null;
+    if (result.ok) {
+      dispatch({ type: "commit" });
+      const at = new Date().toISOString();
+      dispatch({ type: "chat", messages: [{ role: "user", text, at }, { role: "assistant", text: result.reply, at }] });
+    } else {
+      dispatch({ type: "rollback" });
+      setNotice(result.message);
+      setChatText((current) => current || text);
+    }
+    setAsking(null);
+    setDraft("");
+    setActivity(null);
+  };
 
   // Saving. A change is saved a little while after the project last changed (never in the middle
   // of a stroke), and at once when the page is hidden or the editor closes, so the last change is
@@ -196,6 +261,7 @@ export function Editor({
   // What the canvas does with the current tool.
   const drag = useRef<Drag>(null);
   const press = (spot: Spot) => {
+    if (busy) return; // the assistant is changing the level
     const tool = state.tool;
     if (tool.kind === "tile" || tool.kind === "erase") {
       dispatch({ type: "begin", label: tool.kind === "erase" ? "Erase" : "Paint" });
@@ -258,6 +324,7 @@ export function Editor({
         canUndo={canUndo(state.history)}
         canRedo={canRedo(state.history)}
         playing={playing}
+        busy={busy}
         onUndo={() => dispatch({ type: "undo" })}
         onRedo={() => dispatch({ type: "redo" })}
         onPlay={() => dispatch({ type: "play", fromZoneId: null })}
@@ -269,13 +336,17 @@ export function Editor({
           level={level}
           selectedId={zone.id}
           checks={check?.zones}
-          disabled={playing}
+          disabled={playing || busy}
           onSelect={(zoneId) => dispatch({ type: "selectZone", zoneId })}
           onRename={(zoneId, name) => run({ name: "renameZone", args: { levelId: level.id, zoneId, name } })}
           onAdd={() => addZone(false)}
           onAddClimb={() => addZone(true)}
         />
-        {!playing && <ZoneSettings level={level} zone={zone} pack={pack} onCommand={run} onDelete={deleteZone} />}
+        {!playing && (
+          <fieldset className={styles.lock} disabled={busy}>
+            <ZoneSettings level={level} zone={zone} pack={pack} onCommand={run} onDelete={deleteZone} />
+          </fieldset>
+        )}
       </aside>
       {state.playing ? (
         <main className={styles.playing}>
@@ -323,6 +394,19 @@ export function Editor({
           <Palette pack={pack} art={art} tool={state.tool} onTool={(tool) => dispatch({ type: "tool", tool })} />
         </main>
       )}
+      <ChatPanel
+        messages={project.chat}
+        asking={asking}
+        draft={draft}
+        activity={activity}
+        notice={notice}
+        busy={busy}
+        canSend={!busy && !playing && !strokeOpen}
+        text={chatText}
+        onText={setChatText}
+        onSend={sendChat}
+        onStop={() => turn.current?.abort()}
+      />
     </div>
   );
 }

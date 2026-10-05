@@ -13,13 +13,14 @@ function sourceFiles(dir: string): string[] {
 const BANNED = [/from "react/, /from "next/, /\bdocument\./, /\bwindow\./, /Math\.random/, /randomUUID/];
 
 describe("headless core", () => {
-  it("keeps React, Next.js, the DOM and randomness out of model, commands, the simulation and the checker", () => {
+  it("keeps React, Next.js, the DOM and randomness out of model, commands, the simulation, the checker and the assistant", () => {
     const offenders: string[] = [];
     for (const file of [
       ...sourceFiles("src/model"),
       ...sourceFiles("src/commands"),
       ...sourceFiles("src/runtime/sim"),
       ...sourceFiles("src/checker"),
+      ...sourceFiles("src/ai"),
     ]) {
       const text = readFileSync(file, "utf8");
       for (const pattern of BANNED) {
@@ -45,5 +46,19 @@ describe("command registry", () => {
       ].sort(),
     );
     for (const def of commandDefs) expect(def.description.length).toBeGreaterThan(10);
+  });
+});
+
+describe("API key", () => {
+  it("keeps the Anthropic SDK and the chat server code out of everything the browser loads", () => {
+    const offenders: string[] = [];
+    for (const file of sourceFiles("src")) {
+      if (file.startsWith(join("src", "ai", "server")) || file.startsWith(join("src", "app", "api"))) continue;
+      const text = readFileSync(file, "utf8");
+      if (/^import (?!type )[^;]*from "@anthropic-ai\/sdk"/m.test(text)) offenders.push(`${file} imports the SDK`);
+      if (/from "@\/ai\/server/.test(text)) offenders.push(`${file} imports server code`);
+      if (/ANTHROPIC_API_KEY/.test(text)) offenders.push(`${file} mentions the API key`);
+    }
+    expect(offenders).toEqual([]);
   });
 });
