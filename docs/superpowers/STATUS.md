@@ -45,6 +45,7 @@ which zones it can't finish. 787 tests and 9 browser tests pass; typecheck, lint
 | `plans/2026-10-06-m2-plan-1-hero-data-and-abilities.md` | Milestone 2 plan 1 of 5, implemented, reviewed and merged |
 | `plans/2026-10-06-m2-plan-2-slide-and-charge-shot.md` | Milestone 2 plan 2 of 5, implemented, reviewed and merged |
 | `plans/2026-10-06-m2-plan-3-hero-screen.md` | Milestone 2 plan 3 of 5, implemented, reviewed and merged |
+| `plans/2026-10-06-m2-plan-4-picture-import.md` | Milestone 2 plan 4 of 5, written, waiting for approval |
 
 Milestone 1 is now eight plans (the editor became two):
 
