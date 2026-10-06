@@ -47,7 +47,7 @@ export type Player = {
   charge: number; // steps shoot has been held, for a charged shot
 };
 
-export type Shot = { x: number; y: number; vx: number };
+export type Shot = { x: number; y: number; vx: number; charged?: boolean };
 
 export type Camera = { x: number; y: number };
 

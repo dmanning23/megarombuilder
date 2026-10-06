@@ -6,14 +6,19 @@ import { sprite, type Sprite } from "./art";
 // first slot's colour, and so on.
 export type HeroArt = {
   palette: Record<string, string>;
+  flashPalette: Record<string, string>;
   poses: Record<HeroPose, Sprite>;
   shot: Sprite;
   chargedShot: Sprite;
 };
 
+// A fully charged hero blinks as a white silhouette.
+const FLASH_WHITE = "#fcfcfc";
+
 export function heroArt(look: HeroLook): HeroArt {
   return {
     palette: Object.fromEntries(look.colours.map((colour, i) => [String(i + 1), PALETTE_8BIT[colour]])),
+    flashPalette: Object.fromEntries(look.colours.map((_, i) => [String(i + 1), FLASH_WHITE])),
     poses: Object.fromEntries(HERO_POSES.map((pose) => [pose, sprite(look.poses[pose])])) as Record<HeroPose, Sprite>,
     shot: sprite(look.shot),
     chargedShot: sprite(look.chargedShot),

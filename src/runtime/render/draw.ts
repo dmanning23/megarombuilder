@@ -1,7 +1,8 @@
 import type { ContentPack, ThingBehaviour, TileBehaviour } from "@/model/contentPack";
 import { TILE_SIZE, tileIndex, zoneSize } from "@/model/geometry";
 import type { Zone } from "@/model/schema";
-import { ENEMY_SHOT_SIZE, SCREEN_H, SCREEN_W, SHOT_H, SHOT_W } from "@/runtime/sim/constants";
+import { CHARGE_STEPS, ENEMY_SHOT_SIZE, SCREEN_H, SCREEN_W } from "@/runtime/sim/constants";
+import { shotSize } from "@/runtime/sim/shots";
 import { num, type Box, type Entity } from "@/runtime/sim/entities/types";
 import type { Camera, Sim } from "@/runtime/sim/state";
 import { firstTile, lastTile } from "@/runtime/sim/tilemap";
@@ -16,7 +17,11 @@ export type Ctx2D = Pick<
 
 // Sprite art, and a way to turn a sprite into something drawImage can draw. The hero's art comes
 // from the game's own look, with its own palette, so it has its own image maker.
-export type HeroSkin = { art: HeroArt; image: (s: Sprite, flip: boolean) => CanvasImageSource };
+export type HeroSkin = {
+  art: HeroArt;
+  image: (s: Sprite, flip: boolean) => CanvasImageSource;
+  flashImage?: (s: Sprite, flip: boolean) => CanvasImageSource; // the white silhouette, for a full charge
+};
 export type Skin = { set: ArtSet; image: (s: Sprite, flip: boolean) => CanvasImageSource; hero?: HeroSkin };
 
 // Colours for anything drawn without art.
@@ -153,7 +158,9 @@ export function draw(ctx: Ctx2D, sim: Sim, skin?: Skin): void {
   if (sim.phase !== "dead" && !blinkedOut) {
     if (skin?.hero) {
       const { pose, flip } = playerPose(p, sim.steps);
-      onBox(ctx, skin.hero.image, skin.hero.art.poses[pose], flip, p, originX, originY);
+      const blink = p.charge >= CHARGE_STEPS && Math.floor(sim.steps / 4) % 2 === 0;
+      const image = blink && skin.hero.flashImage ? skin.hero.flashImage : skin.hero.image;
+      onBox(ctx, image, skin.hero.art.poses[pose], flip, p, originX, originY);
     } else {
       const px = Math.round(p.x) + originX;
       const py = Math.round(p.y) + originY;
@@ -165,8 +172,13 @@ export function draw(ctx: Ctx2D, sim: Sim, skin?: Skin): void {
   for (const shot of sim.shots) {
     const x = Math.round(shot.x) + originX;
     const y = Math.round(shot.y) + originY;
-    if (skin?.hero) ctx.drawImage(skin.hero.image(skin.hero.art.shot, shot.vx < 0), x, y);
-    else rect(ctx, SHOT_COLOUR, x, y, SHOT_W, SHOT_H);
+    if (skin?.hero) {
+      const picture = shot.charged ? skin.hero.art.chargedShot : skin.hero.art.shot;
+      ctx.drawImage(skin.hero.image(picture, shot.vx < 0), x, y);
+    } else {
+      const { w, h } = shotSize(shot);
+      rect(ctx, SHOT_COLOUR, x, y, w, h);
+    }
   }
   for (const shot of sim.enemyShots) {
     const x = Math.round(shot.x) + originX;

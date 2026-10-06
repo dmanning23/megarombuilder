@@ -21,4 +21,9 @@ describe("heroArt", () => {
     expect(art.shot.rows).toEqual(snowHero.shot);
     expect([art.chargedShot.w, art.chargedShot.h]).toEqual([12, 10]);
   });
+
+  it("has a white flash palette for every colour", () => {
+    expect(Object.keys(art.flashPalette)).toEqual(Object.keys(art.palette));
+    expect(new Set(Object.values(art.flashPalette))).toEqual(new Set(["#fcfcfc"]));
+  });
 });

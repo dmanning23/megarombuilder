@@ -39,3 +39,9 @@ export const BOSS_FLASH_STEPS = 20;
 
 // How long the hero is drawn in a shooting pose after firing.
 export const SHOT_POSE_STEPS = 12;
+
+// Holding shoot for a second charges a big shot: 12 by 10, 3 damage.
+export const CHARGE_STEPS = 60;
+export const CHARGED_W = 12;
+export const CHARGED_H = 10;
+export const CHARGED_DAMAGE = 3;

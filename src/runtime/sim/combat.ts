@@ -1,13 +1,13 @@
 import {
   BOSS_FLASH_STEPS,
+  CHARGED_DAMAGE,
   ENEMY_FLASH_STEPS,
   ENEMY_SHOT_SIZE,
   HURT_STEPS,
   INVULN_STEPS,
-  SHOT_H,
-  SHOT_W,
 } from "./constants";
 import { pickupKey } from "./entities/slots";
+import { shotSize } from "./shots";
 import { ENEMY_BEHAVIOURS, num, overlaps, type Entity } from "./entities/types";
 import { kill } from "./hazards";
 import type { Sim } from "./state";
@@ -32,22 +32,22 @@ const isTarget = (e: Entity) => ENEMY_BEHAVIOURS.has(e.behaviour) || e.behaviour
 const shieldBlocks = (e: Entity, shotVx: number) =>
   e.behaviour === "shielded" && e.mode === "walk" && shotVx * e.facing < 0;
 
-// Player shots against enemies and the boss.
+// Player shots against enemies and the boss. A charged shot does more damage and carries on through
+// anything it destroys; any other hit uses the shot up.
 export function hitEntities(sim: Sim): void {
   sim.shots = sim.shots.filter((shot) => {
-    const box = { x: shot.x, y: shot.y, w: SHOT_W, h: SHOT_H };
+    const box = { x: shot.x, y: shot.y, ...shotSize(shot) };
     for (const slot of sim.slots) {
       const e = slot.entity;
       if (!e || !isTarget(e) || !overlaps(box, e)) continue;
       if (shieldBlocks(e, shot.vx)) return false;
       if (e.behaviour === "boss" && (e.mode === "intro" || e.flash > 0)) return false;
-      e.health -= 1;
+      e.health -= shot.charged ? CHARGED_DAMAGE : 1;
       e.flash = e.behaviour === "boss" ? BOSS_FLASH_STEPS : ENEMY_FLASH_STEPS;
-      if (e.health <= 0) {
-        slot.entity = null;
-        if (e.behaviour === "boss") sim.phase = "won";
-      }
-      return false;
+      if (e.health > 0) return false;
+      slot.entity = null;
+      if (e.behaviour === "boss") sim.phase = "won";
+      if (!shot.charged) return false;
     }
     return true;
   });

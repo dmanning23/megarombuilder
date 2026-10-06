@@ -6,7 +6,7 @@ import { updatePlatforms } from "./entities/platforms";
 import { updateSlots } from "./entities/slots";
 import { insideSolid, kill, respawn, touchCheckpoints, touchingSpike } from "./hazards";
 import { updatePlayer } from "./player";
-import { shoot, updateShots } from "./shots";
+import { chargeShot, shoot, updateShots } from "./shots";
 import type { Input, Sim } from "./state";
 
 // Advances the simulation by one step of 1/60 second.
@@ -29,6 +29,7 @@ function playStep(sim: Sim, input: Input): void {
   updatePlatforms(sim);
   updatePlayer(sim, input);
   if (input.shoot && !sim.prev.shoot) shoot(sim);
+  chargeShot(sim, input);
   updateShots(sim);
   hitEntities(sim);
   if (sim.phase !== "play") return; // the boss was defeated
