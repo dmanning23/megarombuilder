@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { checkZone } from "@/checker/check";
 import { snowPack } from "@/content/snow/pack";
 import { snowPieces } from "@/content/snow/pieces";
+import { JUMPS, SPEEDS } from "@/model/hero";
 import { settingCombos, zoneWithPiece } from "./pieceHarness";
 
 const EXPECTED = [
@@ -73,4 +74,19 @@ describe("snow pieces", () => {
     expect(down?.build({ steps: 3, rise: 2 })).toMatchObject({ enterRow: 7, exitRow: 13 });
     expect(snowPieces.find((p) => p.id === "flat-run")?.build({ width: 6 })).toMatchObject({ enterRow: 13, exitRow: 13 });
   });
+
+  for (const jump of JUMPS) {
+    it(`can all be crossed by a hero with a ${jump} jump, at every speed`, () => {
+      for (const speed of SPEEDS) {
+        for (const piece of snowPieces) {
+          for (const settings of settingCombos(piece)) {
+            const project = zoneWithPiece(piece, settings);
+            const hero = { ...project.hero, abilities: { ...project.hero.abilities, jump, speed } };
+            const result = checkZone({ ...project, hero }, "L", "z", snowPack);
+            expect(result.passable, `${piece.id} ${JSON.stringify(settings)} ${speed}: ${result.reason}`).toBe(true);
+          }
+        }
+      }
+    }, 120_000);
+  }
 });

@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { createLevel, createProject } from "@/model/factory";
 import { parseProject } from "@/model/parse";
-import type { Project } from "@/model/schema";
-import { testPack } from "../fixtures/testPack";
+import { DEFAULT_ABILITIES } from "@/model/hero";
+import { DEFAULT_PLAYER, type Project } from "@/model/schema";
+import { testHero, testPack } from "../fixtures/testPack";
 
 const getPack = (id: string) => (id === "test" ? testPack : undefined);
 
@@ -37,7 +38,7 @@ describe("parseProject", () => {
   });
 
   it("refuses a project from a newer version", () => {
-    expect(errorOf({ ...project(), formatVersion: 2 })).toMatch(/newer version/);
+    expect(errorOf({ ...project(), formatVersion: 3 })).toMatch(/newer version/);
   });
 
   it("explains which field is wrong when the shape is bad", () => {
@@ -61,5 +62,53 @@ describe("parseProject", () => {
     const zones = p.levels[0].zones.map((z, i) => (i === 0 ? { ...z, tiles: [0] } : z));
     const bad = { ...p, levels: [{ ...p.levels[0], zones }] };
     expect(errorOf(bad)).toMatch(/has 1 tiles but its size needs 240/);
+  });
+});
+
+// The same game as saved before heroes: format 1, with physics numbers instead of a hero.
+function versionOne(player: unknown = DEFAULT_PLAYER): Record<string, unknown> {
+  const doc = JSON.parse(JSON.stringify(project()));
+  delete doc.hero;
+  return { ...doc, formatVersion: 1, player };
+}
+
+describe("upgrading games saved before heroes", () => {
+  it("gives a version 1 game the pack's hero with normal abilities", () => {
+    const result = parseProject(versionOne(), getPack);
+    expect(result).toEqual({ ok: true, project: project() });
+    if (result.ok) {
+      expect(result.project.hero.abilities).toEqual(DEFAULT_ABILITIES);
+      expect(result.project.hero.look).toEqual(testHero);
+      expect(result.project).not.toHaveProperty("player");
+    }
+  });
+
+  it("keeps faster or stronger settings as the nearest steps", () => {
+    const result = parseProject(versionOne({ ...DEFAULT_PLAYER, runSpeed: 2, maxHealth: 40 }), getPack);
+    expect(result.ok && result.project.hero.abilities).toMatchObject({ speed: "veryFast", health: "tough" });
+  });
+
+  it("says when a version 1 game's content pack is missing", () => {
+    expect(errorOf({ ...versionOne(), contentPackId: "lava" })).toMatch(/content pack "lava"/);
+  });
+});
+
+describe("a game's hero", () => {
+  it("is refused when a picture is broken", () => {
+    const p = project();
+    const bad = { ...p, hero: { ...p.hero, look: { ...p.hero.look, shot: ["1"] } } };
+    expect(errorOf(bad)).toMatch(/The hero: Shot is 1 by 1 pixels, not 6 by 4\./);
+  });
+
+  it("is refused when a pixel names a colour the hero does not have", () => {
+    const p = project();
+    const stand = p.hero.look.poses.stand.map((row) => row.replace(/1/g, "2"));
+    const bad = { ...p, hero: { ...p.hero, look: { ...p.hero.look, poses: { ...p.hero.look.poses, stand } } } };
+    expect(errorOf(bad)).toMatch(/The hero: Stand uses colour 2/);
+  });
+
+  it("is refused when an ability is not a step", () => {
+    const p = project();
+    expect(errorOf({ ...p, hero: { ...p.hero, abilities: { ...p.hero.abilities, jump: 9 } } })).toMatch(/hero\.abilities\.jump/);
   });
 });

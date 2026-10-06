@@ -1,6 +1,7 @@
 import { z } from "zod";
+import { heroSchema } from "./hero";
 
-export const FORMAT_VERSION = 1;
+export const FORMAT_VERSION = 2;
 
 export const MAX_ID_LENGTH = 64;
 
@@ -60,17 +61,6 @@ export const levelSchema = z.object({
   checkpoints: z.array(checkpointSchema),
 });
 
-// Units are pixels and simulation steps (60 per second).
-export const playerSettingsSchema = z.object({
-  runSpeed: z.number().positive(),
-  jumpVelocity: z.number().positive(),
-  gravity: z.number().positive(),
-  maxFallSpeed: z.number().positive(),
-  ladderSpeed: z.number().positive(),
-  maxHealth: intSchema.positive(),
-  maxShots: intSchema.positive(),
-});
-
 export const chatMessageSchema = z.object({
   role: z.enum(["user", "assistant"]),
   text: z.string(),
@@ -82,7 +72,7 @@ export const projectSchema = z.object({
   id: idSchema,
   name: z.string(),
   contentPackId: z.string().min(1),
-  player: playerSettingsSchema,
+  hero: heroSchema,
   levels: z.array(levelSchema),
   chat: z.array(chatMessageSchema),
 });
@@ -93,7 +83,17 @@ export type ZoneKind = z.infer<typeof zoneKindSchema>;
 export type Zone = z.infer<typeof zoneSchema>;
 export type Checkpoint = z.infer<typeof checkpointSchema>;
 export type Level = z.infer<typeof levelSchema>;
-export type PlayerSettings = z.infer<typeof playerSettingsSchema>;
+// The hero's physics, computed from its abilities by heroPhysics. Units are pixels and simulation
+// steps (60 per second).
+export type PlayerSettings = {
+  runSpeed: number;
+  jumpVelocity: number;
+  gravity: number;
+  maxFallSpeed: number;
+  ladderSpeed: number;
+  maxHealth: number;
+  maxShots: number;
+};
 export type ChatMessage = z.infer<typeof chatMessageSchema>;
 export type Project = z.infer<typeof projectSchema>;
 

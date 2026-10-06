@@ -75,12 +75,13 @@ describe("standing and running", () => {
     expect(sim.player.x).toBe(5 * 16 - 14);
   });
 
-  it("uses the project's player settings", () => {
+  it("uses the hero's speed", () => {
     const project = projectFromArt([{ art: flatArt() }]);
-    const fast = { ...project, player: { ...project.player, runSpeed: 2 } };
+    const fast = { ...project, hero: { ...project.hero, abilities: { ...project.hero.abilities, speed: "veryFast" as const } } };
     const sim = createSim(fast, "L1", testPack);
+    const start = sim.player.x;
     run(sim, { right: true }, 10);
-    expect(sim.player.x).toBe(22);
+    expect(sim.player.x - start).toBeCloseTo(18.75);
   });
 });
 

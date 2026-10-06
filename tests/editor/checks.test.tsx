@@ -69,7 +69,7 @@ describe("useLevelCheck reuse", () => {
     expect(result.current?.zones[0]).not.toBe(before?.zones[0]);
   });
 
-  it("rechecks every zone when the player's settings change", () => {
+  it("rechecks every zone when the hero's abilities change", () => {
     vi.useFakeTimers();
     const project = newProject("Settings", makeId);
     const level = project.levels[0];
@@ -78,7 +78,7 @@ describe("useLevelCheck reuse", () => {
     });
     act(() => vi.advanceTimersByTime(400));
     const before = result.current;
-    rerender({ p: { ...project, player: { ...project.player, runSpeed: 1 } } });
+    rerender({ p: { ...project, hero: { ...project.hero, abilities: { ...project.hero.abilities, jump: "low" } } } });
     act(() => vi.advanceTimersByTime(400));
     expect(result.current?.zones[1]).not.toBe(before?.zones[1]);
   });

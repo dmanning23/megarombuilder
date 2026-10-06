@@ -1,3 +1,4 @@
+import { DEFAULT_PLAYER } from "@/model/schema";
 import { describe, expect, it } from "vitest";
 import { checkZone } from "@/checker/check";
 import { findPassage, type Passage } from "@/checker/passage";
@@ -6,7 +7,7 @@ import { testPack } from "../fixtures/testPack";
 import { flatArt, projectFromArt, rowWith, type ZoneArt } from "../runtime/helpers";
 
 const zoneOf = (art: ZoneArt): Zone => projectFromArt([art]).levels[0].zones[0];
-const settings = projectFromArt([{ art: flatArt() }]).player;
+const settings = DEFAULT_PLAYER;
 const passage = (art: ZoneArt): Passage => findPassage(zoneOf(art), testPack, settings);
 
 // Two screens: floor standing on row `near` before the gap and on row `far` after it.

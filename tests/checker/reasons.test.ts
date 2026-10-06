@@ -1,3 +1,4 @@
+import { DEFAULT_PLAYER } from "@/model/schema";
 import { describe, expect, it } from "vitest";
 import { findPassage } from "@/checker/passage";
 import { createProbe } from "@/checker/probe";
@@ -7,7 +8,7 @@ import { testPack } from "../fixtures/testPack";
 import { flatArt, projectFromArt, type ZoneArt } from "../runtime/helpers";
 
 const zoneOf = (art: ZoneArt): Zone => projectFromArt([art]).levels[0].zones[0];
-const settings = projectFromArt([{ art: flatArt() }]).player;
+const settings = DEFAULT_PLAYER;
 
 function reasonFor(art: ZoneArt): string {
   const zone = zoneOf(art);

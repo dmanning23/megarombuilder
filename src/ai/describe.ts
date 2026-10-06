@@ -1,5 +1,6 @@
 import type { LevelCheck, ZoneCheck } from "@/checker/check";
 import { clearableGap, jumpReach } from "@/checker/reasons";
+import { heroPhysics } from "@/model/hero";
 import type { ContentPack, PieceDef, TileBehaviour } from "@/model/contentPack";
 import { TILE_SIZE, tileIndex, zoneSize, type Opening } from "@/model/geometry";
 import type { Level, Project, Zone } from "@/model/schema";
@@ -123,10 +124,11 @@ function pieceLine(piece: PieceDef): string {
 }
 
 export function describeCatalogue(project: Project, pack: ContentPack): string {
-  const reach = jumpReach(project.player);
+  const physics = heroPhysics(project.hero.abilities);
+  const reach = jumpReach(physics);
   return [
     `Content pack: ${pack.name}. Looks a zone can have: ${pack.variants.join(", ")}.`,
-    `The player can jump up ${Math.floor(reach.height / TILE_SIZE)} tiles and across gaps up to ${clearableGap(project.player)} tiles wide.`,
+    `The player can jump up ${Math.floor(reach.height / TILE_SIZE)} tiles and across gaps up to ${clearableGap(physics)} tiles wide.`,
     "",
     "Tiles (use the number in fill_rect and set_tiles; 0 is empty):",
     ...pack.tiles.map((t) => `- ${t.id}: ${t.name} (${tileChar(pack, t.id)}), ${BEHAVIOUR_TEXT[t.behaviour]}`),

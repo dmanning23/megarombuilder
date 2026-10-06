@@ -1,3 +1,4 @@
+import { lookProblems } from "./hero";
 import type { ContentPack } from "./contentPack";
 import {
   MAX_SCREENS,
@@ -150,6 +151,7 @@ export function structureProblems(project: Project, pack: ContentPack): string[]
     ids.add(level.id);
     problems.push(...levelProblems(level, pack));
   }
+  problems.push(...lookProblems(project.hero.look).map((p) => `The hero: ${p}`));
   return problems;
 }
 

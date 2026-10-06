@@ -40,12 +40,27 @@ describe("createCheckCache", () => {
     expect(again.passable).toBe(false);
   });
 
-  it("checks again when the player's settings change", () => {
+  it("checks again when the hero's abilities change, but not its look", () => {
     const cache = createCheckCache();
     const project = game();
     const first = cache.zone(project, "L1", "z1", pack);
-    const faster = { ...project, player: { ...project.player, runSpeed: project.player.runSpeed + 0.25 } };
-    expect(cache.zone(faster, "L1", "z1", pack)).not.toBe(first);
+    const recoloured = { ...project, hero: { ...project.hero, look: { ...project.hero.look, colours: [0, 1, 2, 3, 4, 5, 6] } } };
+    expect(cache.zone(recoloured, "L1", "z1", pack)).toBe(first);
+    const lowJump = { ...project, hero: { ...project.hero, abilities: { ...project.hero.abilities, jump: "low" as const } } };
+    expect(cache.zone(lowJump, "L1", "z1", pack)).not.toBe(first);
+  });
+
+  it("finds a zone that fails with a lower jump, and passes it again when the jump is put back", () => {
+    const cache = createCheckCache();
+    const walled = run(game(), { name: "fillRect", args: { levelId: "L1", zoneId: "z1", x: 8, y: 10, w: 2, h: 3, tile: 1 } });
+    const withJump = (jump: "low" | "high") => ({
+      ...walled,
+      hero: { ...walled.hero, abilities: { ...walled.hero.abilities, jump } },
+    });
+    const high = withJump("high");
+    expect(cache.zone(high, "L1", "z1", pack).passable).toBe(true);
+    expect(cache.zone(withJump("low"), "L1", "z1", pack).passable).toBe(false);
+    expect(cache.zone(high, "L1", "z1", pack).passable).toBe(true); // undo brings back the same abilities
   });
 
   it("checks a whole level the same way checkLevel does", () => {
