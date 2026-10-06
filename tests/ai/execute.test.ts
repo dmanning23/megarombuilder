@@ -37,6 +37,10 @@ describe("executeTool", () => {
     expect(executeTool(state, "get_catalogue", {}, ctx).content).toContain("- flat-run:");
   });
 
+  it("includes the hero in the level overview", () => {
+    expect(executeTool(startTurn(game(), "L1"), "get_level_overview", {}, context()).content).toContain("Your hero runs at normal speed");
+  });
+
   it("makes a change with the zone's id filled in, and returns the command for the editor", () => {
     const out = executeTool(startTurn(game(), "L1"), "fill_rect", { zone: "Zone 1", x: 3, y: 13, w: 2, h: 1, tile: SPIKE }, context());
     expect(out).toMatchObject({ isError: false, content: "Done.", activity: "Building Zone 1…" });

@@ -65,6 +65,7 @@ describe("runTurn", () => {
     expect(blocks[1].text).toContain("From the editor, not the user");
     expect(blocks[1].text).toContain('Level "Snow Stage".');
     expect(blocks[1].text).toContain('Zone "Zone 1" (id z1)');
+    expect(blocks[1].text).toContain("Your hero runs at normal speed");
   });
 
   it("streams the reply as it arrives", async () => {

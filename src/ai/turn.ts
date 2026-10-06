@@ -3,7 +3,7 @@ import { createCheckCache, type CheckCache } from "@/checker/cache";
 import type { Command } from "@/commands/types";
 import type { ContentPack } from "@/model/contentPack";
 import type { ChatMessage, Project } from "@/model/schema";
-import { describeLevel, describeZone } from "./describe";
+import { describeHero, describeLevel, describeZone } from "./describe";
 import { checkUnchecked, executeTool, startTurn, type ToolContext, type TurnState } from "./execute";
 import { MAX_TOOL_CALLS } from "./tools";
 
@@ -93,6 +93,8 @@ function editorContext(request: TurnRequest, pack: ContentPack, checks: CheckCac
     "From the editor, not the user: this is the level as it is now.",
     "",
     describeLevel(level, checks.level(request.project, request.levelId, pack)),
+    "",
+    describeHero(request.project),
     "",
     "The zone the user has selected:",
     describeZone(level, zone, pack),

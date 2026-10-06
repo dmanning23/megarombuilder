@@ -3,7 +3,7 @@ import { applyCommand } from "@/commands/registry";
 import type { Command } from "@/commands/types";
 import type { ContentPack } from "@/model/contentPack";
 import { tidyName, type Level, type Project, type Zone } from "@/model/schema";
-import { describeCatalogue, describeCheck, describeLevel, describeZone } from "./describe";
+import { describeCatalogue, describeCheck, describeHero, describeLevel, describeZone } from "./describe";
 import { AI_TOOLS, type AiTool } from "./tools";
 
 export type TurnState = {
@@ -116,7 +116,7 @@ export function executeTool(state: TurnState, name: string, input: unknown, ctx:
 
   switch (tool.name) {
     case "get_level_overview":
-      return ok(describeLevel(level, ctx.checks.level(project, levelId, ctx.pack)));
+      return ok(`${describeLevel(level, ctx.checks.level(project, levelId, ctx.pack))}\n\n${describeHero(project)}`);
     case "get_zone":
       return ok(describeZone(level, zone!, ctx.pack));
     case "get_catalogue":
