@@ -15,6 +15,7 @@ import {
   PLAYER_COLOUR,
   SHOT_COLOUR,
 } from "@/runtime/render/draw";
+import { heroArt } from "@/runtime/render/heroArt";
 import { createKeyboard } from "@/runtime/render/keyboard";
 import { MAX_STEPS_PER_FRAME, STEP_MS, stepsFor } from "@/runtime/render/loop";
 import { NO_INPUT } from "@/runtime/sim/state";
@@ -268,10 +269,9 @@ describe("stepsFor", () => {
 });
 
 // A skin whose "images" are just the sprite and direction, so tests can see what was drawn.
-const skin = (set = snowArt): Skin => ({
-  set,
-  image: (sprite, flip) => ({ sprite, flip }) as unknown as CanvasImageSource,
-});
+const fakeImage = (sprite: Sprite, flip: boolean) => ({ sprite, flip }) as unknown as CanvasImageSource;
+const hero = heroArt(createDemoProject().hero.look);
+const skin = (set = snowArt): Skin => ({ set, image: fakeImage, hero: { art: hero, image: fakeImage } });
 
 function demoSim(startZoneId?: string) {
   const sim = createSim(createDemoProject(), DEMO_LEVEL_ID, snowPack, { startZoneId });
@@ -309,7 +309,7 @@ describe("drawing with sprites", () => {
   it("draws the hero standing, bottom-centred on the player's box", () => {
     const ctx = fakeContext();
     draw(ctx, demoSim(), skin());
-    expect(ctx.images).toContainEqual({ sprite: snowArt.player.stand, flip: false, x: 1, y: 184 });
+    expect(ctx.images).toContainEqual({ sprite: hero.poses.stand, flip: false, x: 1, y: 184 });
     expect(ctx.calls.filter((c) => c.colour === PLAYER_COLOUR)).toEqual([]);
   });
 
@@ -318,7 +318,19 @@ describe("drawing with sprites", () => {
     sim.player.facing = -1;
     const ctx = fakeContext();
     draw(ctx, sim, skin());
-    expect(ctx.images).toContainEqual({ sprite: snowArt.player.stand, flip: true, x: 1, y: 184 });
+    expect(ctx.images).toContainEqual({ sprite: hero.poses.stand, flip: true, x: 1, y: 184 });
+  });
+
+  it("draws the game's own hero, recoloured", () => {
+    const project = createDemoProject();
+    const look = { ...project.hero.look, colours: [...project.hero.look.colours].reverse() };
+    const sim = createSim({ ...project, hero: { ...project.hero, look } }, DEMO_LEVEL_ID, snowPack);
+    step(sim, NO_INPUT);
+    const own = heroArt(look);
+    const ctx = fakeContext();
+    draw(ctx, sim, { set: snowArt, image: fakeImage, hero: { art: own, image: fakeImage } });
+    expect(ctx.images).toContainEqual({ sprite: own.poses.stand, flip: false, x: 1, y: 184 });
+    expect(own.palette["1"]).not.toBe(hero.palette["1"]);
   });
 
   it("draws things with their frames", () => {
@@ -358,7 +370,7 @@ describe("drawing with sprites", () => {
     sim.enemyShots.push({ x: 90, y: 100, vx: 2, vy: 0, damage: 2 });
     const ctx = fakeContext();
     draw(ctx, sim, skin());
-    expect(ctx.images).toContainEqual({ sprite: snowArt.playerShot, flip: true, x: 50, y: 190 });
+    expect(ctx.images).toContainEqual({ sprite: hero.shot, flip: true, x: 50, y: 190 });
     expect(ctx.images).toContainEqual({ sprite: snowArt.enemyShot, flip: false, x: 90, y: 100 });
   });
 });

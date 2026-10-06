@@ -25,12 +25,6 @@ describe("the snow art", () => {
     for (const frame of snowArt.things.boss) expect([frame.w, frame.h]).toEqual([24, 28]);
   });
 
-  it("gives every player pose something to see", () => {
-    for (const pose of Object.values(snowArt.player)) {
-      expect(pose.rows.join("").replace(/\./g, "").length).toBeGreaterThan(50);
-    }
-  });
-
   // Drawn bottom-centred on its box, an enemy's visible pixels should fill the box, so contact and
   // hits happen where the player can see something.
   it("fills each enemy's and the boss's box with visible pixels", () => {

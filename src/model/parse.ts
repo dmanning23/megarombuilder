@@ -1,11 +1,19 @@
 import type { ContentPack } from "./contentPack";
+import { abilitiesFromSettings } from "./hero";
 import { FORMAT_VERSION, projectSchema, type Project } from "./schema";
 import { structureProblems } from "./validate";
 
 export type ParseResult = { ok: true; project: Project } | { ok: false; error: string };
 
 // One entry per old format version: upgrades a document to the next version.
-const UPGRADES: Record<number, (doc: Record<string, unknown>) => Record<string, unknown>> = {};
+const UPGRADES: Record<number, (doc: Record<string, unknown>, pack: ContentPack) => Record<string, unknown>> = {
+  // Version 2 gave games a hero. A version 1 game gets the pack's hero, with the abilities
+  // nearest to the physics numbers it stored (milestone 1's defaults become normal everywhere).
+  1: (doc, pack) => {
+    const { player, ...rest } = doc;
+    return { ...rest, formatVersion: 2, hero: { abilities: abilitiesFromSettings(player), look: pack.hero } };
+  },
+};
 
 const NOT_A_PROJECT = "This file is not a MegaRomBuilder project.";
 
@@ -27,7 +35,16 @@ export function parseProject(
       error: "This project was made with a newer version of MegaRomBuilder and cannot be opened here.",
     };
   }
-  for (let v = version; v < FORMAT_VERSION; v++) doc = UPGRADES[v](doc);
+  if (version < FORMAT_VERSION) {
+    const pack = getPack(String(doc.contentPackId));
+    if (!pack) {
+      return {
+        ok: false,
+        error: `This project needs the content pack "${String(doc.contentPackId)}", which is not available.`,
+      };
+    }
+    for (let v = version; v < FORMAT_VERSION; v++) doc = UPGRADES[v](doc, pack);
+  }
 
   const parsed = projectSchema.safeParse(doc);
   if (!parsed.success) {

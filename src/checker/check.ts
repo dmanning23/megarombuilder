@@ -1,3 +1,4 @@
+import { heroPhysics } from "@/model/hero";
 import type { ContentPack } from "@/model/contentPack";
 import { TILE_SIZE } from "@/model/geometry";
 import type { Level, Project, Zone } from "@/model/schema";
@@ -57,7 +58,7 @@ export function checkZone(project: Project, levelId: string, zoneId: string, pac
   const zone = level.zones.find((z) => z.id === zoneId);
   if (!zone) throw new Error(`There is no zone with id "${zoneId}" in level "${level.name}".`);
 
-  const settings = project.player;
+  const settings = heroPhysics(project.hero.abilities);
   const found = findPassage(zone, pack, settings);
   const probe = createProbe(zone, pack, settings);
   const p = probe.sim.player;

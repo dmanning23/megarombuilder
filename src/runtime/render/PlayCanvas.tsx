@@ -7,6 +7,7 @@ import { createSim, SCREEN_H, SCREEN_W, step } from "@/runtime/sim";
 import type { ArtSet } from "./art";
 import { draw, type Skin } from "./draw";
 import { createKeyboard } from "./keyboard";
+import { heroArt } from "./heroArt";
 import { stepsFor } from "./loop";
 import { browserCanvas, createSpriteCache } from "./sprites";
 
@@ -27,8 +28,13 @@ export function PlayCanvas({ project, levelId, pack, art, startZoneId, scale = 3
     const ctx = canvasRef.current?.getContext("2d");
     if (!ctx) return;
     const sim = createSim(project, levelId, pack, { startZoneId });
+    const hero = heroArt(project.hero.look);
     const skin: Skin | undefined = art
-      ? { set: art, image: createSpriteCache(art.palette, browserCanvas) }
+      ? {
+          set: art,
+          image: createSpriteCache(art.palette, browserCanvas),
+          hero: { art: hero, image: createSpriteCache(hero.palette, browserCanvas) },
+        }
       : undefined;
     const keyboard = createKeyboard(window);
     let accumulator = 0;

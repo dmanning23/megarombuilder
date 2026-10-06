@@ -5,6 +5,7 @@ import { tileCommands } from "./tiles";
 import { thingCommands } from "./things";
 import { checkpointCommands } from "./checkpoints";
 import { pieceCommands } from "./pieces";
+import { heroCommands } from "./hero";
 import {
   fail,
   type Command,
@@ -20,6 +21,7 @@ export const commandDefs: CommandDef[] = [
   ...thingCommands,
   ...checkpointCommands,
   ...pieceCommands,
+  ...heroCommands,
 ];
 
 const byName = new Map(commandDefs.map((def) => [def.name, def]));

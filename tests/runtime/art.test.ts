@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
   artProblems,
-  PLAYER_POSES,
   sprite,
   spriteProblems,
   type ArtSet,
@@ -23,9 +22,7 @@ function fullArt(): ArtSet {
     palette,
     backgrounds: { outdoor: "#9bd4ff", cave: "#1c2740" },
     tiles: { outdoor: tiles, cave: tiles },
-    player: Object.fromEntries(PLAYER_POSES.map((p) => [p, sprite(Array(24).fill("k".repeat(16)))])) as ArtSet["player"],
     things: Object.fromEntries(testPack.things.map((t) => [t.type, [square(14)]])),
-    playerShot: square(4),
     enemyShot: square(6),
   };
 }
@@ -75,14 +72,12 @@ describe("artProblems", () => {
     expect(artProblems(art, testPack)).toContain('Tile "ground" (outdoor) is 8 by 8, not 16 by 16.');
   });
 
-  it("reports a missing background, player pose or thing", () => {
+  it("reports a missing background or thing", () => {
     const art = fullArt();
     art.backgrounds = { outdoor: "#9bd4ff" };
-    art.player = { ...art.player, hurt: square(16) };
     art.things = { ...art.things, boss: [] };
     const problems = artProblems(art, testPack);
     expect(problems).toContain('No background colour for variant "cave".');
-    expect(problems).toContain("Player hurt is 16 by 16, not 16 by 24.");
     expect(problems).toContain('No art for thing "boss".');
   });
 

@@ -1,4 +1,16 @@
 import { KEEP_TILE, type ContentPack } from "@/model/contentPack";
+import { HERO_PICTURES, PICTURE_SIZES, type HeroLook, type HeroPicture } from "@/model/hero";
+
+const solid = (picture: HeroPicture) =>
+  Array.from({ length: PICTURE_SIZES[picture].h }, () => "1".repeat(PICTURE_SIZES[picture].w));
+
+// A plain black hero: every picture filled with its one colour.
+export const testHero: HeroLook = {
+  colours: [13],
+  poses: Object.fromEntries(HERO_PICTURES.filter((p) => p !== "shot" && p !== "chargedShot").map((p) => [p, solid(p)])) as HeroLook["poses"],
+  shot: solid("shot"),
+  chargedShot: solid("chargedShot"),
+};
 
 export const testPack: ContentPack = {
   id: "test",
@@ -57,4 +69,5 @@ export const testPack: ContentPack = {
       }),
     },
   ],
+  hero: testHero,
 };

@@ -1,5 +1,6 @@
 import type { ContentPack } from "@/model/contentPack";
 import { TILE_SIZE } from "@/model/geometry";
+import { heroPhysics } from "@/model/hero";
 import type { Level, PlayerSettings, Project } from "@/model/schema";
 import { PLAYER_H, PLAYER_W } from "./constants";
 import { loadZoneThings } from "./entities/slots";
@@ -107,7 +108,8 @@ export function createSim(
   project: Project,
   levelId: string,
   pack: ContentPack,
-  opts: { startZoneId?: string } = {},
+  // settings: exact physics instead of the hero's (the checker plays at a fair, slightly slower speed)
+  opts: { startZoneId?: string; settings?: PlayerSettings } = {},
 ): Sim {
   const level = project.levels.find((l) => l.id === levelId);
   if (!level) throw new Error(`There is no level with id "${levelId}".`);
@@ -117,6 +119,7 @@ export function createSim(
 
   const map = createTileMap(level.zones[zoneIndex], pack);
   const start = entryPosition(map, null);
+  const settings = opts.settings ?? heroPhysics(project.hero.abilities);
   const player: Player = {
     ...start,
     vx: 0,
@@ -127,7 +130,7 @@ export function createSim(
     onGround: false,
     onIce: false,
     onLadder: false,
-    health: project.player.maxHealth,
+    health: settings.maxHealth,
     hurt: 0,
     invuln: 0,
     knockback: 1,
@@ -138,7 +141,7 @@ export function createSim(
   const sim: Sim = {
     level,
     pack,
-    settings: project.player,
+    settings,
     zoneIndex,
     map,
     player,

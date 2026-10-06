@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { createLevel, createProject, createZone } from "@/model/factory";
 import { tileIndex } from "@/model/geometry";
+import { DEFAULT_ABILITIES } from "@/model/hero";
 import { DEFAULT_PLAYER, projectSchema } from "@/model/schema";
-import { testPack } from "../fixtures/testPack";
+import { testHero, testPack } from "../fixtures/testPack";
 
 describe("createZone", () => {
   it("gives a horizontal zone a two-row floor and side openings", () => {
@@ -67,11 +68,17 @@ describe("createProject", () => {
       maxShots: 3,
     });
   });
+  it("gives a new game the pack's hero with normal abilities", () => {
+    const project = createProject({ id: "p1", name: "My Game" }, testPack);
+    expect(project.formatVersion).toBe(2);
+    expect(project.hero).toEqual({ abilities: DEFAULT_ABILITIES, look: testHero });
+    expect(project).not.toHaveProperty("player");
+  });
 });
 
 describe("projectSchema", () => {
   it("rejects a document with the wrong format version", () => {
-    const project = { ...createProject({ id: "p1", name: "My Game" }, testPack), formatVersion: 2 };
+    const project = { ...createProject({ id: "p1", name: "My Game" }, testPack), formatVersion: 3 };
     expect(projectSchema.safeParse(project).success).toBe(false);
   });
 

@@ -1,34 +1,6 @@
 import { sprite, type ArtSet, type Sprite } from "@/runtime/render/art";
-import { GROUND, ICE, LADDER, LEDGE, SPIKE } from "./pack";
-
-const PALETTE: Record<string, string> = {
-  k: "#1a1c2c", // outline
-  w: "#f4f4f4",
-  t: "#2ec4b6",
-  T: "#1b8a80",
-  o: "#ff9f1c",
-  g: "#8d99ae",
-  G: "#4a5568",
-  b: "#3a86ff",
-  B: "#1d4ed8",
-  i: "#bdf4ff",
-  I: "#5bc0eb",
-  n: "#f8fafc",
-  N: "#cbd5e1",
-  d: "#8b5e34",
-  D: "#5c3d22",
-  c: "#64748b",
-  C: "#334155",
-  h: "#c08a4a",
-  H: "#7a4f24",
-  r: "#ef476f",
-  R: "#a4133c",
-  y: "#ffd166",
-  p: "#9b5de5",
-  P: "#5a2d91",
-  e: "#80ed99",
-  E: "#2d8f4e",
-};
+import { SNOW_PALETTE } from "./palette";
+import { GROUND, ICE, LADDER, LEDGE, SPIKE } from "./tiles";
 
 // ---- Tiles, generated ----
 
@@ -156,83 +128,6 @@ const SHARED_TILES = {
   [SPIKE]: { fill: toSprite(spikes()) },
   [LEDGE]: { fill: toSprite(ledge()) },
 };
-
-// ---- The hero, 16 by 24, built from parts ----
-
-const HEAD = [
-  "................",
-  "................",
-  "................",
-  "......kkkk......",
-  ".....kttttk.....",
-  "....kttttttk....",
-  "....ktwwwwtk....",
-  "....ktwkwktk....",
-  "....ktwwwwtk....",
-  ".....kttttk.....",
-];
-const HURT_HEAD = HEAD.map((row, y) => (y === 7 ? "....ktwkkwtk...." : row));
-const BACK_HEAD = HEAD.map((row, y) =>
-  y === 6 || y === 8 ? "....kttttttk...." : y === 7 ? "....ktTTTTtk...." : row,
-);
-const TORSO = ["....kkTTTTkk....", "...kttTTTTttk..."];
-const ARMS_DOWN = ["..kttkTTTTkttk..", "..ktkkTTTTkktk..", "..kk.kTTTTk.kk.."];
-const ARMS_SHOOT = ["..kttkTTTTkttkkk", "..ktkkTTTTktoooo", "..kk.kTTTTkkkkkk"];
-const ARMS_UP = [".kttkkTTTTkkttk.", ".ktk.kTTTTk.ktk.", ".kk..kTTTTk..kk."];
-const WAIST = [".....kTTTTk....."];
-const LEGS_STAND = [
-  ".....ktttTk.....",
-  ".....ktk.kTk....",
-  ".....ktk.kTk....",
-  ".....ktk.kTk....",
-  ".....ktk.kTk....",
-  "....kGGk.kGGk...",
-  "...kGGGk.kGGGk..",
-  "...kkkkk.kkkkk..",
-];
-const LEGS_RUN1 = [
-  ".....ktttTk.....",
-  ".....ktttTk.....",
-  "....kttkkTTk....",
-  "...kttk..kTTk...",
-  "..kttk....kTTk..",
-  ".kGGk......kGGk.",
-  "kGGGk......kGGGk",
-  "kkkkk......kkkkk",
-];
-const LEGS_RUN2 = [
-  ".....ktttTk.....",
-  ".....kttTTk.....",
-  "......ktTk......",
-  "......ktTk......",
-  ".....kttTTk.....",
-  "....kGGGGGk.....",
-  "....kGGGGGGk....",
-  "....kkkkkkkk....",
-];
-const LEGS_JUMP = [
-  ".....ktttTk.....",
-  "....kttkkTTk....",
-  "...kttk..kTTk...",
-  "...kGGk..kGGk...",
-  "...kGGk..kGGk...",
-  "...kkkk..kkkk...",
-  "................",
-  "................",
-];
-const LEGS_CLIMB = [
-  ".....ktttTk.....",
-  ".....ktk.kTk....",
-  ".....ktk.kTk....",
-  ".....kGk.kTk....",
-  "....kGGk.kTk....",
-  "....kkkk.kGGk...",
-  ".........kGGGk..",
-  ".........kkkkk..",
-];
-
-const hero = (head: string[], arms: string[], legs: string[]) =>
-  sprite([...head, ...TORSO, ...arms, ...WAIST, ...legs]);
 
 // ---- Things ----
 
@@ -491,7 +386,7 @@ const BOSS = [
 ];
 
 export const snowArt: ArtSet = {
-  palette: PALETTE,
+  palette: SNOW_PALETTE,
   backgrounds: { outdoor: "#9bd4ff", cave: "#1c2740" },
   tiles: {
     outdoor: {
@@ -506,16 +401,6 @@ export const snowArt: ArtSet = {
       ...SHARED_TILES,
     },
   },
-  player: {
-    stand: hero(HEAD, ARMS_DOWN, LEGS_STAND),
-    standShoot: hero(HEAD, ARMS_SHOOT, LEGS_STAND),
-    run1: hero(HEAD, ARMS_DOWN, LEGS_RUN1),
-    run2: hero(HEAD, ARMS_DOWN, LEGS_RUN2),
-    jump: hero(HEAD, ARMS_UP, LEGS_JUMP),
-    jumpShoot: hero(HEAD, ARMS_SHOOT, LEGS_JUMP),
-    climb: hero(BACK_HEAD, ARMS_UP, LEGS_CLIMB),
-    hurt: hero(HURT_HEAD, ARMS_UP, LEGS_JUMP),
-  },
   things: {
     walker: WALKER,
     flyer: FLYER,
@@ -528,6 +413,5 @@ export const snowArt: ArtSet = {
     "large-health": LARGE_HEALTH,
     boss: BOSS,
   },
-  playerShot: sprite([".kkkk.", "kyyywk", "kyyywk", ".kkkk."]),
   enemyShot: sprite(["..kk..", ".kiik.", "kiIIik", "kiIIik", ".kiik.", "..kk.."]),
 };

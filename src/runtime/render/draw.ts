@@ -7,14 +7,17 @@ import type { Camera, Sim } from "@/runtime/sim/state";
 import { firstTile, lastTile } from "@/runtime/sim/tilemap";
 import { viewFor } from "@/runtime/sim/view";
 import { playerPose, thingFrame, type ArtSet, type Sprite } from "./art";
+import type { HeroArt } from "./heroArt";
 
 export type Ctx2D = Pick<
   CanvasRenderingContext2D,
   "fillStyle" | "fillRect" | "font" | "textAlign" | "fillText" | "drawImage"
 >;
 
-// Sprite art, and a way to turn a sprite into something drawImage can draw.
-export type Skin = { set: ArtSet; image: (s: Sprite, flip: boolean) => CanvasImageSource };
+// Sprite art, and a way to turn a sprite into something drawImage can draw. The hero's art comes
+// from the game's own look, with its own palette, so it has its own image maker.
+export type HeroSkin = { art: HeroArt; image: (s: Sprite, flip: boolean) => CanvasImageSource };
+export type Skin = { set: ArtSet; image: (s: Sprite, flip: boolean) => CanvasImageSource; hero?: HeroSkin };
 
 // Colours for anything drawn without art.
 export const BACKGROUNDS: Record<string, string> = { outdoor: "#9bd4ff", cave: "#1c2740" };
@@ -47,10 +50,18 @@ function rect(ctx: Ctx2D, colour: string, x: number, y: number, w: number, h: nu
 }
 
 // Draws a sprite with its bottom centre on the bottom centre of a box.
-function onBox(ctx: Ctx2D, skin: Skin, s: Sprite, flip: boolean, box: Box, ox: number, oy: number) {
+function onBox(
+  ctx: Ctx2D,
+  image: Skin["image"],
+  s: Sprite,
+  flip: boolean,
+  box: Box,
+  ox: number,
+  oy: number,
+) {
   const x = Math.round(box.x + box.w / 2 - s.w / 2) + ox;
   const y = Math.round(box.y + box.h - s.h) + oy;
-  ctx.drawImage(skin.image(s, flip), x, y);
+  ctx.drawImage(image(s, flip), x, y);
 }
 
 // A vertical bar of one-pixel ticks, filled from the bottom.
@@ -106,7 +117,7 @@ function drawEntity(ctx: Ctx2D, sim: Sim, e: Entity, skin: Skin | undefined, ox:
   if (skin && frames && frames.length > 0) {
     if (flashing) return; // blink
     const frame = frames[thingFrame(e, sim.steps, frames.length)];
-    onBox(ctx, skin, frame, e.facing < 0, e, ox, oy);
+    onBox(ctx, skin.image, frame, e.facing < 0, e, ox, oy);
     return;
   }
   rect(
@@ -140,9 +151,9 @@ export function draw(ctx: Ctx2D, sim: Sim, skin?: Skin): void {
 
   const blinkedOut = p.invuln > 0 && Math.floor(p.invuln / 4) % 2 === 1;
   if (sim.phase !== "dead" && !blinkedOut) {
-    if (skin) {
+    if (skin?.hero) {
       const { pose, flip } = playerPose(p, sim.steps);
-      onBox(ctx, skin, skin.set.player[pose], flip, p, originX, originY);
+      onBox(ctx, skin.hero.image, skin.hero.art.poses[pose], flip, p, originX, originY);
     } else {
       const px = Math.round(p.x) + originX;
       const py = Math.round(p.y) + originY;
@@ -154,7 +165,7 @@ export function draw(ctx: Ctx2D, sim: Sim, skin?: Skin): void {
   for (const shot of sim.shots) {
     const x = Math.round(shot.x) + originX;
     const y = Math.round(shot.y) + originY;
-    if (skin) ctx.drawImage(skin.image(skin.set.playerShot, shot.vx < 0), x, y);
+    if (skin?.hero) ctx.drawImage(skin.hero.image(skin.hero.art.shot, shot.vx < 0), x, y);
     else rect(ctx, SHOT_COLOUR, x, y, SHOT_W, SHOT_H);
   }
   for (const shot of sim.enemyShots) {

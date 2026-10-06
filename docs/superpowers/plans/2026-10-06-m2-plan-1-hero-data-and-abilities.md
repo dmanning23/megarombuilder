@@ -494,7 +494,7 @@ export function lookProblems(look: HeroLook): string[] {
     }
     const ragged = pixels.findIndex((row) => row.length !== w);
     if (ragged >= 0) {
-      problems.push(`${name} row ${ragged} is ${pixels[ragged].length} pixels wide, not ${w}.`);
+      problems.push(`${name} row ${ragged + 1} is ${pixels[ragged].length} pixels wide, not ${w}.`); // counted from 1
       continue;
     }
     const odd = [...pixels.join("")].find((ch) => ch !== "." && !/[1-8]/.test(ch));

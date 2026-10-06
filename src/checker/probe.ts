@@ -1,7 +1,8 @@
 import type { ContentPack } from "@/model/contentPack";
 import { createZone } from "@/model/factory";
 import { tileIndex, zoneSize } from "@/model/geometry";
-import type { Level, PlayerSettings, Project, Zone } from "@/model/schema";
+import { DEFAULT_ABILITIES } from "@/model/hero";
+import { FORMAT_VERSION, type Level, type PlayerSettings, type Project, type Zone } from "@/model/schema";
 import { num } from "@/runtime/sim/entities/types";
 import { createSim, NO_INPUT, type Player, type Sim } from "@/runtime/sim/state";
 import type { TileMap } from "@/runtime/sim/tilemap";
@@ -47,15 +48,17 @@ export function createProbe(zone: Zone, pack: ContentPack, settings: PlayerSetti
   const zones = checked.exit ? [checked, createZone({ id: NEXT_ZONE_ID, name: NEXT_ZONE_ID }, pack)] : [checked];
   const level: Level = { id: "check", name: "check", brief: "", zones, checkpoints: [] };
   const project: Project = {
-    formatVersion: 1,
+    formatVersion: FORMAT_VERSION,
     id: "check",
     name: "check",
     contentPackId: pack.id,
-    player: { ...settings, runSpeed: settings.runSpeed * FAIR_RUN_SPEED },
+    hero: { abilities: { ...DEFAULT_ABILITIES }, look: pack.hero },
     levels: [level],
     chat: [],
   };
-  const sim = createSim(project, "check", pack);
+  const sim = createSim(project, "check", pack, {
+    settings: { ...settings, runSpeed: settings.runSpeed * FAIR_RUN_SPEED },
+  });
   return { sim, map: sim.map, zone: checked };
 }
 

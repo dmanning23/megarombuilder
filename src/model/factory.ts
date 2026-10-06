@@ -1,7 +1,7 @@
 import type { ContentPack } from "./contentPack";
 import { tileIndex, zoneSize, type Opening, type Scroll } from "./geometry";
+import { DEFAULT_ABILITIES } from "./hero";
 import {
-  DEFAULT_PLAYER,
   FORMAT_VERSION,
   type Level,
   type Project,
@@ -89,7 +89,7 @@ export function createProject(opts: { id: string; name: string }, pack: ContentP
     id: opts.id,
     name: opts.name,
     contentPackId: pack.id,
-    player: { ...DEFAULT_PLAYER },
+    hero: { abilities: { ...DEFAULT_ABILITIES }, look: pack.hero },
     levels: [],
     chat: [],
   };

@@ -1,3 +1,4 @@
+import type { HeroLook } from "./hero";
 import type { ThingSettings } from "./schema";
 
 export type TileBehaviour = "solid" | "ladder" | "spike" | "ice" | "oneWay";
@@ -64,4 +65,5 @@ export type ContentPack = {
   tiles: TileDef[];
   things: ThingDef[];
   pieces: PieceDef[];
+  hero: HeroLook; // the hero a new game starts with
 };
