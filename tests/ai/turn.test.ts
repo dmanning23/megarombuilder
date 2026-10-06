@@ -211,3 +211,26 @@ describe("buildMessages", () => {
     expect(messages[0]).toEqual({ role: "user", content: "m30" });
   });
 });
+
+describe("the assistant and the hero", () => {
+  it("gives the hero slide and builds a crawl space it can get through", async () => {
+    const { turn, commands } = setup([
+      useTools(["set_hero_abilities", { slide: true }]),
+      useTools(["insert_piece", { zone: "Zone 1", pieceId: "crawl-space", x: 5, y: 0, settings: { length: 4 } }]),
+      useTools(["check_level", {}]),
+      say("Your hero can slide now, and Zone 1 has a crawl space."),
+    ]);
+    const result = await turn();
+    expect(result).toMatchObject({ ok: true, reply: "Your hero can slide now, and Zone 1 has a crawl space." });
+    if (!result.ok) throw new Error("unreachable");
+    expect(result.project.hero.abilities.slide).toBe(true);
+    expect(commands.map((c) => c.name)).toEqual(["setHeroAbilities", "insertPiece"]);
+  });
+
+  it("checks every zone when Claude changes the hero and doesn't check", async () => {
+    const { turn, requests } = setup([useTools(["set_hero_abilities", { jump: "low" }]), say("Done."), say("All zones still pass.")]);
+    expect(await turn()).toMatchObject({ ok: true, reply: "All zones still pass." });
+    const forced = requests[2][requests[2].length - 1].content as string;
+    for (const name of ['"Zone 1"', '"Boss Corridor"', '"Boss Room"']) expect(forced).toContain(name);
+  });
+});
