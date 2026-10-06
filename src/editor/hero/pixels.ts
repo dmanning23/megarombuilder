@@ -59,6 +59,21 @@ export function pixelFromPointer(
   return { x, y };
 }
 
+// The nearest pixel on the picture's edge to a pointer outside it.
+export function edgePixel(
+  clientX: number,
+  clientY: number,
+  rect: { left: number; top: number; width: number; height: number },
+  w: number,
+  h: number,
+): Pixel {
+  const clamp = (n: number, max: number) => Math.min(max, Math.max(0, n));
+  return {
+    x: clamp(Math.floor(((clientX - rect.left) / rect.width) * w), w - 1),
+    y: clamp(Math.floor(((clientY - rect.top) / rect.height) * h), h - 1),
+  };
+}
+
 // Where the game's body sits in a picture: what counts as the hero for walls and hits. Poses are
 // drawn bottom-centred on the body; a shot's picture is its whole box.
 export function bodyBox(picture: HeroPicture): { x: number; y: number; w: number; h: number } {

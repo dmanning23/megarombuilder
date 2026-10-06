@@ -1,9 +1,9 @@
 // @vitest-environment jsdom
-import { cleanup, screen } from "@testing-library/react";
+import { cleanup, fireEvent, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it } from "vitest";
 import { snowHero } from "@/content/snow/hero";
-import { flipRows } from "@/editor/hero/pixels";
+import { flipRows, ZOOM } from "@/editor/hero/pixels";
 import { setupHero } from "./heroHelpers";
 
 afterEach(cleanup);
@@ -107,5 +107,75 @@ describe("the hero screen", () => {
     expect(options()).toEqual(["", "standShoot", "run1", "run2", "jump", "jumpShoot", "climb", "hurt"]);
     await choose(/^Slide/);
     expect(screen.queryByRole("combobox", { name: "Copy from" })).toBeNull();
+  });
+});
+
+describe("strokes in awkward places", () => {
+  const at = (x: number, y: number, pointerId = 1) => ({ clientX: x * ZOOM + ZOOM / 2, clientY: y * ZOOM + ZOOM / 2, button: 0, pointerId });
+  const canvas = () => {
+    const el = screen.getByTestId("hero-canvas") as HTMLCanvasElement;
+    el.getBoundingClientRect = () =>
+      ({ left: 0, top: 0, width: el.width, height: el.height, right: 0, bottom: 0, x: 0, y: 0, toJSON() {} }) as DOMRect;
+    return el;
+  };
+
+  it("does not join the ends of a stroke that leaves the canvas and comes back", async () => {
+    const { open, saved } = setupHero();
+    await open();
+    const el = canvas();
+    fireEvent.pointerDown(el, at(5, 0));
+    fireEvent.pointerMove(el, { ...at(5, 0), clientY: -20 });
+    fireEvent.pointerMove(el, at(5, 23));
+    fireEvent.pointerUp(el, at(5, 23));
+    const stand = saved().hero.look.poses.stand;
+    expect([stand[0][5], stand[23][5]]).toEqual(["1", "1"]);
+    for (let y = 1; y < 23; y++) expect(stand[y][5], `row ${y}`).toBe(snowHero.poses.stand[y][5]);
+  });
+
+  it("paints right up to the edge on a fast drag off the canvas", async () => {
+    const { open, saved } = setupHero();
+    await open();
+    const el = canvas();
+    fireEvent.pointerDown(el, at(8, 0));
+    fireEvent.pointerMove(el, { ...at(8, 0), clientX: 16 * ZOOM + 40 });
+    fireEvent.pointerUp(el, { ...at(8, 0), clientX: 16 * ZOOM + 40 });
+    expect(saved().hero.look.poses.stand[0]).toBe("........11111111");
+  });
+
+  it("ignores a second finger while one is drawing", async () => {
+    const { open, saved } = setupHero();
+    await open();
+    const el = canvas();
+    fireEvent.pointerDown(el, at(3, 0, 1));
+    fireEvent.pointerDown(el, at(0, 10, 2));
+    fireEvent.pointerMove(el, at(0, 12, 2));
+    fireEvent.pointerUp(el, at(0, 12, 2));
+    fireEvent.pointerUp(el, at(3, 0, 1));
+    const stand = saved().hero.look.poses.stand;
+    expect(stand[0][3]).toBe("1");
+    expect(stand.slice(1).map((row) => row[0])).toEqual(snowHero.poses.stand.slice(1).map((row) => row[0]));
+  });
+
+  it("ends a stroke in its own picture when another picture is chosen", async () => {
+    const { open, saved } = setupHero();
+    await open();
+    const el = canvas();
+    fireEvent.pointerDown(el, at(3, 0));
+    fireEvent.click(screen.getByRole("button", { name: "Run 1" }));
+    fireEvent.pointerMove(canvas(), at(4, 0));
+    fireEvent.pointerUp(canvas(), at(4, 0));
+    expect(screen.getByRole("button", { name: "Undo" })).toHaveProperty("disabled", false);
+    const look = saved().hero.look;
+    expect(look.poses.stand[0][3]).toBe("1");
+    expect(look.poses.run1).toEqual(snowHero.poses.run1);
+  });
+
+  it("ends a stroke when the level is opened in the middle of it", async () => {
+    const { open, saved } = setupHero();
+    await open();
+    fireEvent.pointerDown(canvas(), at(3, 0));
+    fireEvent.click(screen.getByRole("button", { name: "Level" }));
+    expect(screen.getByRole("button", { name: "Undo" })).toHaveProperty("disabled", false);
+    expect(saved().hero.look.poses.stand[0][3]).toBe("1");
   });
 });

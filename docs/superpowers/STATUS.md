@@ -27,7 +27,7 @@ and Stop puts the level back. It needs `ANTHROPIC_API_KEY` in `.env.local` (see
 the README). The Hero button opens the hero screen: draw the hero picture by
 picture, pick its colours from the 8-bit palette, choose its abilities
 (including slide and charge shot), watch the live preview, and see at once
-which zones it can't finish. 782 tests and 9 browser tests pass; typecheck, lint and build are clean. Browser tests: `npm run e2e`
+which zones it can't finish. 787 tests and 9 browser tests pass; typecheck, lint and build are clean. Browser tests: `npm run e2e`
 (builds and serves on port 3100).
 
 | Document | State |
@@ -64,6 +64,14 @@ Milestone 1 is now eight plans (the editor became two):
 2. Try the assistant with a real API key using `docs/superpowers/ai-prompts.md`,
    and play what it builds.
 3. Review findings deferred from plans 2 and 3, to decide on:
+   - M2 plan 3: for 400 ms after an ability change the hero screen's note still
+     shows the previous result.
+   - M2 plan 3: the preview restarts on every pixel drawn, so it stays on its
+     opening frames during a long stroke.
+   - M2 plan 3: the hero screen doesn't show the "open in another tab" warning,
+     and its canvas doesn't look locked while the assistant works.
+   - M2 plan 3: colour buttons are named by number only; screen readers hear
+     no colour name.
    - M2 plan 2: sliding out of a zone into a next zone whose entry is under a
      low ceiling kills at once; the checker blames "something deadly at the
      entry" instead of the missing headroom.

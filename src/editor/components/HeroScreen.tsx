@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { LevelCheck } from "@/checker/check";
 import type { Command } from "@/commands/types";
 import type { ContentPack } from "@/model/contentPack";
@@ -63,7 +63,8 @@ export function HeroScreen({
   const [tool, setTool] = useState<DrawTool>("pencil");
   const [slot, setSlot] = useState(1);
   const colour = Math.min(slot, look.colours.length); // the chosen colour may have been removed
-  const stroke = useRef<{ rows: string[]; last: Pixel } | null>(null);
+  // The stroke being drawn, and the picture it belongs to.
+  const stroke = useRef<{ picture: HeroPicture; rows: string[]; last: Pixel } | null>(null);
 
   const rows = pictureRows(look, picture);
   const size = PICTURE_SIZES[picture];
@@ -83,21 +84,40 @@ export function HeroScreen({
     }
     onBegin(tool === "eraser" ? "Erase" : "Draw");
     const next = setPixels(rows, [p], ink);
-    stroke.current = { rows: next, last: p };
+    stroke.current = { picture, rows: next, last: p };
     save(next);
   };
-  const drag = (p: Pixel) => {
+  const drag = (p: Pixel, fresh: boolean) => {
     const current = stroke.current;
     if (!current) return;
-    const next = setPixels(current.rows, linePixels(current.last, p), ink);
-    stroke.current = { rows: next, last: p };
-    save(next);
+    const next = setPixels(current.rows, fresh ? [p] : linePixels(current.last, p), ink);
+    stroke.current = { ...current, rows: next, last: p };
+    onCommand({ name: "setHeroPose", args: { picture: current.picture, rows: next } });
   };
   const release = () => {
     if (!stroke.current) return;
     stroke.current = null;
     onCommit();
   };
+  const choosePicture = (next: HeroPicture) => {
+    release(); // a stroke ends in its own picture
+    setPicture(next);
+  };
+
+  // Leaving the hero screen mid-stroke (opening the level, say) ends the stroke as one undo step.
+  const commitRef = useRef(onCommit);
+  useEffect(() => {
+    commitRef.current = onCommit;
+  });
+  useEffect(() => {
+    const open = stroke;
+    const commit = commitRef;
+    return () => {
+      if (!open.current) return;
+      open.current = null;
+      commit.current();
+    };
+  }, []);
 
   const partners = HERO_PICTURES.filter(
     (other) => other !== picture && PICTURE_SIZES[other].w === size.w && PICTURE_SIZES[other].h === size.h,
@@ -122,7 +142,7 @@ export function HeroScreen({
               type="button"
               className={styles.swatch}
               aria-pressed={p === picture}
-              onClick={() => setPicture(p)}
+              onClick={() => choosePicture(p)}
             >
               <SpriteSwatch sprite={spriteOf(p)} palette={sprites.palette} />
               {PICTURE_NAMES[p]}
