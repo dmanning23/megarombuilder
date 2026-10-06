@@ -1,4 +1,5 @@
 import type { ContentPack } from "@/model/contentPack";
+import type { HeroPose } from "@/model/hero";
 import { TILE_SIZE } from "@/model/geometry";
 import type { Entity } from "@/runtime/sim/entities/types";
 import type { Player } from "@/runtime/sim/state";
@@ -13,25 +14,11 @@ export function sprite(rows: string[]): Sprite {
 // A ground tile can have a "top" sprite, used when the tile above is something else.
 export type TileArt = { fill: Sprite; top?: Sprite };
 
-export const PLAYER_POSES = [
-  "stand",
-  "standShoot",
-  "run1",
-  "run2",
-  "jump",
-  "jumpShoot",
-  "climb",
-  "hurt",
-] as const;
-export type PlayerPose = (typeof PLAYER_POSES)[number];
-
 export type ArtSet = {
   palette: Record<string, string>;
   backgrounds: Record<string, string>; // by variant
   tiles: Record<string, Record<number, TileArt>>; // by variant, then tile id
-  player: Record<PlayerPose, Sprite>;
   things: Record<string, Sprite[]>; // by thing type: one or more frames
-  playerShot: Sprite;
   enemyShot: Sprite;
 };
 
@@ -72,7 +59,6 @@ export function artProblems(art: ArtSet, pack: ContentPack): string[] {
       if (tileArt.top) check(`Tile "${tile.name}" top (${variant})`, tileArt.top, TILE_SIZE, TILE_SIZE);
     }
   }
-  for (const pose of PLAYER_POSES) check(`Player ${pose}`, art.player[pose], 16, 24);
   for (const def of pack.things) {
     const frames = art.things[def.type];
     if (!frames || frames.length === 0) {
@@ -81,12 +67,11 @@ export function artProblems(art: ArtSet, pack: ContentPack): string[] {
     }
     frames.forEach((s, i) => check(`Thing "${def.type}" frame ${i}`, s));
   }
-  check("Player shot", art.playerShot);
   check("Enemy shot", art.enemyShot);
   return problems;
 }
 
-export function playerPose(p: Player, steps: number): { pose: PlayerPose; flip: boolean } {
+export function playerPose(p: Player, steps: number): { pose: HeroPose; flip: boolean } {
   const flip = p.facing < 0;
   if (p.hurt > 0) return { pose: "hurt", flip };
   if (p.onLadder) return { pose: "climb", flip: Math.floor(p.y / 8) % 2 === 1 };

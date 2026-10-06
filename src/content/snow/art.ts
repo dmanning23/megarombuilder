@@ -1,6 +1,5 @@
-import { PLAYER_POSES, sprite, type ArtSet, type Sprite } from "@/runtime/render/art";
+import { sprite, type ArtSet, type Sprite } from "@/runtime/render/art";
 import { SNOW_PALETTE } from "./palette";
-import { SNOW_HERO_PICTURES } from "./hero";
 import { GROUND, ICE, LADDER, LEDGE, SPIKE } from "./tiles";
 
 // ---- Tiles, generated ----
@@ -402,7 +401,6 @@ export const snowArt: ArtSet = {
       ...SHARED_TILES,
     },
   },
-  player: Object.fromEntries(PLAYER_POSES.map((pose) => [pose, sprite(SNOW_HERO_PICTURES[pose])])) as ArtSet["player"],
   things: {
     walker: WALKER,
     flyer: FLYER,
@@ -415,6 +413,5 @@ export const snowArt: ArtSet = {
     "large-health": LARGE_HEALTH,
     boss: BOSS,
   },
-  playerShot: sprite(SNOW_HERO_PICTURES.shot),
   enemyShot: sprite(["..kk..", ".kiik.", "kiIIik", "kiIIik", ".kiik.", "..kk.."]),
 };
