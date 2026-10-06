@@ -77,6 +77,12 @@ Milestone 2, your own hero, was five plans:
 2. Try the assistant with a real API key using `docs/superpowers/ai-prompts.md`
    (prompts 1–13), and play what it builds.
 3. Review findings deferred from plans 2 and 3, to decide on:
+   - M2 plan 5: the hero sentence shows low and normal jump both as "2 tiles",
+     so "jump higher" from low may skip a step; name the step in the sentence.
+   - M2 plan 5: the jump heights in the hero sentence are copied by hand; add a
+     test tying them to the physics.
+   - M2 plan 5: setting the hero's abilities to the values they already have
+     still makes the level be checked again (one extra round at most).
    - M2 plan 4: the 5 MB import limit is on file size, not pixel size; a small
      PNG of a huge solid picture decodes in full and could crash the tab.
    - M2 plan 4: SVG files are offered by the picture picker but always refused.
