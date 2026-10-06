@@ -12,6 +12,7 @@ import { PlayCanvas } from "@/runtime/render/PlayCanvas";
 import { browserCanvas, createSpriteCache } from "@/runtime/render/sprites";
 import { ChatPanel } from "./components/ChatPanel";
 import { HeroScreen } from "./components/HeroScreen";
+import type { RawImage } from "./hero/importPicture";
 import { CheckPanel } from "./components/CheckPanel";
 import { Palette } from "./components/Palette";
 import { Toolbar } from "./components/Toolbar";
@@ -32,6 +33,7 @@ type Props = {
   saveDelay?: number;
   confirm?: (message: string) => boolean;
   model?: ModelFn;
+  readPicture?: (file: File) => Promise<RawImage>;
 };
 
 const defaultModel = createHttpModel();
@@ -57,6 +59,7 @@ export function Editor({
   saveDelay = 600,
   confirm = (message) => window.confirm(message),
   model = defaultModel,
+  readPicture,
 }: Props) {
   const pack = getPack(initial.contentPackId);
   if (!pack) throw new Error(`The content pack "${initial.contentPackId}" is not available.`);
@@ -386,6 +389,7 @@ export function Editor({
               dispatch({ type: "selectZone", zoneId });
             }}
             confirm={confirm}
+            readPicture={readPicture}
           />
         </main>
       ) : (
