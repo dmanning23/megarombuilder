@@ -681,10 +681,11 @@ export function setupHero(initial: Project = newProject("Hero", makeId), confirm
     fireEvent.pointerMove(el, at(...to));
     fireEvent.pointerUp(el, at(...to));
   };
-  // Closing the editor saves at once, so the last save is what was made.
+  // Closing the editor saves at once, so the last save is what was made (nothing is saved when
+  // the game is back to how it opened).
   const saved = (): Project => {
     view.unmount();
-    return save.mock.calls[save.mock.calls.length - 1][0];
+    return save.mock.calls.at(-1)?.[0] ?? initial;
   };
   const open = () => userEvent.click(screen.getByRole("button", { name: "Hero" }));
   const choose = (name: string | RegExp) => userEvent.click(screen.getByRole("button", { name }));

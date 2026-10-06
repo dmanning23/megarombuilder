@@ -13,6 +13,8 @@ type Props = {
   onPlayFromZone(): void;
   playing: boolean;
   onExport(): void;
+  screen: "level" | "hero";
+  onScreen(screen: "level" | "hero"): void;
   busy?: boolean;
 };
 
@@ -34,6 +36,8 @@ export function Toolbar({
   onPlayFromZone,
   playing,
   onExport,
+  screen,
+  onScreen,
   busy = false,
 }: Props) {
   return (
@@ -45,6 +49,14 @@ export function Toolbar({
       >
         {SAVE_TEXT[saveState]}
       </span>
+      <button
+        type="button"
+        className={styles.button}
+        disabled={playing}
+        onClick={() => onScreen(screen === "level" ? "hero" : "level")}
+      >
+        {screen === "level" ? "Hero" : "Level"}
+      </button>
       <button type="button" className={styles.button} disabled={busy} onClick={onExport}>
         Export
       </button>

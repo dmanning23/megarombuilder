@@ -498,3 +498,68 @@
   font-size: 13px;
   font-weight: 400;
 }
+
+/* The hero screen: pictures, the big canvas, colours and the preview */
+.heroWork {
+  min-height: 0;
+  overflow: auto;
+  padding: 1rem;
+}
+.heroScreen {
+  display: grid;
+  grid-template-columns: 10rem auto minmax(16rem, 1fr);
+  gap: 1rem;
+  align-items: start;
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+.heroScreen > .alert {
+  grid-column: 1 / -1;
+}
+.poses {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.35rem;
+}
+.poses .swatch {
+  width: 100%;
+  justify-content: flex-start;
+}
+.drawing {
+  display: grid;
+  gap: 0.6rem;
+  justify-items: start;
+}
+.heroCanvas {
+  border: 2px solid var(--panel);
+  border-radius: 6px;
+  touch-action: none;
+  cursor: crosshair;
+}
+.drawTools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: end;
+}
+.heroSide {
+  display: grid;
+  gap: 0.75rem;
+  min-width: 0;
+}
+.preview {
+  width: 100%;
+  max-width: 256px;
+  height: auto;
+  image-rendering: pixelated;
+  border-radius: 6px;
+}
+@media (max-width: 760px) {
+  .heroScreen {
+    grid-template-columns: 1fr;
+  }
+}

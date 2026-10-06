@@ -9,7 +9,7 @@ import type { Tool } from "../state";
 const label = (name: string) => name.charAt(0).toUpperCase() + name.slice(1);
 
 // A sprite painted pixel by pixel into a small canvas, shown at a fixed size.
-function SpriteSwatch({ sprite, palette }: { sprite?: Sprite; palette?: Record<string, string> }) {
+export function SpriteSwatch({ sprite, palette }: { sprite?: Sprite; palette?: Record<string, string> }) {
   const ref = useRef<HTMLCanvasElement>(null);
   useEffect(() => {
     const ctx = ref.current?.getContext("2d");
