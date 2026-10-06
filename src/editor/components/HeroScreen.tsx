@@ -1,14 +1,16 @@
 "use client";
 
 import { useMemo, useRef, useState } from "react";
+import type { LevelCheck } from "@/checker/check";
 import type { Command } from "@/commands/types";
 import type { ContentPack } from "@/model/contentPack";
 import { HERO_PICTURES, PICTURE_NAMES, PICTURE_SIZES, pictureRows, type HeroPicture } from "@/model/hero";
-import type { Project } from "@/model/schema";
+import type { Level, Project } from "@/model/schema";
 import type { ArtSet } from "@/runtime/render/art";
 import { heroArt } from "@/runtime/render/heroArt";
 import styles from "../editor.module.css";
 import { blankRows, flipRows, floodFill, linePixels, setPixels, type Pixel } from "../hero/pixels";
+import { HeroAbilities } from "./HeroAbilities";
 import { HeroCanvas } from "./HeroCanvas";
 import { HeroColours } from "./HeroColours";
 import { HeroPreview } from "./HeroPreview";
@@ -33,10 +35,28 @@ type Props = {
   onCommand(command: Command): void;
   onBegin(label: string): void;
   onCommit(): void;
+  level: Level;
+  check: LevelCheck | null;
+  onGoToZone(zoneId: string): void;
+  confirm(message: string): boolean;
 };
 
 // Draw the hero picture by picture. A stroke is one undo step, like painting tiles.
-export function HeroScreen({ project, pack, art, locked, error, onDismissError, onCommand, onBegin, onCommit }: Props) {
+export function HeroScreen({
+  project,
+  pack,
+  art,
+  locked,
+  error,
+  onDismissError,
+  onCommand,
+  onBegin,
+  onCommit,
+  level,
+  check,
+  onGoToZone,
+  confirm,
+}: Props) {
   const { look, abilities } = project.hero;
   const sprites = useMemo(() => heroArt(look), [look]);
   const [picture, setPicture] = useState<HeroPicture>("stand");
@@ -175,6 +195,18 @@ export function HeroScreen({ project, pack, art, locked, error, onDismissError, 
         />
         <HeroPreview look={look} abilities={abilities} pack={pack} art={art} />
       </div>
+      <HeroAbilities
+        abilities={abilities}
+        level={level}
+        check={check}
+        onAbilities={(changes) => onCommand({ name: "setHeroAbilities", args: changes })}
+        onGoToZone={onGoToZone}
+        onReset={() => {
+          if (confirm("Start again from the snow hero's look? You can undo this.")) {
+            onCommand({ name: "resetHeroLook", args: {} });
+          }
+        }}
+      />
     </fieldset>
   );
 }

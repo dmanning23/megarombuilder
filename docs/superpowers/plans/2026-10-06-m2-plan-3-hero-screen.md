@@ -1553,11 +1553,12 @@ describe("hero abilities", () => {
     await userEvent.click(screen.getByRole("button", { name: "Hero" }));
     await userEvent.type(screen.getByRole("textbox", { name: "Message" }), "Hello");
     await userEvent.click(screen.getByRole("button", { name: "Send" }));
-    await waitFor(() => expect(screen.getByRole("button", { name: "Pencil" })).toHaveProperty("disabled", true));
-    expect(within(group("Jump")).getByRole("button", { name: "High" })).toHaveProperty("disabled", true);
+    // Disabled through the hero screen's fieldset, which the button's own property doesn't show.
+    await waitFor(() => expect(screen.getByRole("button", { name: "Pencil" }).matches(":disabled")).toBe(true));
+    expect(within(group("Jump")).getByRole("button", { name: "High" }).matches(":disabled")).toBe(true);
     await act(async () => finish());
     await screen.findByText("Done.");
-    expect(screen.getByRole("button", { name: "Pencil" })).toHaveProperty("disabled", false);
+    expect(screen.getByRole("button", { name: "Pencil" }).matches(":disabled")).toBe(false);
     view.unmount();
   });
 });

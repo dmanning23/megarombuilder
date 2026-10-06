@@ -489,7 +489,8 @@
   }
 }
 
-.swatch:disabled {
+.swatch:disabled,
+.swatch[aria-disabled="true"] {
   opacity: 0.5;
   cursor: default;
 }
@@ -607,4 +608,59 @@
 .colour:focus-visible {
   outline: 3px solid var(--ink);
   outline-offset: 2px;
+}
+
+.abilities {
+  grid-column: 1 / -1;
+}
+.abilityRows {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+  gap: 0.6rem 1rem;
+  margin-bottom: 0.6rem;
+}
+.abilityLabel {
+  display: block;
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 0.2rem;
+}
+.steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+.step {
+  font: inherit;
+  font-size: 15px;
+  padding: 0.3rem 0.65rem;
+  border-radius: 999px;
+  border: 2px solid var(--panel-2);
+  background: #fff;
+  color: var(--ink);
+  cursor: pointer;
+}
+.step[aria-pressed="true"] {
+  background: var(--signal);
+  border-color: var(--signal);
+  font-weight: 700;
+}
+.step:focus-visible,
+.link:focus-visible {
+  outline: 3px solid var(--signal);
+  outline-offset: 2px;
+}
+.step:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.link {
+  font: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  color: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
 }

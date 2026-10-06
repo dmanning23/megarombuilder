@@ -265,6 +265,8 @@ export function Editor({
   const press = (spot: Spot) => {
     if (busy) return; // the assistant is changing the level
     const tool = state.tool;
+    const needs = tool.kind === "piece" ? pack.pieces.find((p) => p.id === tool.pieceId)?.needs : undefined;
+    if (needs === "slide" && !project.hero.abilities.slide) return; // the hero can't use this piece
     if (tool.kind === "tile" || tool.kind === "erase") {
       dispatch({ type: "begin", label: tool.kind === "erase" ? "Erase" : "Paint" });
       run(paintCommand(tool, level.id, zone, pack, spot));
@@ -377,6 +379,13 @@ export function Editor({
             onCommand={run}
             onBegin={(label) => dispatch({ type: "begin", label })}
             onCommit={() => dispatch({ type: "commit" })}
+            level={level}
+            check={check}
+            onGoToZone={(zoneId) => {
+              setScreen("level");
+              dispatch({ type: "selectZone", zoneId });
+            }}
+            confirm={confirm}
           />
         </main>
       ) : (
