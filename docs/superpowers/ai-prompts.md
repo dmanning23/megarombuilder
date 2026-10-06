@@ -14,3 +14,7 @@ play, and whether the reply is short, friendly and plain.
 7. "Can you help me with my maths homework?" (should kindly say it only helps with the game)
 8. "Make zone 9 harder." (there is no zone 9: it should say so, naming the real zones)
 9. Press Stop while it is building: the level goes back to how it was, and nothing is saved in the chat.
+10. "Make my hero jump higher." (should change jump one step and check the level)
+11. "Build me a level where I have to slide under things." (with a hero that can't slide: should give it slide, say so, and build crawl spaces)
+12. "Make my hero red." (should say it can't, and point to the Hero button)
+13. (With a charge shot hero) "Make Zone 2 harder." (should use tougher enemies)

@@ -10,7 +10,8 @@ zone. Next.js and React, one AI proxy route, projects stored in the browser.
 
 ## Where things stand
 
-Plans 1 to 8 are implemented, reviewed and merged to `main`. Milestone 1 is complete.
+Milestone 1 (plans 1 to 8) and milestone 2 (your own hero, plans 1 to 5) are
+implemented, reviewed and merged to `main`.
 
 Run `npm run dev` and open `/play` for the demo stage: running, jumping, ice,
 spikes, ladders, zone transitions, six enemy types, health pickups, a moving
@@ -27,7 +28,9 @@ and Stop puts the level back. It needs `ANTHROPIC_API_KEY` in `.env.local` (see
 the README). The Hero button opens the hero screen: draw the hero picture by
 picture (or import a picture and touch it up), pick its colours from the 8-bit palette, choose its abilities
 (including slide and charge shot), watch the live preview, and see at once
-which zones it can't finish. 813 tests and 10 browser tests pass; typecheck, lint and build are clean. Browser tests: `npm run e2e`
+which zones it can't finish. The assistant knows the hero: it builds levels
+that use its abilities (crawl spaces only for a hero that can slide) and
+changes its abilities when asked. 824 tests and 10 browser tests pass; typecheck, lint and build are clean. Browser tests: `npm run e2e`
 (builds and serves on port 3100).
 
 | Document | State |
@@ -46,7 +49,7 @@ which zones it can't finish. 813 tests and 10 browser tests pass; typecheck, lin
 | `plans/2026-10-06-m2-plan-2-slide-and-charge-shot.md` | Milestone 2 plan 2 of 5, implemented, reviewed and merged |
 | `plans/2026-10-06-m2-plan-3-hero-screen.md` | Milestone 2 plan 3 of 5, implemented, reviewed and merged |
 | `plans/2026-10-06-m2-plan-4-picture-import.md` | Milestone 2 plan 4 of 5, implemented, reviewed and merged |
-| `plans/2026-10-06-m2-plan-5-assistant-and-hero.md` | Milestone 2 plan 5 of 5, written, waiting for approval |
+| `plans/2026-10-06-m2-plan-5-assistant-and-hero.md` | Milestone 2 plan 5 of 5, implemented, reviewed and merged |
 
 Milestone 1 is now eight plans (the editor became two):
 
@@ -59,12 +62,20 @@ Milestone 1 is now eight plans (the editor became two):
 7. Editor tools: things and pieces palettes, checker overlay and badges, zone menu, export and import (done)
 8. AI assistant: proxy route, tools, chat loop (done)
 
+Milestone 2, your own hero, was five plans:
+
+1. Hero data and abilities (done)
+2. Slide and charge shot (done)
+3. The hero screen (done)
+4. Picture import (done)
+5. The assistant and the hero (done)
+
 ## Open items
 
 1. A person needs to play `/play` through the boss fight and say whether the
    movement, enemies and boss feel right.
-2. Try the assistant with a real API key using `docs/superpowers/ai-prompts.md`,
-   and play what it builds.
+2. Try the assistant with a real API key using `docs/superpowers/ai-prompts.md`
+   (prompts 1–13), and play what it builds.
 3. Review findings deferred from plans 2 and 3, to decide on:
    - M2 plan 4: the 5 MB import limit is on file size, not pixel size; a small
      PNG of a huge solid picture decodes in full and could crash the tab.
