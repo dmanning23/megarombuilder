@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { nearestColour, PALETTE_8BIT } from "@/model/palette";
+import { colourDistance, nearestColour, nearestIndex, PALETTE_8BIT, PALETTE_RGB } from "@/model/palette";
 
 describe("PALETTE_8BIT", () => {
   it("has 55 different colours", () => {
@@ -22,5 +22,17 @@ describe("nearestColour", () => {
 
   it("refuses something that is not a colour", () => {
     expect(() => nearestColour("red")).toThrow(/not a colour/);
+  });
+});
+
+describe("nearestIndex and colourDistance", () => {
+  it("agree with nearestColour", () => {
+    expect(nearestIndex(0x1a, 0x1c, 0x2c)).toBe(nearestColour("#1a1c2c"));
+    expect(PALETTE_RGB[nearestIndex(255, 0, 0)]).toEqual([...PALETTE_RGB[nearestColour("#ff0000")]]);
+  });
+
+  it("measure nothing between a colour and itself, and more for colours further apart", () => {
+    expect(colourDistance([10, 20, 30], [10, 20, 30])).toBe(0);
+    expect(colourDistance([0, 0, 0], [255, 255, 255])).toBeGreaterThan(colourDistance([0, 0, 0], [40, 40, 40]));
   });
 });

@@ -40,3 +40,31 @@ test("draw on the hero, give it abilities, and play as it", async ({ page }) => 
   await expect(page.getByRole("button", { name: "Stop playing" })).toBeVisible();
   await page.screenshot({ path: "test-results/hero-playing.png" });
 });
+
+test("import a picture into the hero", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("textbox", { name: "Game name" }).fill("Imported Hero");
+  await page.getByRole("button", { name: "Make a new game" }).click();
+  await page.getByRole("button", { name: "Hero" }).click();
+
+  // A real PNG: 32 by 48, see-through, with a red block in the lower half.
+  const dataUrl = await page.evaluate(() => {
+    const canvas = document.createElement("canvas");
+    canvas.width = 32;
+    canvas.height = 48;
+    const ctx = canvas.getContext("2d")!;
+    ctx.fillStyle = "#f83800";
+    ctx.fillRect(8, 16, 16, 32);
+    return canvas.toDataURL("image/png");
+  });
+  await page.getByLabel("Picture file").setInputFiles({
+    name: "hero.png",
+    mimeType: "image/png",
+    buffer: Buffer.from(dataUrl.split(",")[1], "base64"),
+  });
+
+  await expect(page.getByRole("dialog", { name: "Import a picture into Stand" })).toBeVisible();
+  await page.screenshot({ path: "test-results/hero-import.png" });
+  await page.getByRole("button", { name: "Use this" }).click();
+  await expect.poll(async () => (await saved(page)).hero.look.poses.stand[8]).toBe("....88888888....");
+});

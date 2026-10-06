@@ -9,11 +9,14 @@ import type { Level, Project } from "@/model/schema";
 import type { ArtSet } from "@/runtime/render/art";
 import { heroArt } from "@/runtime/render/heroArt";
 import styles from "../editor.module.css";
+import type { Imported, RawImage } from "../hero/importPicture";
 import { blankRows, flipRows, floodFill, linePixels, setPixels, type Pixel } from "../hero/pixels";
+import { NOT_A_PICTURE, readPicture as readPictureFile } from "../hero/readPicture";
 import { HeroAbilities } from "./HeroAbilities";
 import { HeroCanvas } from "./HeroCanvas";
 import { HeroColours } from "./HeroColours";
 import { HeroPreview } from "./HeroPreview";
+import { ImportDialog } from "./ImportDialog";
 import { SpriteSwatch } from "./Palette";
 
 type DrawTool = "pencil" | "eraser" | "fill" | "pick";
@@ -39,6 +42,7 @@ type Props = {
   check: LevelCheck | null;
   onGoToZone(zoneId: string): void;
   confirm(message: string): boolean;
+  readPicture?: (file: File) => Promise<RawImage>;
 };
 
 // Draw the hero picture by picture. A stroke is one undo step, like painting tiles.
@@ -56,6 +60,7 @@ export function HeroScreen({
   check,
   onGoToZone,
   confirm,
+  readPicture = readPictureFile,
 }: Props) {
   const { look, abilities } = project.hero;
   const sprites = useMemo(() => heroArt(look), [look]);
@@ -119,6 +124,37 @@ export function HeroScreen({
     };
   }, []);
 
+  // Importing a picture: read the file, show the dialog, and on "Use this" make it one undo step.
+  const [importing, setImporting] = useState<RawImage | null>(null);
+  const [importError, setImportError] = useState<string | null>(null);
+  const fileInput = useRef<HTMLInputElement>(null);
+  const importButton = useRef<HTMLButtonElement>(null);
+  // When the dialog closes, focus goes back to the button that opened it.
+  const wasImporting = useRef(false);
+  useEffect(() => {
+    if (wasImporting.current && !importing) importButton.current?.focus();
+    wasImporting.current = importing !== null;
+  }, [importing]);
+  const pickFile = async (file: File | undefined) => {
+    if (!file) return;
+    setImportError(null);
+    try {
+      setImporting(await readPicture(file));
+    } catch {
+      setImportError(NOT_A_PICTURE);
+    }
+  };
+  const useImport = (result: Imported) => {
+    release();
+    onBegin("Import a picture");
+    if (result.colours.length !== look.colours.length) {
+      onCommand({ name: "setHeroColours", args: { colours: result.colours } });
+    }
+    onCommand({ name: "setHeroPose", args: { picture, rows: result.rows } });
+    onCommit();
+    setImporting(null);
+  };
+
   const partners = HERO_PICTURES.filter(
     (other) => other !== picture && PICTURE_SIZES[other].w === size.w && PICTURE_SIZES[other].h === size.h,
   );
@@ -131,6 +167,14 @@ export function HeroScreen({
         <p className={styles.alert} role="alert">
           {error}
           <button type="button" onClick={onDismissError}>
+            Dismiss
+          </button>
+        </p>
+      )}
+      {importError && (
+        <p className={styles.alert} role="alert">
+          {importError}
+          <button type="button" onClick={() => setImportError(null)}>
             Dismiss
           </button>
         </p>
@@ -204,6 +248,25 @@ export function HeroScreen({
           <button type="button" className={styles.swatch} onClick={() => save(blankRows(size.w, size.h))}>
             Clear
           </button>
+          <button
+            ref={importButton}
+            type="button"
+            className={styles.swatch}
+            onClick={() => fileInput.current?.click()}
+          >
+            Import picture
+          </button>
+          <input
+            ref={fileInput}
+            type="file"
+            accept="image/*"
+            aria-label="Picture file"
+            className={styles.fileInput}
+            onChange={(e) => {
+              void pickFile(e.target.files?.[0]);
+              e.target.value = "";
+            }}
+          />
         </div>
       </div>
       <div className={styles.heroSide}>
@@ -227,6 +290,15 @@ export function HeroScreen({
           }
         }}
       />
+      {importing && (
+        <ImportDialog
+          picture={picture}
+          colours={look.colours}
+          image={importing}
+          onUse={useImport}
+          onCancel={() => setImporting(null)}
+        />
+      )}
     </fieldset>
   );
 }

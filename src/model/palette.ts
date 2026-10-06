@@ -17,23 +17,32 @@ function channels(hex: string): [number, number, number] {
   return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
 }
 
-const RGB = PALETTE_8BIT.map(channels);
+export const PALETTE_RGB: readonly [number, number, number][] = PALETTE_8BIT.map(channels);
 
-// The palette colour that looks closest, by the "redmean" approximation of how eyes see colour.
-export function nearestColour(hex: string): number {
-  const [r, g, b] = channels(hex);
+// How different two colours look, by the "redmean" approximation of how eyes see colour.
+export function colourDistance(a: [number, number, number], b: [number, number, number]): number {
+  const mean = (a[0] + b[0]) / 2;
+  const dr = a[0] - b[0];
+  const dg = a[1] - b[1];
+  const db = a[2] - b[2];
+  return (2 + mean / 256) * dr * dr + 4 * dg * dg + (2 + (255 - mean) / 256) * db * db;
+}
+
+// The palette colour that looks closest.
+export function nearestIndex(r: number, g: number, b: number): number {
   let best = 0;
   let bestDistance = Infinity;
-  RGB.forEach(([pr, pg, pb], i) => {
-    const mean = (r + pr) / 2;
-    const dr = r - pr;
-    const dg = g - pg;
-    const db = b - pb;
-    const distance = (2 + mean / 256) * dr * dr + 4 * dg * dg + (2 + (255 - mean) / 256) * db * db;
+  PALETTE_RGB.forEach((colour, i) => {
+    const distance = colourDistance([r, g, b], colour);
     if (distance < bestDistance) {
       bestDistance = distance;
       best = i;
     }
   });
   return best;
+}
+
+export function nearestColour(hex: string): number {
+  const [r, g, b] = channels(hex);
+  return nearestIndex(r, g, b);
 }
