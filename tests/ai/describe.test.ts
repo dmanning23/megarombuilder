@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { describeCatalogue, describeCheck, describeLevel, describeZone, tileChar } from "@/ai/describe";
+import { describeCatalogue, describeCheck, describeHero, describeLevel, describeZone, tileChar } from "@/ai/describe";
+import { DEFAULT_ABILITIES, HEALTHS, JUMPS, SHOT_COUNTS, SPEEDS, type Abilities } from "@/model/hero";
 import { createCheckCache } from "@/checker/cache";
 import type { ZoneCheck } from "@/checker/check";
 import { SPIKE } from "@/content/snow/pack";
@@ -113,8 +114,42 @@ describe("describeCatalogue", () => {
     for (const tile of pack.tiles) expect(text).toContain(`- ${tile.id}: ${tile.name}`);
     for (const thing of pack.things) expect(text).toContain(`- ${thing.type}: ${thing.name}`);
     for (const piece of pack.pieces) expect(text).toContain(`- ${piece.id}: ${piece.name}.`);
-    expect(text).toContain("The player can jump up 2 tiles and across gaps up to 3 tiles wide.");
+    expect(text).toContain("It can jump across gaps up to 3 tiles wide.");
     expect(text).toMatch(/- crawl-space: Crawl space\. .* Needs slide\./);
     expect(text).toMatch(/- gap: .* tiles wide at its default settings\. Settings: width \d+ to \d+ \(default \d+\)/);
+  });
+});
+
+describe("describeHero", () => {
+  const withAbilities = (changes: Partial<Abilities>) => {
+    const project = game();
+    return { ...project, hero: { ...project.hero, abilities: { ...DEFAULT_ABILITIES, ...changes } } };
+  };
+
+  it("says what a new hero can do", () => {
+    expect(describeHero(game())).toBe(
+      "Your hero runs at normal speed, jumps onto ledges up to 2 tiles high, has 28 health and can have 3 shots on screen. It can't slide. It has no charge shot.",
+    );
+  });
+
+  it("says what a hero with every move can do", () => {
+    expect(describeHero(withAbilities({ speed: "veryFast", jump: "veryHigh", health: "tough", shots: 1, slide: true, chargeShot: true }))).toBe(
+      "Your hero runs very fast, jumps onto ledges up to 4 tiles high, has 40 health and can have 1 shot on screen. It can slide under gaps one tile high. It has a charge shot.",
+    );
+  });
+
+  it("reads well for every step", () => {
+    for (const speed of SPEEDS)
+      for (const jump of JUMPS)
+        for (const health of HEALTHS)
+          for (const shots of SHOT_COUNTS) {
+            const text = describeHero(withAbilities({ speed, jump, health, shots }));
+            expect(text).toMatch(/^Your hero runs (at normal speed|fast|very fast), jumps onto ledges up to [234] tiles high, has (20|28|40) health and can have [1235] shots? on screen\./);
+            expect(text).not.toMatch(/1 shots/);
+          }
+  });
+
+  it("opens the catalogue", () => {
+    expect(describeCatalogue(game(), pack)).toMatch(/^Your hero runs at normal speed/);
   });
 });

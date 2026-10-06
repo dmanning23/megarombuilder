@@ -3,7 +3,7 @@ import { applyCommand } from "@/commands/registry";
 import type { Command } from "@/commands/types";
 import type { ContentPack } from "@/model/contentPack";
 import { tidyName, type Level, type Project, type Zone } from "@/model/schema";
-import { describeCatalogue, describeCheck, describeLevel, describeZone } from "./describe";
+import { describeCatalogue, describeCheck, describeHero, describeLevel, describeZone } from "./describe";
 import { AI_TOOLS, type AiTool } from "./tools";
 
 export type TurnState = {
@@ -51,7 +51,7 @@ function activityFor(tool: AiTool, zone: Zone | null): string {
     case "look":
       return tool.name === "get_catalogue" ? "Looking at the pieces…" : `Looking at ${where}…`;
     case "plan":
-      return "Planning the level…";
+      return tool.name === "set_hero_abilities" ? "Changing your hero…" : "Planning the level…";
     case "build":
       return `Building ${where}…`;
     case "check":
@@ -116,7 +116,7 @@ export function executeTool(state: TurnState, name: string, input: unknown, ctx:
 
   switch (tool.name) {
     case "get_level_overview":
-      return ok(describeLevel(level, ctx.checks.level(project, levelId, ctx.pack)));
+      return ok(`${describeLevel(level, ctx.checks.level(project, levelId, ctx.pack))}\n\n${describeHero(project)}`);
     case "get_zone":
       return ok(describeZone(level, zone!, ctx.pack));
     case "get_catalogue":
@@ -137,7 +137,7 @@ export function executeTool(state: TurnState, name: string, input: unknown, ctx:
   }
 
   const spec = tool.command!;
-  const commandArgs: Record<string, unknown> = { levelId };
+  const commandArgs: Record<string, unknown> = spec.levelArg ? { levelId } : {};
   for (const [key, value] of Object.entries(args)) if (key !== "zone") commandArgs[key] = value;
   if (spec.zoneArg && zone) commandArgs.zoneId = zone.id;
   const newId = spec.generated ? ctx.makeId() : null;
@@ -147,11 +147,15 @@ export function executeTool(state: TurnState, name: string, input: unknown, ctx:
   if (!result.ok) return fail(result.error, activity);
 
   const after = { ...state, project: result.project };
+  // A hero who runs or jumps differently changes every zone, so every zone needs checking again.
+  const heroChanged = result.project.hero.abilities !== project.hero.abilities;
   const target = spec.generated === "zoneId" ? newId : (zone?.id ?? null);
   const changed = new Map(state.changed);
-  for (const id of touchedZones(level, levelOf(after), target)) changed.set(id, false);
+  const touched = heroChanged ? levelOf(after).zones.map((z) => z.id) : touchedZones(level, levelOf(after), target);
+  for (const id of touched) changed.set(id, false);
   for (const id of changed.keys()) if (!levelOf(after).zones.some((z) => z.id === id)) changed.delete(id);
-  return ok(doneText(spec.generated, newId), { ...after, changed }, command);
+  const content = heroChanged ? `Done. ${describeHero(result.project)}` : doneText(spec.generated, newId);
+  return ok(content, { ...after, changed }, command);
 }
 
 export function uncheckedZones(state: TurnState): string[] {

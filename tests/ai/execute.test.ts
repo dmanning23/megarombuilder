@@ -37,6 +37,29 @@ describe("executeTool", () => {
     expect(executeTool(state, "get_catalogue", {}, ctx).content).toContain("- flat-run:");
   });
 
+  it("includes the hero in the level overview", () => {
+    expect(executeTool(startTurn(game(), "L1"), "get_level_overview", {}, context()).content).toContain("Your hero runs at normal speed");
+  });
+
+  it("changes the hero's abilities, says what it can do now, and counts every zone as changed", () => {
+    const out = executeTool(startTurn(game(), "L1"), "set_hero_abilities", { slide: true, jump: "high" }, context());
+    expect(out).toMatchObject({ isError: false, activity: "Changing your hero…" });
+    expect(out.command).toEqual({ name: "setHeroAbilities", args: { slide: true, jump: "high" } });
+    expect(out.content).toBe("Done. Your hero runs at normal speed, jumps onto ledges up to 3 tiles high, has 28 health and can have 3 shots on screen. It can slide under gaps one tile high. It has no charge shot.");
+    expect(out.state.project.hero.abilities).toMatchObject({ slide: true, jump: "high" });
+    expect(uncheckedZones(out.state)).toEqual(["z1", "corridor", "boss"]);
+  });
+
+  it("refuses ability steps that don't exist, a level id, and nothing at all", () => {
+    const state = startTurn(game(), "L1");
+    for (const input of [{ jump: "huge" }, { shots: 4 }, { slide: true, levelId: "L1" }]) {
+      const out = executeTool(state, "set_hero_abilities", input, context());
+      expect(out.isError, JSON.stringify(input)).toBe(true);
+      expect(out.state).toBe(state);
+    }
+    expect(executeTool(state, "set_hero_abilities", {}, context()).content).toBe("Give at least one ability to change.");
+  });
+
   it("makes a change with the zone's id filled in, and returns the command for the editor", () => {
     const out = executeTool(startTurn(game(), "L1"), "fill_rect", { zone: "Zone 1", x: 3, y: 13, w: 2, h: 1, tile: SPIKE }, context());
     expect(out).toMatchObject({ isError: false, content: "Done.", activity: "Building Zone 1…" });

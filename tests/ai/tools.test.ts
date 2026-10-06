@@ -13,7 +13,7 @@ describe("AI_TOOLS", () => {
     expect(AI_TOOLS.map((t) => t.name)).toEqual([
       "get_level_overview", "get_zone", "get_catalogue",
       "set_level_brief", "add_zone", "remove_zone", "move_zone", "rename_zone", "resize_zone",
-      "set_zone_variant", "set_zone_intent", "set_zone_openings",
+      "set_zone_variant", "set_zone_intent", "set_zone_openings", "set_hero_abilities",
       "insert_piece", "fill_rect", "clear_rect", "set_tiles", "place_thing", "move_thing",
       "remove_thing", "set_thing_settings", "add_checkpoint", "remove_checkpoint",
       "check_zone", "check_level",
@@ -46,6 +46,13 @@ describe("AI_TOOLS", () => {
     expect(properties("place_thing")).not.toContain("thingId");
     expect(properties("insert_piece")).not.toContain("idPrefix");
     expect(properties("move_thing")).toContain("thingId");
+  });
+
+  it("lets the assistant change the hero's abilities, and nothing else about the hero", () => {
+    expect(properties("set_hero_abilities")).toEqual(["speed", "jump", "health", "shots", "slide", "chargeShot"]);
+    expect(tool("set_hero_abilities").command).toMatchObject({ name: "setHeroAbilities", levelArg: false });
+    expect(tool("fill_rect").command).toMatchObject({ levelArg: true });
+    expect(AI_TOOLS.some((t) => /hero_(colours|pose|look)/.test(t.name))).toBe(false);
   });
 
   it("rejects input the command would not take", () => {

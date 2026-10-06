@@ -1,8 +1,8 @@
 import type { LevelCheck, ZoneCheck } from "@/checker/check";
-import { clearableGap, jumpReach } from "@/checker/reasons";
-import { heroPhysics } from "@/model/hero";
+import { clearableGap } from "@/checker/reasons";
+import { heroPhysics, type Abilities } from "@/model/hero";
 import type { ContentPack, PieceDef, TileBehaviour } from "@/model/contentPack";
-import { TILE_SIZE, tileIndex, zoneSize, type Opening } from "@/model/geometry";
+import { tileIndex, zoneSize, type Opening } from "@/model/geometry";
 import type { Level, Project, Zone } from "@/model/schema";
 
 // How Claude sees a level: plain text, small enough to send only the zones it asks for.
@@ -124,12 +124,27 @@ function pieceLine(piece: PieceDef): string {
   return `- ${piece.id}: ${piece.name}. ${piece.description} ${built.width} tiles wide at its default settings.${settings}${needs}`;
 }
 
+const SPEED_TEXT: Record<Abilities["speed"], string> = { normal: "at normal speed", fast: "fast", veryFast: "very fast" };
+// The highest ledge each jump lands on, measured with the checker (plan 1 of milestone 2).
+const JUMP_TILES: Record<Abilities["jump"], number> = { low: 2, normal: 2, high: 3, veryHigh: 4 };
+
+// What the hero can do, in words.
+export function describeHero(project: Project): string {
+  const a = project.hero.abilities;
+  const physics = heroPhysics(a);
+  return [
+    `Your hero runs ${SPEED_TEXT[a.speed]}, jumps onto ledges up to ${JUMP_TILES[a.jump]} tiles high, has ${physics.maxHealth} health and can have ${a.shots} shot${a.shots === 1 ? "" : "s"} on screen.`,
+    a.slide ? "It can slide under gaps one tile high." : "It can't slide.",
+    a.chargeShot ? "It has a charge shot." : "It has no charge shot.",
+  ].join(" ");
+}
+
 export function describeCatalogue(project: Project, pack: ContentPack): string {
   const physics = heroPhysics(project.hero.abilities);
-  const reach = jumpReach(physics);
   return [
+    describeHero(project),
+    `It can jump across gaps up to ${clearableGap(physics)} tiles wide.`,
     `Content pack: ${pack.name}. Looks a zone can have: ${pack.variants.join(", ")}.`,
-    `The player can jump up ${Math.floor(reach.height / TILE_SIZE)} tiles and across gaps up to ${clearableGap(physics)} tiles wide.`,
     "",
     "Tiles (use the number in fill_rect and set_tiles; 0 is empty):",
     ...pack.tiles.map((t) => `- ${t.id}: ${t.name} (${tileChar(pack, t.id)}), ${BEHAVIOUR_TEXT[t.behaviour]}`),

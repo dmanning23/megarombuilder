@@ -20,4 +20,11 @@ describe("SYSTEM_PROMPT", () => {
     expect(SYSTEM_PROMPT).toMatch(/you can only help with making their game/);
     expect(SYSTEM_PROMPT).toMatch(/Never ask for personal information/);
   });
+
+  it("tells the assistant how to build around the hero", () => {
+    expect(SYSTEM_PROMPT).toContain("Only build crawl spaces for a hero that can slide");
+    expect(SYSTEM_PROMPT).toContain("Never change the hero's abilities unless the user asks");
+    expect(SYSTEM_PROMPT).toContain("You can't draw or recolour the hero");
+    expect(SYSTEM_PROMPT).toMatch(/charge shot/);
+  });
 });

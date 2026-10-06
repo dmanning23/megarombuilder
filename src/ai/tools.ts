@@ -15,7 +15,7 @@ export type AiTool = {
   input: z.ZodObject;
   // For a tool that makes a change: its command, which id the browser makes up, and whether the
   // tool's `zone` (an id or a name) becomes the command's zoneId.
-  command: { name: string; generated: Generated | null; zoneArg: boolean } | null;
+  command: { name: string; generated: Generated | null; zoneArg: boolean; levelArg: boolean } | null;
 };
 
 const zoneArg = z.string().min(1).describe('The zone, by its id or its name, for example "Zone 1".');
@@ -30,6 +30,7 @@ const COMMAND_TOOLS: { tool: string; command: string; kind: "plan" | "build"; ge
   { tool: "set_zone_variant", command: "setZoneVariant", kind: "plan" },
   { tool: "set_zone_intent", command: "setZoneIntent", kind: "plan" },
   { tool: "set_zone_openings", command: "setZoneOpenings", kind: "plan" },
+  { tool: "set_hero_abilities", command: "setHeroAbilities", kind: "plan" },
   { tool: "insert_piece", command: "insertPiece", kind: "build", generated: "idPrefix" },
   { tool: "fill_rect", command: "fillRect", kind: "build" },
   { tool: "clear_rect", command: "clearRect", kind: "build" },
@@ -44,6 +45,8 @@ const COMMAND_TOOLS: { tool: string; command: string; kind: "plan" | "build"; ge
 
 // Added to the command's own description, where Claude needs more to use the tool well.
 const HINTS: Record<string, string> = {
+  set_hero_abilities:
+    " Only when the user asks for a change to their hero. Changing abilities can make zones easier or harder, so check the level afterwards.",
   set_level_brief: " Call this first when building a new level: a sentence or two on its theme and how it plays.",
   add_zone: " Give it a short name the user can say in chat.",
   set_zone_intent: " Say in a few words what the zone is for, for example \"introduce ice\" or \"rest before the boss\".",
@@ -60,6 +63,7 @@ function commandTool(spec: (typeof COMMAND_TOOLS)[number]): AiTool {
   if (!def || !(def.args instanceof z.ZodObject)) throw new Error(`No command called ${spec.command}.`);
   const shape = def.args.shape as Record<string, z.ZodType>;
   const zoneArgUsed = "zoneId" in shape && spec.generated !== "zoneId";
+  const levelArgUsed = "levelId" in shape;
   const rest = Object.fromEntries(
     Object.entries(shape).filter(([key]) => key !== "levelId" && key !== "zoneId" && key !== spec.generated),
   );
@@ -68,7 +72,7 @@ function commandTool(spec: (typeof COMMAND_TOOLS)[number]): AiTool {
     kind: spec.kind,
     description: def.description + (HINTS[spec.tool] ?? ""),
     input: z.strictObject({ ...(zoneArgUsed ? { zone: zoneArg } : {}), ...rest }),
-    command: { name: spec.command, generated: spec.generated ?? null, zoneArg: zoneArgUsed },
+    command: { name: spec.command, generated: spec.generated ?? null, zoneArg: zoneArgUsed, levelArg: levelArgUsed },
   };
 }
 
