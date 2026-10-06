@@ -1,5 +1,6 @@
 import type { ContentPack } from "@/model/contentPack";
 
+import { snowHero } from "./hero";
 import { snowPieces } from "./pieces";
 import { GROUND, ICE, LADDER, LEDGE, SPIKE } from "./tiles";
 
@@ -30,4 +31,5 @@ export const snowPack: ContentPack = {
         { type: "boss", name: "Blizzard Bot", category: "boss", behaviour: "boss", description: "The stage boss.", defaults: { health: 28 } },
     ],
     pieces: snowPieces,
+    hero: snowHero,
 };
