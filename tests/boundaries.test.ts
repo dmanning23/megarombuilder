@@ -43,6 +43,7 @@ describe("command registry", () => {
         "placeThing", "moveThing", "removeThing", "setThingSettings",
         "insertPiece",
         "addCheckpoint", "removeCheckpoint",
+        "setHeroAbilities", "setHeroColours", "setHeroPose", "resetHeroLook",
       ].sort(),
     );
     for (const def of commandDefs) expect(def.description.length).toBeGreaterThan(10);
