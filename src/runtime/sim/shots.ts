@@ -1,10 +1,12 @@
 import { SCREEN_W, SHOT_H, SHOT_POSE_STEPS, SHOT_SPEED, SHOT_W } from "./constants";
+import { sliding } from "./slide";
 import type { Sim } from "./state";
 import { firstTile, isSolid } from "./tilemap";
 import { cameraFor } from "./view";
 
 export function shoot(sim: Sim): void {
   const p = sim.player;
+  if (sliding(p)) return; // no shooting while sliding
   if (sim.shots.length >= sim.settings.maxShots) return;
   sim.shots.push({
     x: p.facing > 0 ? p.x + p.w : p.x - SHOT_W,

@@ -4,6 +4,11 @@ export const SCREEN_H = 240;
 export const PLAYER_W = 14;
 export const PLAYER_H = 22;
 
+// Sliding: a low body that fits through one-tile gaps, for about four tiles at more than running speed.
+export const SLIDE_H = 14;
+export const SLIDE_STEPS = 26;
+export const SLIDE_SPEED = 2.5;
+
 export const SHOT_W = 6;
 export const SHOT_H = 4;
 export const SHOT_SPEED = 4;

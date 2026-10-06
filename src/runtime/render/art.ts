@@ -2,6 +2,7 @@ import type { ContentPack } from "@/model/contentPack";
 import type { HeroPose } from "@/model/hero";
 import { TILE_SIZE } from "@/model/geometry";
 import type { Entity } from "@/runtime/sim/entities/types";
+import { PLAYER_H } from "@/runtime/sim/constants";
 import type { Player } from "@/runtime/sim/state";
 
 // One character per pixel; "." is transparent and every other character is a palette key.
@@ -73,6 +74,7 @@ export function artProblems(art: ArtSet, pack: ContentPack): string[] {
 
 export function playerPose(p: Player, steps: number): { pose: HeroPose; flip: boolean } {
   const flip = p.facing < 0;
+  if (p.h < PLAYER_H) return { pose: "slide", flip };
   if (p.hurt > 0) return { pose: "hurt", flip };
   if (p.onLadder) return { pose: "climb", flip: Math.floor(p.y / 8) % 2 === 1 };
   const shooting = p.shotTimer > 0;

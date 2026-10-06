@@ -1,5 +1,5 @@
 import { TILE_SIZE } from "@/model/geometry";
-import { RESPAWN_STEPS } from "./constants";
+import { PLAYER_H, RESPAWN_STEPS } from "./constants";
 import { loadZoneThings } from "./entities/slots";
 import type { Sim } from "./state";
 import {
@@ -53,6 +53,9 @@ export function respawn(sim: Sim): void {
   p.invuln = 0;
   p.ridingId = null;
   p.shotTimer = 0;
+  p.h = PLAYER_H;
+  p.slide = 0;
+  p.charge = 0;
   sim.shots = [];
   loadZoneThings(sim);
   sim.phase = "play";
@@ -72,7 +75,7 @@ export function touchCheckpoints(sim: Sim): void {
     sim.respawn = {
       zoneIndex: sim.zoneIndex,
       x: left + (TILE_SIZE - p.w) / 2,
-      y: top + TILE_SIZE - p.h,
+      y: top + TILE_SIZE - PLAYER_H,
     };
   }
 }
