@@ -62,6 +62,10 @@ export function stuckReason(probe: Probe, furthest: Player, settings: PlayerSett
   }
   const reach = jumpReach(settings);
   for (let c = col + 1; c < map.width; c++) {
+    if (!isSolid(map.behaviourAt(c, surface - 1)) && isSolid(map.behaviourAt(c, surface - 2))) {
+      const advice = settings.slide ? "" : " Give your hero slide, or make the gap taller.";
+      return `Cannot get past column ${col}: the gap at column ${c} is too low to walk through.${advice}`;
+    }
     if (isSolid(map.behaviourAt(c, surface - 1)) || isSolid(map.behaviourAt(c, surface - 2))) {
       let top = surface - 1;
       while (top > 0 && isSolid(map.behaviourAt(c, top - 1))) top--;
