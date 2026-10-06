@@ -488,3 +488,13 @@
     max-height: 22rem;
   }
 }
+
+.swatch:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.needs {
+  display: block;
+  font-size: 13px;
+  font-weight: 400;
+}

@@ -54,6 +54,7 @@ export type PieceDef = {
   name: string;
   description: string;
   settings: PieceSettingDef[];
+  needs?: "slide"; // a move the hero must have to get through it
   build: (settings: Record<string, number>) => PieceResult;
 };
 

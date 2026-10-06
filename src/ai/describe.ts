@@ -120,7 +120,8 @@ function pieceLine(piece: PieceDef): string {
     piece.settings.length > 0
       ? ` Settings: ${piece.settings.map((s) => `${s.key} ${s.min} to ${s.max} (default ${s.default}): ${s.description}`).join("; ")}.`
       : "";
-  return `- ${piece.id}: ${piece.name}. ${piece.description} ${built.width} tiles wide at its default settings.${settings}`;
+  const needs = piece.needs === "slide" ? " Needs slide." : "";
+  return `- ${piece.id}: ${piece.name}. ${piece.description} ${built.width} tiles wide at its default settings.${settings}${needs}`;
 }
 
 export function describeCatalogue(project: Project, pack: ContentPack): string {

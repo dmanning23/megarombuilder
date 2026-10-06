@@ -212,4 +212,17 @@ export const snowPieces: PieceDef[] = [
       return g.done();
     },
   },
+  {
+    id: "crawl-space",
+    name: "Crawl space",
+    description: "A tunnel one tile high that the hero has to slide through.",
+    settings: [setting("length", "How many tiles long the tunnel is", 2, 8, 4)],
+    needs: "slide",
+    build: ({ length }) => {
+      const g = new Grid(length + 4);
+      g.ground(0, length + 3, FLOOR);
+      g.fill(2, 0, length, FLOOR - 1, GROUND); // solid down to the row above the tunnel
+      return g.done();
+    },
+  },
 ];

@@ -114,6 +114,7 @@ describe("describeCatalogue", () => {
     for (const thing of pack.things) expect(text).toContain(`- ${thing.type}: ${thing.name}`);
     for (const piece of pack.pieces) expect(text).toContain(`- ${piece.id}: ${piece.name}.`);
     expect(text).toContain("The player can jump up 2 tiles and across gaps up to 3 tiles wide.");
+    expect(text).toMatch(/- crawl-space: Crawl space\. .* Needs slide\./);
     expect(text).toMatch(/- gap: .* tiles wide at its default settings\. Settings: width \d+ to \d+ \(default \d+\)/);
   });
 });
