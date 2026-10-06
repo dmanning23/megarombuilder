@@ -2,7 +2,7 @@ import { z } from "zod";
 import {
   abilitiesSchema,
   HERO_PICTURES,
-  lookProblems,
+  pictureProblems,
   MAX_COLOURS,
   PICTURE_NAMES,
   pictureRows,
@@ -26,8 +26,9 @@ const setHeroAbilitiesCommand = defineCommand({
     "Change the hero's abilities: speed (normal, fast, veryFast), jump (low, normal, high, veryHigh), health (fragile, normal, tough), shots on screen (1, 2, 3 or 5), slide and chargeShot (true or false). Only the given ones change.",
   args: abilitiesSchema.partial().strict(),
   apply(project, args): CommandResult {
-    if (Object.keys(args).length === 0) return fail("Give at least one ability to change.");
-    return ok({ ...project, hero: { ...project.hero, abilities: { ...project.hero.abilities, ...args } } });
+    const given = Object.fromEntries(Object.entries(args).filter(([, value]) => value !== undefined));
+    if (Object.keys(given).length === 0) return fail("Give at least one ability to change.");
+    return ok({ ...project, hero: { ...project.hero, abilities: { ...project.hero.abilities, ...given } } });
   },
 });
 
@@ -59,7 +60,7 @@ const setHeroPoseCommand = defineCommand({
   args: z.strictObject({ picture: z.enum(HERO_PICTURES), rows: z.array(z.string()).min(1).max(64) }),
   apply(project, args) {
     const look = withPicture(project.hero.look, args.picture, args.rows);
-    const problem = lookProblems(look).find((p) => p.startsWith(PICTURE_NAMES[args.picture] + " "));
+    const problem = pictureProblems(look, args.picture)[0];
     if (problem) return fail(problem);
     return ok(withLook(project, look));
   },

@@ -139,33 +139,28 @@ export function withPicture(look: HeroLook, picture: HeroPicture, rows: string[]
   return { ...look, poses: { ...look.poses, [picture]: rows } };
 }
 
-// Everything wrong with a look that the schema cannot see: sizes, and pixels naming missing colours.
+// Everything wrong with one picture of a look: its size, and pixels naming missing colours.
 // A pixel is "." (transparent) or a digit naming a colour slot, "1" for the first.
-export function lookProblems(look: HeroLook): string[] {
-  const problems: string[] = [];
-  for (const picture of HERO_PICTURES) {
-    const name = PICTURE_NAMES[picture];
-    const { w, h } = PICTURE_SIZES[picture];
-    const pixels = pictureRows(look, picture);
-    if (pixels.length !== h || pixels[0].length !== w) {
-      problems.push(`${name} is ${pixels[0].length} by ${pixels.length} pixels, not ${w} by ${h}.`);
-      continue;
-    }
-    const ragged = pixels.findIndex((row) => row.length !== w);
-    if (ragged >= 0) {
-      problems.push(`${name} row ${ragged + 1} is ${pixels[ragged].length} pixels wide, not ${w}.`); // counted from 1
-      continue;
-    }
-    const odd = [...pixels.join("")].find((ch) => ch !== "." && !/[1-8]/.test(ch));
-    if (odd) {
-      problems.push(`${name} has a pixel "${odd}" that is not a colour.`);
-      continue;
-    }
-    const highest = Math.max(0, ...[...pixels.join("")].filter((ch) => ch !== ".").map(Number));
-    if (highest > look.colours.length) {
-      const count = look.colours.length;
-      problems.push(`${name} uses colour ${highest}, but the hero only has ${count} colour${count === 1 ? "" : "s"}.`);
-    }
+export function pictureProblems(look: HeroLook, picture: HeroPicture): string[] {
+  const name = PICTURE_NAMES[picture];
+  const { w, h } = PICTURE_SIZES[picture];
+  const pixels = pictureRows(look, picture);
+  if (pixels.length !== h || pixels[0].length !== w) {
+    return [`${name} is ${pixels[0].length} by ${pixels.length} pixels, not ${w} by ${h}.`];
   }
-  return problems;
+  const ragged = pixels.findIndex((row) => row.length !== w);
+  if (ragged >= 0) return [`${name} row ${ragged + 1} is ${pixels[ragged].length} pixels wide, not ${w}.`]; // counted from 1
+  const odd = [...pixels.join("")].find((ch) => ch !== "." && !/[1-8]/.test(ch));
+  if (odd) return [`${name} has a pixel "${odd}" that is not a colour.`];
+  const highest = Math.max(0, ...[...pixels.join("")].filter((ch) => ch !== ".").map(Number));
+  const count = look.colours.length;
+  if (highest > count) {
+    return [`${name} uses colour ${highest}, but the hero only has ${count} colour${count === 1 ? "" : "s"}.`];
+  }
+  return [];
+}
+
+// Everything wrong with a look that the schema cannot see.
+export function lookProblems(look: HeroLook): string[] {
+  return HERO_PICTURES.flatMap((picture) => pictureProblems(look, picture));
 }

@@ -8,6 +8,7 @@ import {
   heroPhysics,
   lookProblems,
   PICTURE_SIZES,
+  pictureProblems,
   pictureRows,
   withPicture,
   type HeroLook,
@@ -101,6 +102,12 @@ describe("hero looks", () => {
     expect(lookProblems(bad)).toEqual(['Slide uses colour 3, but the hero only has 2 colours.']);
     const odd = withPicture(look(), "stand", solid(16, 24, "x"));
     expect(lookProblems(odd)).toEqual(['Stand has a pixel "x" that is not a colour.']);
+  });
+
+  it("checks one picture on its own", () => {
+    const bad = withPicture(withPicture(look(), "standShoot", solid(16, 23)), "stand", solid(16, 24));
+    expect(pictureProblems(bad, "stand")).toEqual([]);
+    expect(pictureProblems(bad, "standShoot")).toEqual(["Stand and shoot is 16 by 23 pixels, not 16 by 24."]);
   });
 
   it("reads and replaces any picture", () => {
