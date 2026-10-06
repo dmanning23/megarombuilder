@@ -40,6 +40,7 @@ the README). 708 tests and 8 browser tests pass; typecheck, lint and build are c
 | `plans/2026-10-05-plan-8-ai-assistant.md` | Plan 8, implemented, reviewed and merged |
 | `specs/2026-10-06-milestone-2-your-own-hero-design.md` | Milestone 2 spec (your own hero), approved |
 | `plans/2026-10-06-m2-plan-1-hero-data-and-abilities.md` | Milestone 2 plan 1 of 5, implemented, reviewed and merged |
+| `plans/2026-10-06-m2-plan-2-slide-and-charge-shot.md` | Milestone 2 plan 2 of 5, written, waiting for approval |
 
 Milestone 1 is now eight plans (the editor became two):
 
