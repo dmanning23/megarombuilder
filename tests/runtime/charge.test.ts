@@ -66,6 +66,21 @@ describe("the charge shot", () => {
     expect(charged(s)).toHaveLength(1);
   });
 
+  it("forgets a charge let go during a zone change", () => {
+    const project = projectFromArt([{ art: flatArt() }, { art: flatArt() }]);
+    const hero = { ...project.hero, abilities: { ...project.hero.abilities, chargeShot: true } };
+    const s = createSim({ ...project, hero }, "L1", testPack);
+    run(s, {}, 5);
+    let steps = 0;
+    while (s.phase !== "transition" && steps++ < 400) run(s, { right: true, shoot: true }, 1);
+    expect(s.phase).toBe("transition");
+    run(s, {}, 1); // let go while the screen slides
+    while (s.phase === "transition") run(s, {}, 1);
+    expect(s.player.charge).toBe(0);
+    hold(s, 1);
+    expect(charged(s)).toEqual([]);
+  });
+
   it("does 3 damage, and carries on through an enemy it destroys", () => {
     const s = sim([thing("turret", 8, 12, { interval: 1000 }), thing("turret", 11, 12, { interval: 1000 })]);
     run(s, { shoot: true }, CHARGE_STEPS); // the tap's normal shot hits the first turret: 3 → 2

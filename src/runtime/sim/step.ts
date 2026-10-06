@@ -22,6 +22,8 @@ export function step(sim: Sim, input: Input): void {
   } else if (sim.phase === "play") {
     playStep(sim, input);
   }
+  // A charge is let go when shoot is up, whatever the game was doing (a zone change, say).
+  if (!input.shoot) sim.player.charge = 0;
   sim.prev = input;
 }
 

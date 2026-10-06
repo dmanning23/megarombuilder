@@ -118,6 +118,15 @@ describe("sliding", () => {
     expect(s.respawn.y).toBe(13 * 16 - PLAYER_H);
   });
 
+  it("does not save a checkpoint inside a crawl space, where a standing hero would not fit", () => {
+    const s = sim([{ art: flatArt(tunnel(3, 9)) }], { slide: true }, [{ zoneId: "z1", x: 6, y: 12 }]);
+    const before = { ...s.respawn };
+    slideRight(s);
+    runUntil(s, {}, standing);
+    expect(s.player.x).toBeGreaterThanOrEqual(10 * 16); // it slid right through
+    expect(s.respawn).toEqual(before);
+  });
+
   it("stands up when it slides out of the zone", () => {
     const s = sim([{ art: flatArt() }, { art: flatArt() }]);
     runUntil(s, { right: true }, (x) => x.player.x > 190);

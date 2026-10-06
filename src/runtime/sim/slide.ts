@@ -5,8 +5,8 @@ import { firstTile, isSolid, lastTile, type TileMap } from "./tilemap";
 // Sliding makes the body low. Standing up keeps the feet where they are.
 export const sliding = (p: Player): boolean => p.h < PLAYER_H;
 
-// Whether a standing body would fit where the player is, clear of solid tiles.
-export function roomToStand(map: TileMap, p: Player): boolean {
+// Whether a standing body would fit where this body's feet are, clear of solid tiles.
+export function roomToStand(map: TileMap, p: { x: number; y: number; w: number; h: number }): boolean {
   const top = p.y + p.h - PLAYER_H;
   for (let ty = firstTile(top); ty <= lastTile(p.y + p.h); ty++) {
     for (let tx = firstTile(p.x); tx <= lastTile(p.x + p.w); tx++) {
