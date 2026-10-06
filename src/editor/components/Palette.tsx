@@ -44,9 +44,9 @@ type Tab = (typeof TABS)[number]["id"];
 
 const range = (min: number, max: number) => Array.from({ length: max - min + 1 }, (_, i) => min + i);
 
-type Props = { pack: ContentPack; art?: ArtSet; tool: Tool; onTool(tool: Tool): void };
+type Props = { pack: ContentPack; art?: ArtSet; tool: Tool; onTool(tool: Tool): void; canSlide?: boolean };
 
-export function Palette({ pack, art, tool, onTool }: Props) {
+export function Palette({ pack, art, tool, onTool, canSlide = false }: Props) {
   const [tab, setTab] = useState<Tab>("tiles");
   const variant = pack.variants[0];
   const piece = tool.kind === "piece" ? pack.pieces.find((p) => p.id === tool.pieceId) : undefined;
@@ -100,23 +100,33 @@ export function Palette({ pack, art, tool, onTool }: Props) {
             </button>
           ))}
         {tab === "pieces" &&
-          pack.pieces.map((p) => (
-            <button
-              key={p.id}
-              type="button"
-              className={styles.swatch}
-              aria-pressed={tool.kind === "piece" && tool.pieceId === p.id}
-              onClick={() =>
-                onTool({
-                  kind: "piece",
-                  pieceId: p.id,
-                  settings: Object.fromEntries(p.settings.map((s) => [s.key, s.default])),
-                })
-              }
-            >
-              {p.name}
-            </button>
-          ))}
+          pack.pieces.map((p) => {
+            const locked = p.needs === "slide" && !canSlide;
+            return (
+              <button
+                key={p.id}
+                type="button"
+                className={styles.swatch}
+                disabled={locked}
+                aria-pressed={tool.kind === "piece" && tool.pieceId === p.id}
+                onClick={() =>
+                  onTool({
+                    kind: "piece",
+                    pieceId: p.id,
+                    settings: Object.fromEntries(p.settings.map((s) => [s.key, s.default])),
+                  })
+                }
+              >
+                {p.name}
+                {locked && (
+                  <>
+                    {" "}
+                    <span className={styles.needs}>Needs slide</span>
+                  </>
+                )}
+              </button>
+            );
+          })}
         <button
           type="button"
           className={`${styles.swatch} ${styles.erase}`}

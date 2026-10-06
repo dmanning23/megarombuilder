@@ -1,8 +1,9 @@
 import { TILE_SIZE } from "@/model/geometry";
 import { moveX, moveY } from "./body";
 import { landOnPlatforms } from "./entities/platforms";
-import { ICE_ACCEL, JUMP_CUT_SPEED, KNOCKBACK_SPEED } from "./constants";
+import { ICE_ACCEL, JUMP_CUT_SPEED, KNOCKBACK_SPEED, SLIDE_SPEED } from "./constants";
 import { clamp } from "./math";
+import { roomToStand, sliding, standUp, startSlide } from "./slide";
 import type { Input, Sim } from "./state";
 import { firstTile, ladderAtPx, touchingLadder } from "./tilemap";
 
@@ -52,10 +53,30 @@ function physics(sim: Sim): void {
   if (!p.onGround) landOnPlatforms(sim, prevBottom);
 }
 
+// One step of a slide: low and fast in the direction the player faces (pressing the other way turns
+// it round). It ends when its time is up, when it hits a wall, when the player leaves the ground or
+// presses jump, but only where there is room to stand; until then it carries on.
+function slideStep(sim: Sim, dir: number, jumpPressed: boolean): void {
+  const { map, player: p, settings } = sim;
+  if (p.slide > 0) p.slide--;
+  const ending = p.slide === 0 || !p.onGround || jumpPressed;
+  if (ending && roomToStand(map, p)) {
+    standUp(p);
+    p.vx = dir * settings.runSpeed;
+    if (jumpPressed && p.onGround) p.vy = -settings.jumpVelocity;
+    physics(sim);
+    return;
+  }
+  p.vx = p.facing * SLIDE_SPEED;
+  physics(sim);
+  if (p.vx === 0) p.slide = 0; // hit a wall: stand up as soon as there is room
+}
+
 export function updatePlayer(sim: Sim, input: Input): void {
   const { map, player: p, settings, prev } = sim;
 
   if (p.hurt > 0) {
+    if (sliding(p) && roomToStand(map, p)) standUp(p);
     // Knocked back: no control, but still falling.
     p.hurt--;
     p.vx = p.knockback * KNOCKBACK_SPEED;
@@ -68,6 +89,11 @@ export function updatePlayer(sim: Sim, input: Input): void {
   const dir = (input.right ? 1 : 0) - (input.left ? 1 : 0);
   if (dir !== 0) p.facing = dir > 0 ? 1 : -1;
 
+  if (sliding(p)) {
+    slideStep(sim, dir, jumpPressed);
+    return;
+  }
+
   if (!p.onLadder) {
     const cx = p.x + p.w / 2;
     const grabUp = input.up && ladderAtPx(map, cx, p.y + p.h / 2);
@@ -79,6 +105,12 @@ export function updatePlayer(sim: Sim, input: Input): void {
   }
   if (p.onLadder) {
     climb(sim, input, jumpPressed);
+    return;
+  }
+
+  if (settings.slide && p.onGround && input.down && jumpPressed) {
+    startSlide(p);
+    slideStep(sim, dir, false);
     return;
   }
 

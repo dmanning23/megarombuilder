@@ -391,7 +391,13 @@ export function Editor({
             />
           </div>
           <CheckPanel zoneCheck={zoneCheck} problems={check?.problems ?? []} />
-          <Palette pack={pack} art={art} tool={state.tool} onTool={(tool) => dispatch({ type: "tool", tool })} />
+          <Palette
+            pack={pack}
+            art={art}
+            tool={state.tool}
+            canSlide={project.hero.abilities.slide}
+            onTool={(tool) => dispatch({ type: "tool", tool })}
+          />
         </main>
       )}
       <ChatPanel

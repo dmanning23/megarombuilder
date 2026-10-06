@@ -1,6 +1,7 @@
 import { TILE_SIZE } from "@/model/geometry";
-import { RESPAWN_STEPS } from "./constants";
+import { PLAYER_H, RESPAWN_STEPS } from "./constants";
 import { loadZoneThings } from "./entities/slots";
+import { roomToStand } from "./slide";
 import type { Sim } from "./state";
 import {
   createTileMap,
@@ -53,6 +54,9 @@ export function respawn(sim: Sim): void {
   p.invuln = 0;
   p.ridingId = null;
   p.shotTimer = 0;
+  p.h = PLAYER_H;
+  p.slide = 0;
+  p.charge = 0;
   sim.shots = [];
   loadZoneThings(sim);
   sim.phase = "play";
@@ -69,10 +73,8 @@ export function touchCheckpoints(sim: Sim): void {
     const touching =
       p.x < left + TILE_SIZE && p.x + p.w > left && p.y < top + TILE_SIZE && p.y + p.h > top;
     if (!touching) continue;
-    sim.respawn = {
-      zoneIndex: sim.zoneIndex,
-      x: left + (TILE_SIZE - p.w) / 2,
-      y: top + TILE_SIZE - p.h,
-    };
+    const spot = { x: left + (TILE_SIZE - p.w) / 2, y: top + TILE_SIZE - PLAYER_H, w: p.w, h: PLAYER_H };
+    if (!roomToStand(map, spot)) continue; // a checkpoint in a crawl space: a standing hero would not fit
+    sim.respawn = { zoneIndex: sim.zoneIndex, x: spot.x, y: spot.y };
   }
 }

@@ -24,7 +24,7 @@ The chat beside the level builds and changes levels: ask for a change and the
 assistant looks at the level, builds with pieces and small edits, checks every
 zone it changed, and replies in a few sentences; one undo removes a whole turn,
 and Stop puts the level back. It needs `ANTHROPIC_API_KEY` in `.env.local` (see
-the README). 708 tests and 8 browser tests pass; typecheck, lint and build are clean. Browser tests: `npm run e2e`
+the README). 744 tests and 8 browser tests pass; typecheck, lint and build are clean. Browser tests: `npm run e2e`
 (builds and serves on port 3100).
 
 | Document | State |
@@ -40,7 +40,7 @@ the README). 708 tests and 8 browser tests pass; typecheck, lint and build are c
 | `plans/2026-10-05-plan-8-ai-assistant.md` | Plan 8, implemented, reviewed and merged |
 | `specs/2026-10-06-milestone-2-your-own-hero-design.md` | Milestone 2 spec (your own hero), approved |
 | `plans/2026-10-06-m2-plan-1-hero-data-and-abilities.md` | Milestone 2 plan 1 of 5, implemented, reviewed and merged |
-| `plans/2026-10-06-m2-plan-2-slide-and-charge-shot.md` | Milestone 2 plan 2 of 5, written, waiting for approval |
+| `plans/2026-10-06-m2-plan-2-slide-and-charge-shot.md` | Milestone 2 plan 2 of 5, implemented, reviewed and merged |
 
 Milestone 1 is now eight plans (the editor became two):
 
@@ -60,6 +60,16 @@ Milestone 1 is now eight plans (the editor became two):
 2. Try the assistant with a real API key using `docs/superpowers/ai-prompts.md`,
    and play what it builds.
 3. Review findings deferred from plans 2 and 3, to decide on:
+   - M2 plan 2: sliding out of a zone into a next zone whose entry is under a
+     low ceiling kills at once; the checker blames "something deadly at the
+     entry" instead of the missing headroom.
+   - M2 plan 2: stuck reasons inside a blocked tunnel count the ceiling as a
+     tall wall, and can blame an earlier low gap a sliding hero could pass.
+   - M2 plan 2: pieces locked for "Needs slide" are disabled, so keyboard users
+     never reach the note; a selected crawl space stays selected if slide is
+     taken away (handle in M2 plan 3).
+   - M2 plan 2: the checker's slide move waits its full 600 steps in a
+     dead-end tunnel.
    - M2 plan 1: `setHeroAbilities` accepts an explicit `undefined` value and
      writes it, breaking the hero. Fix before the hero screen calls it (M2
      plan 3).

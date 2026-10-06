@@ -148,9 +148,9 @@ export function findPassage(zone: Zone, pack: ContentPack, settings: PlayerSetti
         reset(probe, node.player);
         if (move.when && !move.when(probe.sim)) continue;
         const out = play(probe, node.player, move.start());
-        // A move only counts as a jump if jump was actually pressed (a running jump can reach
-        // the exit while still running toward an edge).
-        const jumped = out.inputs.some((i) => i.jump);
+        // A move only counts as a jump if it is a jumping move and jump was actually pressed (a running
+        // jump can reach the exit while still running toward an edge; a slide presses jump too).
+        const jumped = move.jump && out.inputs.some((i) => i.jump);
         if (out.kind === "exit") return passed(node, node.origin, out.inputs, { name: move.name, jump: jumped });
         if (out.kind !== "rest" || seen.has(keyOf(out.player))) continue;
         const child: Node = {

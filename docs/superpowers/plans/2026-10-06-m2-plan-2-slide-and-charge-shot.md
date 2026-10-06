@@ -130,7 +130,7 @@ const slideRight = (s: Sim) => {
   run(s, { right: true, down: true }, 1);
   run(s, { down: true, jump: true }, 1);
 };
-const standing = (s: Sim) => s.player.h === PLAYER_H && Math.abs(s.player.vx) < 0.01;
+const standing = (s: Sim) => s.player.h === PLAYER_H && s.player.onGround && Math.abs(s.player.vx) < 0.01;
 
 describe("sliding", () => {
   it("is an ordinary jump without the ability", () => {
@@ -182,7 +182,7 @@ describe("sliding", () => {
   });
 
   it("stands up and falls when it slides off a ledge", () => {
-    const ledge = flatArt({ 13: "#####..........." });
+    const ledge = flatArt({ 13: "###............." }); // shorter than one slide
     const s = sim([{ art: ledge }]);
     slideRight(s);
     runUntil(s, {}, standing);

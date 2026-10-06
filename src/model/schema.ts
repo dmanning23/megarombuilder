@@ -93,6 +93,8 @@ export type PlayerSettings = {
   ladderSpeed: number;
   maxHealth: number;
   maxShots: number;
+  slide: boolean;
+  chargeShot: boolean;
 };
 export type ChatMessage = z.infer<typeof chatMessageSchema>;
 export type Project = z.infer<typeof projectSchema>;
@@ -105,4 +107,6 @@ export const DEFAULT_PLAYER: PlayerSettings = {
   ladderSpeed: 1.25,
   maxHealth: 28,
   maxShots: 3,
+  slide: false,
+  chargeShot: false,
 };

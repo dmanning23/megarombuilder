@@ -43,9 +43,11 @@ export type Player = {
   knockback: 1 | -1;
   ridingId: string | null; // the platform the player is standing on
   shotTimer: number; // steps left of the shooting pose
+  slide: number; // steps left of a slide's own length (it carries on past this under a low ceiling)
+  charge: number; // steps shoot has been held, for a charged shot
 };
 
-export type Shot = { x: number; y: number; vx: number };
+export type Shot = { x: number; y: number; vx: number; charged?: boolean };
 
 export type Camera = { x: number; y: number };
 
@@ -136,6 +138,8 @@ export function createSim(
     knockback: 1,
     ridingId: null,
     shotTimer: 0,
+    slide: 0,
+    charge: 0,
   };
   player.onLadder = touchingLadder(map, player);
   const sim: Sim = {

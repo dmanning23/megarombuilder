@@ -1,4 +1,5 @@
 import { TILE_SIZE } from "@/model/geometry";
+import { PLAYER_H } from "@/runtime/sim/constants";
 import { NO_INPUT, type Input, type Sim } from "@/runtime/sim/state";
 import { firstTile, isPlatform, isSolid, ladderAtPx } from "@/runtime/sim/tilemap";
 
@@ -99,9 +100,24 @@ const climb = (dir: "up" | "down"): Move => ({
   },
 });
 
+// Slides from where the player stands, then waits until they are standing again.
+const slide = (d: -1 | 1): Move => ({
+  name: `slide ${side(d)}`,
+  jump: false,
+  when: (sim) => sim.settings.slide && sim.player.onGround,
+  start: () => (sim, t) => {
+    if (t === 0) return keys({ ...toward(d), down: true }); // face that way
+    if (t === 1) return keys({ down: true, jump: true });
+    if (sim.player.h < PLAYER_H && t < 600) return NO_INPUT;
+    return null;
+  },
+});
+
 export const MOVES: Move[] = [
   walk(1),
   walk(-1),
+  slide(1),
+  slide(-1),
   ...[0, 4, 8, MAX_OVERHANG].flatMap((o) => [runJump(1, o), runJump(-1, o)]),
   standJump(0, 99, 0),
   standJump(1, 99, 0),

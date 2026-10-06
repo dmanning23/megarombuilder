@@ -107,10 +107,16 @@ const player = (overrides: Partial<Player> = {}): Player => ({
   knockback: 1,
   ridingId: null,
   shotTimer: 0,
+  slide: 0,
+  charge: 0,
   ...overrides,
 });
 
 describe("playerPose", () => {
+  it("slides while the body is low", () => {
+    expect(playerPose(player({ h: 14, vx: 2.5 }), 0)).toEqual({ pose: "slide", flip: false });
+  });
+
   it("stands, and mirrors when facing left", () => {
     expect(playerPose(player(), 0)).toEqual({ pose: "stand", flip: false });
     expect(playerPose(player({ facing: -1 }), 0)).toEqual({ pose: "stand", flip: true });

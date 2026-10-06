@@ -66,6 +66,8 @@ describe("createProject", () => {
       ladderSpeed: 1.25,
       maxHealth: 28,
       maxShots: 3,
+      slide: false,
+      chargeShot: false,
     });
   });
   it("gives a new game the pack's hero with normal abilities", () => {

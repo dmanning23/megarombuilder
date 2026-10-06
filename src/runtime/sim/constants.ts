@@ -4,6 +4,11 @@ export const SCREEN_H = 240;
 export const PLAYER_W = 14;
 export const PLAYER_H = 22;
 
+// Sliding: a low body that fits through one-tile gaps, for about four tiles at more than running speed.
+export const SLIDE_H = 14;
+export const SLIDE_STEPS = 26;
+export const SLIDE_SPEED = 2.5;
+
 export const SHOT_W = 6;
 export const SHOT_H = 4;
 export const SHOT_SPEED = 4;
@@ -34,3 +39,9 @@ export const BOSS_FLASH_STEPS = 20;
 
 // How long the hero is drawn in a shooting pose after firing.
 export const SHOT_POSE_STEPS = 12;
+
+// Holding shoot for a second charges a big shot: 12 by 10, 3 damage.
+export const CHARGE_STEPS = 60;
+export const CHARGED_W = 12;
+export const CHARGED_H = 10;
+export const CHARGED_DAMAGE = 3;

@@ -49,7 +49,9 @@ describe("Palette", () => {
   it("offers every piece, chosen with its default settings", async () => {
     const { onTool } = setup();
     await userEvent.click(screen.getByRole("tab", { name: "Pieces" }));
-    for (const piece of snowPack.pieces) expect(screen.getByRole("button", { name: piece.name })).toBeTruthy();
+    for (const piece of snowPack.pieces) {
+      expect(screen.getByRole("button", { name: new RegExp(`^${piece.name}( Needs slide)?$`) })).toBeTruthy();
+    }
     await userEvent.click(screen.getByRole("button", { name: "Gap" }));
     expect(onTool).toHaveBeenCalledWith({ kind: "piece", pieceId: "gap", settings: { width: 2 } });
   });

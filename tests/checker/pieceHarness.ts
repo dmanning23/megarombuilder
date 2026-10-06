@@ -52,5 +52,7 @@ export function zoneWithPiece(piece: PieceDef, settings: Record<string, number>)
     if (!result.ok) throw new Error(`${piece.id}: ${command.name} failed: ${result.error}`);
     project = result.project;
   }
-  return project;
+  // A piece that needs a move is checked with a hero that has it.
+  if (piece.needs !== "slide") return project;
+  return { ...project, hero: { ...project.hero, abilities: { ...project.hero.abilities, slide: true } } };
 }

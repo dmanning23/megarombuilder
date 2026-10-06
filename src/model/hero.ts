@@ -82,6 +82,8 @@ export function heroPhysics(abilities: Abilities): PlayerSettings {
     ladderSpeed: 1.25,
     maxHealth: MAX_HEALTH[abilities.health],
     maxShots: abilities.shots,
+    slide: abilities.slide,
+    chargeShot: abilities.chargeShot,
   };
 }
 
