@@ -128,6 +128,13 @@ export function HeroScreen({
   const [importing, setImporting] = useState<RawImage | null>(null);
   const [importError, setImportError] = useState<string | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
+  const importButton = useRef<HTMLButtonElement>(null);
+  // When the dialog closes, focus goes back to the button that opened it.
+  const wasImporting = useRef(false);
+  useEffect(() => {
+    if (wasImporting.current && !importing) importButton.current?.focus();
+    wasImporting.current = importing !== null;
+  }, [importing]);
   const pickFile = async (file: File | undefined) => {
     if (!file) return;
     setImportError(null);
@@ -241,7 +248,12 @@ export function HeroScreen({
           <button type="button" className={styles.swatch} onClick={() => save(blankRows(size.w, size.h))}>
             Clear
           </button>
-          <button type="button" className={styles.swatch} onClick={() => fileInput.current?.click()}>
+          <button
+            ref={importButton}
+            type="button"
+            className={styles.swatch}
+            onClick={() => fileInput.current?.click()}
+          >
             Import picture
           </button>
           <input

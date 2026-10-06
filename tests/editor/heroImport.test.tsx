@@ -102,6 +102,40 @@ describe("importing a picture", () => {
   });
 });
 
+describe("the import dialog and the keyboard", () => {
+  it("keeps the keyboard in the dialog: the rest of the page is inert, and Use this has focus", async () => {
+    const { choose } = setup(async () => picture("clear"));
+    await choose();
+    const dialog = screen.getByRole("dialog", { name: "Import a picture into Stand" });
+    expect(document.activeElement).toBe(screen.getByRole("button", { name: "Use this" }));
+    const others = [...document.body.children].filter((el) => !el.contains(dialog));
+    expect(others.length).toBeGreaterThan(0);
+    for (const el of others) expect(el.hasAttribute("inert")).toBe(true);
+  });
+
+  it("closes on Escape and gives focus back to Import picture", async () => {
+    const { choose } = setup(async () => picture("clear"));
+    await choose();
+    await userEvent.keyboard("{Escape}");
+    expect(screen.queryByRole("dialog")).toBeNull();
+    for (const el of document.body.children) expect(el.hasAttribute("inert")).toBe(false);
+    expect(document.activeElement).toBe(screen.getByRole("button", { name: "Import picture" }));
+  });
+
+  it("gives focus back to Import picture after Use this", async () => {
+    const { choose } = setup(async () => picture("clear"));
+    await choose();
+    await userEvent.click(screen.getByRole("button", { name: "Use this" }));
+    expect(document.activeElement).toBe(screen.getByRole("button", { name: "Import picture" }));
+  });
+
+  it("is not caught in the hero screen's lock", async () => {
+    const { choose } = setup(async () => picture("clear"));
+    await choose();
+    expect(screen.getByRole("dialog").closest("fieldset")).toBeNull();
+  });
+});
+
 describe("readPicture", () => {
   it("refuses files over 5 MB", async () => {
     const big = new File([new Uint8Array(MAX_FILE_BYTES + 1)], "huge.png", { type: "image/png" });

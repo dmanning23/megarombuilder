@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { PICTURE_NAMES, type HeroPicture } from "@/model/hero";
 import { PALETTE_8BIT } from "@/model/palette";
 import styles from "../editor.module.css";
@@ -49,10 +50,22 @@ export function ImportDialog({ picture, colours, image, onUse, onCancel }: Props
   const result = useMemo(() => importPicture(image, picture, colours, remove), [image, picture, colours, remove]);
   const added = result.colours.length - colours.length;
   const use = useRef<HTMLButtonElement>(null);
-  useEffect(() => use.current?.focus(), []);
+  const overlay = useRef<HTMLDivElement>(null);
 
-  return (
-    <div className={styles.overlay}>
+  // A modal: everything else on the page is inert (no clicks, no Tab) until the dialog closes.
+  useEffect(() => {
+    const self = overlay.current;
+    if (!self) return;
+    const others = [...document.body.children].filter((el) => el !== self && !el.contains(self));
+    for (const el of others) el.setAttribute("inert", "");
+    use.current?.focus();
+    return () => {
+      for (const el of others) el.removeAttribute("inert");
+    };
+  }, []);
+
+  return createPortal(
+    <div className={styles.overlay} ref={overlay}>
       <div
         role="dialog"
         aria-modal="true"
@@ -95,6 +108,7 @@ export function ImportDialog({ picture, colours, image, onUse, onCancel }: Props
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

@@ -27,7 +27,7 @@ and Stop puts the level back. It needs `ANTHROPIC_API_KEY` in `.env.local` (see
 the README). The Hero button opens the hero screen: draw the hero picture by
 picture (or import a picture and touch it up), pick its colours from the 8-bit palette, choose its abilities
 (including slide and charge shot), watch the live preview, and see at once
-which zones it can't finish. 809 tests and 10 browser tests pass; typecheck, lint and build are clean. Browser tests: `npm run e2e`
+which zones it can't finish. 813 tests and 10 browser tests pass; typecheck, lint and build are clean. Browser tests: `npm run e2e`
 (builds and serves on port 3100).
 
 | Document | State |
@@ -65,6 +65,11 @@ Milestone 1 is now eight plans (the editor became two):
 2. Try the assistant with a real API key using `docs/superpowers/ai-prompts.md`,
    and play what it builds.
 3. Review findings deferred from plans 2 and 3, to decide on:
+   - M2 plan 4: the 5 MB import limit is on file size, not pixel size; a small
+     PNG of a huge solid picture decodes in full and could crash the tab.
+   - M2 plan 4: SVG files are offered by the picture picker but always refused.
+   - M2 plan 4: the import dialog's Remove background setting isn't reset if a
+     second file is picked while it is open.
    - M2 plan 3: for 400 ms after an ability change the hero screen's note still
      shows the previous result.
    - M2 plan 3: the preview restarts on every pixel drawn, so it stays on its
