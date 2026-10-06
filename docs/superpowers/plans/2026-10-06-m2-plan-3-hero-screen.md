@@ -1892,6 +1892,7 @@ test("draw on the hero, give it abilities, and play as it", async ({ page }) => 
   await page.getByRole("textbox", { name: "Game name" }).fill("My Hero");
   await page.getByRole("button", { name: "Make a new game" }).click();
   await page.getByRole("button", { name: "Hero" }).click();
+  await page.screenshot({ path: "test-results/hero-open.png" });
 
   const canvas = page.getByTestId("hero-canvas");
   const box = await canvas.boundingBox();
