@@ -25,9 +25,9 @@ assistant looks at the level, builds with pieces and small edits, checks every
 zone it changed, and replies in a few sentences; one undo removes a whole turn,
 and Stop puts the level back. It needs `ANTHROPIC_API_KEY` in `.env.local` (see
 the README). The Hero button opens the hero screen: draw the hero picture by
-picture, pick its colours from the 8-bit palette, choose its abilities
+picture (or import a picture and touch it up), pick its colours from the 8-bit palette, choose its abilities
 (including slide and charge shot), watch the live preview, and see at once
-which zones it can't finish. 787 tests and 9 browser tests pass; typecheck, lint and build are clean. Browser tests: `npm run e2e`
+which zones it can't finish. 809 tests and 10 browser tests pass; typecheck, lint and build are clean. Browser tests: `npm run e2e`
 (builds and serves on port 3100).
 
 | Document | State |
@@ -45,7 +45,7 @@ which zones it can't finish. 787 tests and 9 browser tests pass; typecheck, lint
 | `plans/2026-10-06-m2-plan-1-hero-data-and-abilities.md` | Milestone 2 plan 1 of 5, implemented, reviewed and merged |
 | `plans/2026-10-06-m2-plan-2-slide-and-charge-shot.md` | Milestone 2 plan 2 of 5, implemented, reviewed and merged |
 | `plans/2026-10-06-m2-plan-3-hero-screen.md` | Milestone 2 plan 3 of 5, implemented, reviewed and merged |
-| `plans/2026-10-06-m2-plan-4-picture-import.md` | Milestone 2 plan 4 of 5, written, waiting for approval |
+| `plans/2026-10-06-m2-plan-4-picture-import.md` | Milestone 2 plan 4 of 5, implemented, reviewed and merged |
 
 Milestone 1 is now eight plans (the editor became two):
 
