@@ -681,10 +681,11 @@ export function setupHero(initial: Project = newProject("Hero", makeId), confirm
     fireEvent.pointerMove(el, at(...to));
     fireEvent.pointerUp(el, at(...to));
   };
-  // Closing the editor saves at once, so the last save is what was made.
+  // Closing the editor saves at once, so the last save is what was made (nothing is saved when
+  // the game is back to how it opened).
   const saved = (): Project => {
     view.unmount();
-    return save.mock.calls[save.mock.calls.length - 1][0];
+    return save.mock.calls.at(-1)?.[0] ?? initial;
   };
   const open = () => userEvent.click(screen.getByRole("button", { name: "Hero" }));
   const choose = (name: string | RegExp) => userEvent.click(screen.getByRole("button", { name }));
@@ -1230,7 +1231,6 @@ git commit -m "feat: add the hero screen: choose a picture and draw it with penc
 ```tsx
 // @vitest-environment jsdom
 import { cleanup, screen, within } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it } from "vitest";
 import { setupHero } from "./heroHelpers";
 
@@ -1553,11 +1553,12 @@ describe("hero abilities", () => {
     await userEvent.click(screen.getByRole("button", { name: "Hero" }));
     await userEvent.type(screen.getByRole("textbox", { name: "Message" }), "Hello");
     await userEvent.click(screen.getByRole("button", { name: "Send" }));
-    await waitFor(() => expect(screen.getByRole("button", { name: "Pencil" })).toHaveProperty("disabled", true));
-    expect(within(group("Jump")).getByRole("button", { name: "High" })).toHaveProperty("disabled", true);
+    // Disabled through the hero screen's fieldset, which the button's own property doesn't show.
+    await waitFor(() => expect(screen.getByRole("button", { name: "Pencil" }).matches(":disabled")).toBe(true));
+    expect(within(group("Jump")).getByRole("button", { name: "High" }).matches(":disabled")).toBe(true);
     await act(async () => finish());
     await screen.findByText("Done.");
-    expect(screen.getByRole("button", { name: "Pencil" })).toHaveProperty("disabled", false);
+    expect(screen.getByRole("button", { name: "Pencil" }).matches(":disabled")).toBe(false);
     view.unmount();
   });
 });
@@ -1891,6 +1892,7 @@ test("draw on the hero, give it abilities, and play as it", async ({ page }) => 
   await page.getByRole("textbox", { name: "Game name" }).fill("My Hero");
   await page.getByRole("button", { name: "Make a new game" }).click();
   await page.getByRole("button", { name: "Hero" }).click();
+  await page.screenshot({ path: "test-results/hero-open.png" });
 
   const canvas = page.getByTestId("hero-canvas");
   const box = await canvas.boundingBox();

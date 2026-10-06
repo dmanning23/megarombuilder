@@ -140,6 +140,8 @@ describe("Toolbar", () => {
     onPlayFromZone: vi.fn(),
     playing: false,
     onExport: vi.fn(),
+    screen: "level" as const,
+    onScreen: vi.fn(),
   });
 
   it("shows the name and save state, and disables what cannot happen", () => {

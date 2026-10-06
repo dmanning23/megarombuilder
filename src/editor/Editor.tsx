@@ -11,6 +11,7 @@ import type { Skin } from "@/runtime/render/draw";
 import { PlayCanvas } from "@/runtime/render/PlayCanvas";
 import { browserCanvas, createSpriteCache } from "@/runtime/render/sprites";
 import { ChatPanel } from "./components/ChatPanel";
+import { HeroScreen } from "./components/HeroScreen";
 import { CheckPanel } from "./components/CheckPanel";
 import { Palette } from "./components/Palette";
 import { Toolbar } from "./components/Toolbar";
@@ -63,6 +64,7 @@ export function Editor({
   const reducer = useMemo(() => editorReducer({ pack }), [pack]);
   const [state, dispatch] = useReducer(reducer, undefined, () => initialEditor(initial, pack.groundTileId));
   const [saveState, setSaveState] = useState<"saved" | "saving" | "error">("saved");
+  const [screen, setScreen] = useState<"level" | "hero">("level");
 
   const skin = useMemo<Skin | undefined>(() => {
     if (!art || typeof document === "undefined") return undefined;
@@ -247,7 +249,7 @@ export function Editor({
     );
     observer.observe(el);
     return () => observer.disconnect();
-  }, [playing]);
+  }, [playing, screen]);
   const zoom =
     zone.scroll === "horizontal" && stageHeight ? Math.min(2, Math.max(1, (stageHeight - 8) / 240)) : 2;
 
@@ -263,6 +265,8 @@ export function Editor({
   const press = (spot: Spot) => {
     if (busy) return; // the assistant is changing the level
     const tool = state.tool;
+    const needs = tool.kind === "piece" ? pack.pieces.find((p) => p.id === tool.pieceId)?.needs : undefined;
+    if (needs === "slide" && !project.hero.abilities.slide) return; // the hero can't use this piece
     if (tool.kind === "tile" || tool.kind === "erase") {
       dispatch({ type: "begin", label: tool.kind === "erase" ? "Erase" : "Paint" });
       run(paintCommand(tool, level.id, zone, pack, spot));
@@ -325,6 +329,8 @@ export function Editor({
         canRedo={canRedo(state.history)}
         playing={playing}
         busy={busy}
+        screen={screen}
+        onScreen={setScreen}
         onUndo={() => dispatch({ type: "undo" })}
         onRedo={() => dispatch({ type: "redo" })}
         onPlay={() => dispatch({ type: "play", fromZoneId: null })}
@@ -360,6 +366,27 @@ export function Editor({
           <button type="button" className={styles.primary} onClick={() => dispatch({ type: "stopPlaying" })}>
             Stop playing
           </button>
+        </main>
+      ) : screen === "hero" ? (
+        <main className={styles.heroWork}>
+          <HeroScreen
+            project={project}
+            pack={pack}
+            art={art}
+            locked={busy}
+            error={state.error}
+            onDismissError={() => dispatch({ type: "dismissError" })}
+            onCommand={run}
+            onBegin={(label) => dispatch({ type: "begin", label })}
+            onCommit={() => dispatch({ type: "commit" })}
+            level={level}
+            check={check}
+            onGoToZone={(zoneId) => {
+              setScreen("level");
+              dispatch({ type: "selectZone", zoneId });
+            }}
+            confirm={confirm}
+          />
         </main>
       ) : (
         <main className={styles.work}>

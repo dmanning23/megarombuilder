@@ -1,3 +1,4 @@
+import { applyCommand } from "@/commands/registry";
 import { describe, expect, it } from "vitest";
 import { createHistory, runCommand, undo } from "@/commands/history";
 import { DEFAULT_ABILITIES, PICTURE_SIZES } from "@/model/hero";
@@ -82,5 +83,23 @@ describe("resetHeroLook", () => {
     project = run(project, "resetHeroLook", {});
     expect(project.hero.look).toBe(testHero);
     expect(project.hero.abilities.speed).toBe("fast");
+  });
+});
+
+describe("hero commands and review fixes", () => {
+  it("setHeroAbilities ignores abilities given as undefined", () => {
+    const project = run(baseProject(), "setHeroAbilities", { jump: undefined, speed: "fast" });
+    expect(project.hero.abilities).toEqual({ ...DEFAULT_ABILITIES, speed: "fast" });
+    expect(runError(baseProject(), "setHeroAbilities", { jump: undefined })).toBe("Give at least one ability to change.");
+  });
+
+  it("setHeroPose is not blocked by a problem in a similarly named picture", () => {
+    const project = baseProject();
+    const broken = {
+      ...project,
+      hero: { ...project.hero, look: { ...project.hero.look, poses: { ...project.hero.look.poses, standShoot: ["1"] } } },
+    };
+    const result = applyCommand(broken, { name: "setHeroPose", args: { picture: "stand", rows: solid(16, 24, ".") } }, ctx);
+    expect(result.ok).toBe(true);
   });
 });
