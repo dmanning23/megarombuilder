@@ -10,6 +10,7 @@ import { heroArt } from "@/runtime/render/heroArt";
 import styles from "../editor.module.css";
 import { blankRows, flipRows, floodFill, linePixels, setPixels, type Pixel } from "../hero/pixels";
 import { HeroCanvas } from "./HeroCanvas";
+import { HeroColours } from "./HeroColours";
 import { HeroPreview } from "./HeroPreview";
 import { SpriteSwatch } from "./Palette";
 
@@ -166,6 +167,12 @@ export function HeroScreen({ project, pack, art, locked, error, onDismissError, 
         </div>
       </div>
       <div className={styles.heroSide}>
+        <HeroColours
+          colours={look.colours}
+          slot={colour}
+          onSlot={setSlot}
+          onColours={(colours) => onCommand({ name: "setHeroColours", args: { colours } })}
+        />
         <HeroPreview look={look} abilities={abilities} pack={pack} art={art} />
       </div>
     </fieldset>

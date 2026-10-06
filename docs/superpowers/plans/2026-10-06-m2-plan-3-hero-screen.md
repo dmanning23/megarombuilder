@@ -1231,7 +1231,6 @@ git commit -m "feat: add the hero screen: choose a picture and draw it with penc
 ```tsx
 // @vitest-environment jsdom
 import { cleanup, screen, within } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it } from "vitest";
 import { setupHero } from "./heroHelpers";
 
