@@ -2,19 +2,21 @@
 
 import { useState, type ComponentProps } from "react";
 import styles from "../editor.module.css";
+import { BossScreen } from "./BossScreen";
 import { EnemiesScreen } from "./EnemiesScreen";
 import { HeroScreen } from "./HeroScreen";
 
-type Tab = "hero" | "enemies";
+type Tab = "hero" | "enemies" | "boss";
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "hero", label: "Hero" },
   { id: "enemies", label: "Enemies" },
+  { id: "boss", label: "Boss" },
 ];
 
 type Props = ComponentProps<typeof HeroScreen> & { makeId(): string };
 
-// The kid's characters: their hero, and their own enemies.
+// The kid's characters: their hero, their own enemies and their own boss.
 export function CharactersScreen({ makeId, ...props }: Props) {
   const [tab, setTab] = useState<Tab>("hero");
   return (
@@ -36,9 +38,8 @@ export function CharactersScreen({ makeId, ...props }: Props) {
         ))}
       </div>
       <div role="tabpanel" id={`characters-panel-${tab}`} aria-labelledby={`characters-${tab}`}>
-        {tab === "hero" ? (
-          <HeroScreen {...props} />
-        ) : (
+        {tab === "hero" && <HeroScreen {...props} />}
+        {tab === "enemies" && (
           <EnemiesScreen
             project={props.project}
             pack={props.pack}
@@ -51,6 +52,21 @@ export function CharactersScreen({ makeId, ...props }: Props) {
             onCommit={props.onCommit}
             confirm={props.confirm}
             makeId={makeId}
+            readPicture={props.readPicture}
+          />
+        )}
+        {tab === "boss" && (
+          <BossScreen
+            project={props.project}
+            pack={props.pack}
+            art={props.art}
+            locked={props.locked}
+            error={props.error}
+            onDismissError={props.onDismissError}
+            onCommand={props.onCommand}
+            onBegin={props.onBegin}
+            onCommit={props.onCommit}
+            confirm={props.confirm}
             readPicture={props.readPicture}
           />
         )}

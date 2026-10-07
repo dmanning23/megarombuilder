@@ -1,5 +1,6 @@
 "use client";
 
+import { OWN_BOSS } from "@/model/gamePack";
 import { useEffect, useRef, useState } from "react";
 import type { ContentPack } from "@/model/contentPack";
 import type { ArtSet, Sprite } from "@/runtime/render/art";
@@ -95,7 +96,8 @@ export function Palette({ pack, art, tool, onTool, canSlide = false, own = {} }:
             );
           })}
         {tab === "things" &&
-          pack.things.map((def) => {
+          // The kid's boss goes in the boss room from the Boss tab, not from here.
+          pack.things.filter((def) => def.type !== OWN_BOSS).map((def) => {
             const mine = own[def.type];
             return (
               <button

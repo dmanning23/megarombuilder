@@ -1,7 +1,7 @@
 import type { ContentPack } from "@/model/contentPack";
 import { createProject, createZone } from "@/model/factory";
-import type { EnemyBehaviour, EnemyDesign } from "@/model/designs";
-import { ownType } from "@/model/gamePack";
+import type { BossDesign, EnemyBehaviour, EnemyDesign } from "@/model/designs";
+import { OWN_BOSS, ownType } from "@/model/gamePack";
 import type { Abilities, Hero, HeroLook } from "@/model/hero";
 import type { Level, Project } from "@/model/schema";
 import { createSim, NO_INPUT, type Input, type Sim } from "@/runtime/sim/state";
@@ -69,3 +69,23 @@ export function enemyPreviewSim(enemy: EnemyDesign, hero: Hero, pack: ContentPac
 }
 
 export const IDLE_INPUTS: Input[] = hold({}, 360);
+
+// The boss preview: a one-screen boss room, the hero standing still, the kid's boss fighting.
+export function bossPreviewSim(boss: BossDesign, hero: Hero, pack: ContentPack): Sim {
+  const zone = {
+    ...createZone({ id: "preview", name: "Preview", kind: "bossRoom" }, pack),
+    things: [{ id: "preview-boss", type: OWN_BOSS, x: 12, y: 12, settings: {} }],
+  };
+  const level: Level = { id: "preview", name: "Preview", brief: "", zones: [zone], checkpoints: [] };
+  const project: Project = {
+    ...createProject({ id: "preview", name: "Preview" }, pack),
+    hero,
+    boss,
+    levels: [level],
+  };
+  return createSim(project, "preview", pack);
+}
+
+// Seven seconds: long enough for three attacks after the intro, too short for the boss to win (at
+// most one 4-damage hit per 60 steps after the 60-step intro is 24 of the hero's 28).
+export const BOSS_PREVIEW_INPUTS: Input[] = hold({}, 420);

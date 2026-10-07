@@ -516,6 +516,10 @@
   padding: 0;
   min-width: 0;
 }
+/* The Boss tab has no list column: its drawing and its side panel. */
+.bossScreen {
+  grid-template-columns: auto minmax(16rem, 1fr);
+}
 .heroScreen > .alert {
   grid-column: 1 / -1;
 }
@@ -560,7 +564,8 @@
   border-radius: 6px;
 }
 @media (max-width: 760px) {
-  .heroScreen {
+  .heroScreen,
+  .bossScreen {
     grid-template-columns: 1fr;
   }
 }

@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { snowHero } from "@/content/snow/hero";
 import { snowPack } from "@/content/snow/pack";
-import { enemyPreviewSim, IDLE_INPUTS, previewInputs, previewSim } from "@/editor/hero/preview";
-import { defaultTuning, ENEMY_BEHAVIOURS, type EnemyDesign } from "@/model/designs";
+import { BOSS_PREVIEW_INPUTS, bossPreviewSim, enemyPreviewSim, IDLE_INPUTS, previewInputs, previewSim } from "@/editor/hero/preview";
+import { defaultTuning, ENEMY_BEHAVIOURS, type BossAttack, type EnemyDesign } from "@/model/designs";
 import { DEFAULT_ABILITIES, type Abilities } from "@/model/hero";
 import { SLIDE_H } from "@/runtime/sim/constants";
 import { step } from "@/runtime/sim/step";
@@ -77,5 +77,31 @@ describe("the enemy preview", () => {
 
   it("is idle for six seconds", () => {
     expect(IDLE_INPUTS).toHaveLength(360);
+  });
+});
+
+describe("the boss preview", () => {
+  const lists: BossAttack[][] = [
+    ["jump", "spread", "dash"],
+    ["rain", "big", "aimed"],
+    ["dash", "jump"],
+    ["big", "rain"],
+  ];
+
+  it("shows every attack in the list, and the hero is never beaten", () => {
+    const hero = { abilities: DEFAULT_ABILITIES, look: snowHero };
+    for (const attacks of lists) {
+      const boss = { name: "My Boss", fight: "long" as const, attacks, look: snowPack.bossLook };
+      const sim = bossPreviewSim(boss, hero, snowPack);
+      const seen = new Set<string>();
+      for (const input of BOSS_PREVIEW_INPUTS) {
+        step(sim, input);
+        const e = sim.slots[0].entity;
+        if (e) seen.add(e.mode);
+      }
+      expect([...seen], attacks.join()).toEqual(expect.arrayContaining(attacks));
+      expect(sim.phase, attacks.join()).toBe("play");
+      expect(sim.zoneIndex).toBe(0);
+    }
   });
 });

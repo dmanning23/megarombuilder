@@ -26,4 +26,12 @@ describe("the Characters screen", () => {
     expect(screen.getByTestId("zone-canvas")).toBeTruthy();
     expect(screen.getByRole("button", { name: "Characters" })).toBeTruthy();
   });
+
+  it("has a Boss tab", async () => {
+    const { open } = setupHero();
+    await open();
+    await userEvent.click(screen.getByRole("tab", { name: "Boss" }));
+    expect(screen.getByRole("tab", { name: "Boss" }).getAttribute("aria-selected")).toBe("true");
+    expect(screen.getByRole("button", { name: "Make your own boss" })).toBeTruthy();
+  });
 });
