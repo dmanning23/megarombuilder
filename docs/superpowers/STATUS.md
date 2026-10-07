@@ -72,6 +72,7 @@ changed by ten look commands; nothing visible has changed yet. 953 tests and 12 
 | `plans/2026-10-07-m3-plan-5-assistant.md` | Milestone 3 plan 5 of 5, implemented, reviewed and merged |
 | `specs/2026-10-07-milestone-4-characters-that-fit-design.md` | Milestone 4 spec (characters that fit), approved |
 | `plans/2026-10-07-m4-plan-1-shared-look.md` | Milestone 4 plan 1 of 5, implemented, reviewed and merged |
+| `plans/2026-10-07-m4-plan-2-animations-in-game.md` | Milestone 4 plan 2 of 5, written, waiting for approval |
 
 Milestone 1 is now eight plans (the editor became two):
 
