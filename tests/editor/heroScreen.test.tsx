@@ -14,6 +14,18 @@ import type { Project } from "@/model/schema";
 afterEach(cleanup);
 
 describe("the hero screen", () => {
+  it("keeps Run and shoot in step with Run through a fill and its undo", async () => {
+    const { open, choose, press, saved } = setupHero();
+    await open();
+    await choose(/^Run 1/);
+    await choose("Fill");
+    press(0, 0);
+    await userEvent.click(screen.getByRole("button", { name: "Undo" }));
+    const look = saved().hero.look;
+    expect(look.animations.runShoot.frames).toEqual(look.animations.run.frames);
+    expect(look.animations.run.frames[0][0][0]).toBe(".");
+  });
+
   it("keeps Run and shoot in step with Run, in one undo step", async () => {
     const { open, choose, press, saved } = setupHero();
     await open();

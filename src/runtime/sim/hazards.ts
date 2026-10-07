@@ -51,6 +51,7 @@ export function respawn(sim: Sim): void {
   p.onLadder = touchingLadder(sim.map, p);
   p.health = sim.settings.maxHealth;
   p.hurt = 0;
+  p.airSteps = 0;
   p.invuln = 0;
   p.ridingId = null;
   p.shotTimer = 0;

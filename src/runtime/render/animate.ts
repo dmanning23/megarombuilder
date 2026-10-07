@@ -35,7 +35,7 @@ export function heroShown(p: Player, steps: number, timings: Record<string, Timi
     const n = timingOf(timings, "climb").frames;
     const rung = Math.floor(p.y / CLIMB_PIXELS);
     if (n <= 1) return { animation: "climb", frame: 0, flip: rung % 2 === 1 }; // mirrors, as it always has
-    return { animation: "climb", frame: ((rung % n) + n) % n, flip: false };
+    return { animation: "climb", frame: (((-rung) % n) + n) % n, flip: false }; // y falls going up: forwards
   }
   const shooting = p.shotTimer > 0;
   if (!p.onGround) return once(shooting ? "jumpShoot" : "jump", p.airSteps);

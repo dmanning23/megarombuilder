@@ -70,15 +70,15 @@ describe("heroShown", () => {
     expect(heroShown(player({ hurt: 1 }), 0, timings).frame).toBe(1);
   });
 
-  it("climbs by distance: a one-frame climb mirrors every 8 pixels, more frames step through and back", () => {
+  it("climbs by distance: a one-frame climb mirrors every 8 pixels, more frames play forwards going up", () => {
     expect(heroShown(player({ onLadder: true, y: 0, facing: -1 }), 0, heroTimings())).toEqual({ animation: "climb", frame: 0, flip: false });
     expect(heroShown(player({ onLadder: true, y: 8 }), 0, heroTimings())).toEqual({ animation: "climb", frame: 0, flip: true });
     const timings = { ...heroTimings(), climb: t(3) };
     const up = [48, 40, 32, 24].map((y) => heroShown(player({ onLadder: true, y }), 0, timings));
-    expect(up.map((s) => s.frame)).toEqual([0, 2, 1, 0]);
+    expect(up.map((s) => s.frame)).toEqual([0, 1, 2, 0]);
     expect(up.every((s) => !s.flip)).toBe(true);
     const down = [24, 32, 40].map((y) => heroShown(player({ onLadder: true, y }), 0, timings).frame);
-    expect(down).toEqual([0, 1, 2]); // back down: the same frames the other way
+    expect(down).toEqual([0, 2, 1]); // back down: the same frames the other way
   });
 });
 
