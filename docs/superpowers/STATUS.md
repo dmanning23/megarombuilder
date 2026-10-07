@@ -59,6 +59,7 @@ jump, dash, spread, aimed, rain and big, quicker when hurt. 903 tests and 11 bro
 | `plans/2026-10-06-m3-plan-1-enemy-data.md` | Milestone 3 plan 1 of 5, implemented, reviewed and merged |
 | `plans/2026-10-07-m3-plan-2-enemies-tab.md` | Milestone 3 plan 2 of 5, implemented, reviewed and merged |
 | `plans/2026-10-07-m3-plan-3-boss-data-and-attacks.md` | Milestone 3 plan 3 of 5, implemented, reviewed and merged |
+| `plans/2026-10-07-m3-plan-4-boss-tab.md` | Milestone 3 plan 4 of 5, written, waiting for approval |
 
 Milestone 1 is now eight plans (the editor became two):
 
