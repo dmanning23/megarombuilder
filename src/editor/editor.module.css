@@ -714,3 +714,8 @@
   gap: 0.5rem;
   align-items: center;
 }
+
+.characters {
+  display: grid;
+  gap: 0.75rem;
+}

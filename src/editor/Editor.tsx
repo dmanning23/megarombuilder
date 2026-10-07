@@ -11,7 +11,7 @@ import type { Skin } from "@/runtime/render/draw";
 import { PlayCanvas } from "@/runtime/render/PlayCanvas";
 import { browserCanvas, createSpriteCache } from "@/runtime/render/sprites";
 import { ChatPanel } from "./components/ChatPanel";
-import { HeroScreen } from "./components/HeroScreen";
+import { CharactersScreen } from "./components/CharactersScreen";
 import { gamePack } from "@/model/gamePack";
 import { ownSkins } from "@/runtime/render/lookArt";
 import type { RawImage } from "./hero/importPicture";
@@ -69,7 +69,7 @@ export function Editor({
   const reducer = useMemo(() => editorReducer({ pack }), [pack]);
   const [state, dispatch] = useReducer(reducer, undefined, () => initialEditor(initial, pack.groundTileId));
   const [saveState, setSaveState] = useState<"saved" | "saving" | "error">("saved");
-  const [screen, setScreen] = useState<"level" | "hero">("level");
+  const [screen, setScreen] = useState<"level" | "characters">("level");
 
   const project = state.history.project;
   // The zone canvas and its tools see the kid's own enemies as thing types like any other.
@@ -378,9 +378,9 @@ export function Editor({
             Stop playing
           </button>
         </main>
-      ) : screen === "hero" ? (
+      ) : screen === "characters" ? (
         <main className={styles.heroWork}>
-          <HeroScreen
+          <CharactersScreen
             project={project}
             pack={pack}
             art={art}
@@ -398,6 +398,7 @@ export function Editor({
             }}
             confirm={confirm}
             readPicture={readPicture}
+            makeId={makeId}
           />
         </main>
       ) : (

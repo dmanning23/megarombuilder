@@ -84,7 +84,7 @@ describe("hero abilities", () => {
     const view = render(
       <Editor initial={newProject("Busy", makeId)} store={{ save }} makeId={makeId} saveDelay={60_000} model={model} />,
     );
-    await userEvent.click(screen.getByRole("button", { name: "Hero" }));
+    await userEvent.click(screen.getByRole("button", { name: "Characters" }));
     await userEvent.type(screen.getByRole("textbox", { name: "Message" }), "Hello");
     await userEvent.click(screen.getByRole("button", { name: "Send" }));
     // Disabled through the hero screen's fieldset, which the button's own property doesn't show.

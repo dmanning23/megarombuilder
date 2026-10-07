@@ -38,7 +38,7 @@ export function setupHero(initial: Project = newProject("Hero", makeId), confirm
     view.unmount();
     return save.mock.calls.at(-1)?.[0] ?? initial;
   };
-  const open = () => userEvent.click(screen.getByRole("button", { name: "Hero" }));
+  const open = () => userEvent.click(screen.getByRole("button", { name: "Characters" }));
   const choose = (name: string | RegExp) => userEvent.click(screen.getByRole("button", { name }));
   return { press, drag, saved, open, choose, save };
 }

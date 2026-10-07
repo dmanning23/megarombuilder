@@ -37,7 +37,7 @@ function setup(read: (file: File) => Promise<RawImage>) {
     return save.mock.calls.at(-1)?.[0] ?? initial;
   };
   const choose = async () => {
-    await userEvent.click(screen.getByRole("button", { name: "Hero" }));
+    await userEvent.click(screen.getByRole("button", { name: "Characters" }));
     await userEvent.upload(screen.getByLabelText("Picture file"), new File(["x"], "hero.png", { type: "image/png" }));
   };
   return { saved, choose };

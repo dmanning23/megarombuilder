@@ -20,7 +20,7 @@ test("draw on the hero, give it abilities, and play as it", async ({ page }) => 
   await page.goto("/");
   await page.getByRole("textbox", { name: "Game name" }).fill("My Hero");
   await page.getByRole("button", { name: "Make a new game" }).click();
-  await page.getByRole("button", { name: "Hero" }).click();
+  await page.getByRole("button", { name: "Characters" }).click();
   await page.screenshot({ path: "test-results/hero-open.png" });
 
   const canvas = page.getByTestId("hero-canvas");
@@ -45,7 +45,7 @@ test("import a picture into the hero", async ({ page }) => {
   await page.goto("/");
   await page.getByRole("textbox", { name: "Game name" }).fill("Imported Hero");
   await page.getByRole("button", { name: "Make a new game" }).click();
-  await page.getByRole("button", { name: "Hero" }).click();
+  await page.getByRole("button", { name: "Characters" }).click();
 
   // A real PNG: 32 by 48, see-through, with a red block in the lower half.
   const dataUrl = await page.evaluate(() => {
