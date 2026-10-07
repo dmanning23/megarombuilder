@@ -39,6 +39,21 @@ export const PICTURE_NAMES: Record<HeroPicture, string> = {
   chargedShot: "Charged shot",
 };
 
+// Where each of the hero's old pictures lives in its look: run1 and run2 are run's two frames.
+export const HERO_PICTURE_SLOTS: Record<HeroPicture, { animation: string; frame: number }> = {
+  stand: { animation: "stand", frame: 0 },
+  standShoot: { animation: "standShoot", frame: 0 },
+  run1: { animation: "run", frame: 0 },
+  run2: { animation: "run", frame: 1 },
+  jump: { animation: "jump", frame: 0 },
+  jumpShoot: { animation: "jumpShoot", frame: 0 },
+  climb: { animation: "climb", frame: 0 },
+  hurt: { animation: "hurt", frame: 0 },
+  slide: { animation: "slide", frame: 0 },
+  shot: { animation: "shot", frame: 0 },
+  chargedShot: { animation: "chargedShot", frame: 0 },
+};
+
 export const MAX_COLOURS = 8;
 
 // ---- Abilities ----

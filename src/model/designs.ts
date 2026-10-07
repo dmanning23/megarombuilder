@@ -1,3 +1,4 @@
+import { KINDS, type Look, type LookBox } from "./look";
 import { z } from "zod";
 import { MAX_COLOURS } from "./hero";
 import { nearestColour, PALETTE_8BIT } from "./palette";
@@ -90,6 +91,43 @@ const colours = z
 export const enemyLookSchema = z.object({ colours, frames: z.tuple([rows, rows]) });
 export const bossLookSchema = z.object({ colours, frames: z.tuple([rows, rows, rows]) });
 export type DesignLook = { colours: number[]; frames: string[][] };
+
+// Each behaviour's body today, in a 16 by 16 picture: centred, feet on the bottom. The boss fills its 24 by 28.
+const body = (w: number, h: number): LookBox => ({ x: (16 - w) / 2, y: 16 - h, w, h });
+export const DESIGN_BODIES: Record<EnemyBehaviour | "boss", LookBox> = {
+  walker: body(14, 14),
+  flyer: body(14, 12),
+  turret: body(14, 14),
+  jumper: body(14, 14),
+  shielded: body(14, 16),
+  dropper: body(14, 12),
+  boss: { x: 0, y: 0, w: 24, h: 28 },
+};
+// Where enemy shots come out today: the middle of the body (an enemy shot is 6 high).
+export const DESIGN_SHOT_Y: Partial<Record<EnemyBehaviour | "boss", number>> = { turret: 4, shielded: 5, boss: 11 };
+
+// Where an enemy's or boss's old frame lives in its look. Walk, fly and idle took both old frames.
+export function designFrameSlot(kind: EnemyBehaviour | "boss", index: number): { animation: string; frame: number } {
+  const animations = Object.keys(KINDS[kind].animations);
+  return animations.length === 1 ? { animation: animations[0], frame: index } : { animation: animations[index], frame: 0 };
+}
+
+const OLD_FRAME_COUNT = (kind: EnemyBehaviour | "boss") => (kind === "boss" ? 3 : 2);
+
+// An enemy's or boss's frames in the old order (two for an enemy, three for the boss). Used until
+// the game and the screens play animations (milestone 4, plans 2 to 4).
+export function designFrames(kind: EnemyBehaviour | "boss", look: Look): string[][] {
+  return Array.from({ length: OLD_FRAME_COUNT(kind) }, (_, i) => {
+    const { animation, frame } = designFrameSlot(kind, i);
+    const frames = look.animations[animation].frames;
+    return frames[Math.min(frame, frames.length - 1)];
+  });
+}
+
+export const designLook = (kind: EnemyBehaviour | "boss", look: Look): DesignLook => ({
+  colours: look.colours,
+  frames: designFrames(kind, look),
+});
 
 const id = z.string().min(1).max(64); // as MAX_ID_LENGTH
 const name = z.string().min(1).max(40); // as MAX_NAME_LENGTH
