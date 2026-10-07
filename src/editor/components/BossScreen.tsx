@@ -95,7 +95,7 @@ export function BossScreen({
   const setAttacks = (attacks: BossAttack[]) => onCommand({ name: "setBoss", args: { attacks } });
 
   return (
-    <fieldset className={styles.heroScreen} disabled={locked} aria-label="Your boss">
+    <fieldset className={`${styles.heroScreen} ${styles.bossScreen}`} disabled={locked} aria-label="Your boss">
       {error && (
         <p className={styles.alert} role="alert">
           {error}
