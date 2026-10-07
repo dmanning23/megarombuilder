@@ -2,6 +2,7 @@
 
 import { useState, type ComponentProps } from "react";
 import styles from "../editor.module.css";
+import { EnemiesScreen } from "./EnemiesScreen";
 import { HeroScreen } from "./HeroScreen";
 
 type Tab = "hero" | "enemies";
@@ -35,7 +36,24 @@ export function CharactersScreen({ makeId, ...props }: Props) {
         ))}
       </div>
       <div role="tabpanel" id={`characters-panel-${tab}`} aria-labelledby={`characters-${tab}`}>
-        {tab === "hero" ? <HeroScreen {...props} /> : <p className={styles.note}>Your enemies will be here.</p>}
+        {tab === "hero" ? (
+          <HeroScreen {...props} />
+        ) : (
+          <EnemiesScreen
+            project={props.project}
+            pack={props.pack}
+            art={props.art}
+            locked={props.locked}
+            error={props.error}
+            onDismissError={props.onDismissError}
+            onCommand={props.onCommand}
+            onBegin={props.onBegin}
+            onCommit={props.onCommit}
+            confirm={props.confirm}
+            makeId={makeId}
+            readPicture={props.readPicture}
+          />
+        )}
       </div>
     </div>
   );

@@ -719,3 +719,16 @@
   display: grid;
   gap: 0.75rem;
 }
+
+.enemyList {
+  display: grid;
+  gap: 0.5rem;
+  align-content: start;
+}
+.newEnemy {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.6rem;
+  border: 2px dashed var(--panel-2);
+  border-radius: 10px;
+}
