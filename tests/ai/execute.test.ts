@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { checkUnchecked, executeTool, findZone, startTurn, uncheckedZones, type ToolContext } from "@/ai/execute";
 import { createCheckCache } from "@/checker/cache";
 import { SPIKE } from "@/content/snow/pack";
-import { counter, game, pack } from "./helpers";
+import { counter, game, pack, run } from "./helpers";
 
 const context = (): ToolContext => ({ pack, makeId: counter(), checks: createCheckCache() });
 const tileAt = (project: ReturnType<typeof game>, zoneId: string, x: number, y: number) => {
@@ -26,6 +26,15 @@ describe("findZone", () => {
 });
 
 describe("executeTool", () => {
+  it("names the kid's enemies in a zone, and lists their designs in the level overview", () => {
+    let project = run(game(), "addEnemy", { enemyId: "e1", name: "Frost Fang", behaviour: "walker" });
+    project = run(project, "placeThing", { levelId: "L1", zoneId: "z1", thingId: "t1", type: "own-e1", x: 6, y: 12 });
+    const state = startTurn(project, "L1");
+    const ctx = context();
+    expect(executeTool(state, "get_zone", { zone: "Zone 1" }, ctx).content).toContain("- t1: Frost Fang, yours (own-e1) at (6, 12)");
+    expect(executeTool(state, "get_level_overview", {}, ctx).content).toContain("- own-e1: Frost Fang, a walker");
+  });
+
   it("shows a zone, the level and the catalogue without changing anything", () => {
     const state = startTurn(game(), "L1");
     const ctx = context();

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { describeCatalogue, describeCheck, describeHero, describeLevel, describeZone, tileChar } from "@/ai/describe";
+import { describeCatalogue, describeCheck, describeDesigns, describeHero, describeLevel, describeZone, tileChar } from "@/ai/describe";
+import { gamePack } from "@/model/gamePack";
 import { DEFAULT_ABILITIES, HEALTHS, JUMPS, SHOT_COUNTS, SPEEDS, type Abilities } from "@/model/hero";
 import { createCheckCache } from "@/checker/cache";
 import type { ZoneCheck } from "@/checker/check";
@@ -151,5 +152,49 @@ describe("describeHero", () => {
 
   it("opens the catalogue", () => {
     expect(describeCatalogue(game(), pack)).toMatch(/^Your hero runs at normal speed/);
+  });
+});
+
+describe("describeDesigns", () => {
+  function designed(): Project {
+    let project = run(game(), "addEnemy", { enemyId: "e1", name: "  Frost   Fang ", behaviour: "walker" });
+    project = run(project, "setEnemyTuning", { enemyId: "e1", speed: "fast", health: 3, damage: "high" });
+    project = run(project, "addEnemy", { enemyId: "e2", name: "Ice Eye", behaviour: "turret" });
+    project = run(project, "setEnemyTuning", { enemyId: "e2", shoots: "often" });
+    project = run(project, "createBoss", { name: "Volt Viper" });
+    return run(project, "setBoss", { fight: "long", attacks: ["rain", "big", "dash"] });
+  }
+
+  it("lists each enemy by type, with only the tuning its behaviour uses", () => {
+    const text = describeDesigns(designed(), pack);
+    expect(text).toContain("Their own enemies (place them with place_thing using the type; their settings come from their designs):");
+    expect(text).toContain("- own-e1: Frost Fang, a walker that patrols back and forth: fast, 3 hits, high damage.");
+    expect(text).toContain("- own-e2: Ice Eye, a turret that fires at the hero: 3 hits, normal damage, shoots often.");
+  });
+
+  it("describes the boss's fight and attacks in order, and which boss is in the boss room", () => {
+    const project = designed();
+    const line =
+      "Their own boss: Volt Viper, a long fight (40 health). Attacks in order: shots falling from above, a big slow shot at chest height, a dash along the floor.";
+    expect(describeDesigns(project, pack)).toContain(`${line} The Blizzard Bot is in the boss room instead; the user can swap theirs in on the Boss tab.`);
+    expect(describeDesigns(run(project, "useBoss", { boss: "yours" }), pack)).toContain(`${line} It is in the boss room.`);
+  });
+
+  it("says so in one line when there are no designs", () => {
+    expect(describeDesigns(game(), pack)).toBe("They haven't made any enemies or a boss of their own yet.");
+  });
+
+  it("is in the catalogue, after the things", () => {
+    const text = describeCatalogue(designed(), pack);
+    expect(text.indexOf("- own-e1: Frost Fang")).toBeGreaterThan(text.indexOf("- boss: Blizzard Bot"));
+  });
+});
+
+describe("describeZone with the kid's enemies", () => {
+  it("names a placed own enemy and marks it as theirs", () => {
+    let project = run(game(), "addEnemy", { enemyId: "e1", name: "Frost Fang", behaviour: "walker" });
+    project = run(project, "placeThing", { levelId: "L1", zoneId: "z1", thingId: "t1", type: "own-e1", x: 6, y: 12 });
+    const text = describeZone(level(project), zone(project, "z1"), gamePack(project, pack));
+    expect(text).toContain("- t1: Frost Fang, yours (own-e1) at (6, 12)");
   });
 });
