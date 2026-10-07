@@ -1017,7 +1017,7 @@ git commit -m "feat: add commands to make, tune, draw and remove the kid's own e
 ```ts
 import { describe, expect, it } from "vitest";
 import { checkZone } from "@/checker/check";
-import { defaultTuning, type EnemyTuning } from "@/model/designs";
+import type { EnemyTuning } from "@/model/designs";
 import type { Project } from "@/model/schema";
 import { createSim } from "@/runtime/sim/state";
 import { step } from "@/runtime/sim/step";

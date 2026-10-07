@@ -1,5 +1,6 @@
 import type { ContentPack } from "@/model/contentPack";
 import { TILE_SIZE } from "@/model/geometry";
+import { gamePack } from "@/model/gamePack";
 import { heroPhysics } from "@/model/hero";
 import type { Level, PlayerSettings, Project } from "@/model/schema";
 import { PLAYER_H, PLAYER_W } from "./constants";
@@ -113,6 +114,7 @@ export function createSim(
   // settings: exact physics instead of the hero's (the checker plays at a fair, slightly slower speed)
   opts: { startZoneId?: string; settings?: PlayerSettings } = {},
 ): Sim {
+  pack = gamePack(project, pack); // the kid's own enemies are thing types like any other
   const level = project.levels.find((l) => l.id === levelId);
   if (!level) throw new Error(`There is no level with id "${levelId}".`);
   const zoneIndex =

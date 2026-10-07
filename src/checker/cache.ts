@@ -1,16 +1,18 @@
 import type { ContentPack } from "@/model/contentPack";
+import type { EnemyDesign } from "@/model/designs";
 import type { Abilities } from "@/model/hero";
 import type { Checkpoint, Project, Zone } from "@/model/schema";
 import { checkZone, levelProblems, type LevelCheck, type ZoneCheck } from "./check";
 
-type Cached = { abilities: Abilities; checkpoints: Checkpoint[]; pack: ContentPack; check: ZoneCheck };
+type Cached = { abilities: Abilities; enemies: EnemyDesign[]; checkpoints: Checkpoint[]; pack: ContentPack; check: ZoneCheck };
 
 export type CheckCache = {
   zone(project: Project, levelId: string, zoneId: string, pack: ContentPack): ZoneCheck;
   level(project: Project, levelId: string, pack: ContentPack): LevelCheck;
 };
 
-// A zone's check depends only on the zone itself, the hero's abilities, the level's checkpoints
+// A zone's check depends only on the zone itself, the hero's abilities, the kid's enemies, the
+// level's checkpoints
 // and the pack. Unchanged zones keep the same object through edits, so only zones that actually
 // changed are checked again. That keeps checking quick on levels with many long zones.
 export function createCheckCache(): CheckCache {
@@ -21,11 +23,23 @@ export function createCheckCache(): CheckCache {
     const found = level?.zones.find((z) => z.id === zoneId);
     if (!level || !found) return checkZone(project, levelId, zoneId, pack); // throws the checker's own error
     const hit = cache.get(found);
-    if (hit && hit.abilities === project.hero.abilities && hit.checkpoints === level.checkpoints && hit.pack === pack) {
+    const fresh =
+      hit &&
+      hit.abilities === project.hero.abilities &&
+      hit.enemies === project.enemies &&
+      hit.checkpoints === level.checkpoints &&
+      hit.pack === pack;
+    if (hit && fresh) {
       return hit.check;
     }
     const check = checkZone(project, levelId, zoneId, pack);
-    cache.set(found, { abilities: project.hero.abilities, checkpoints: level.checkpoints, pack, check });
+    cache.set(found, {
+      abilities: project.hero.abilities,
+      enemies: project.enemies,
+      checkpoints: level.checkpoints,
+      pack,
+      check,
+    });
     return check;
   };
 
