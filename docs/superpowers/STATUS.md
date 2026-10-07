@@ -33,9 +33,11 @@ that use its abilities (crawl spaces only for a hero that can slide) and
 changes its abilities when asked. On the Enemies tab, kids make their own
 enemies (a behaviour and a name), tune them, draw or import their two frames,
 watch them in a preview, and place them from the palette, where they come first
-marked "Yours". A game can also have a boss of its own (made through
-commands for now; the Boss tab is next) with 2 or 3 of six attacks in order:
-jump, dash, spread, aimed, rain and big, quicker when hurt. 903 tests and 11 browser tests pass; typecheck, lint and build are clean. Browser tests: `npm run e2e`
+marked "Yours". On the Boss tab, kids make their own boss from the
+Blizzard Bot, name it, pick its fight length and 2 or 3 of six attacks in order
+(jump, dash, spread, aimed shot, rain and big shot; quicker when hurt), draw or
+import its three frames, watch it fight in a preview, and put it in the boss
+room. 915 tests and 12 browser tests pass; typecheck, lint and build are clean. Browser tests: `npm run e2e`
 (builds and serves on port 3100).
 
 | Document | State |
@@ -59,7 +61,7 @@ jump, dash, spread, aimed, rain and big, quicker when hurt. 903 tests and 11 bro
 | `plans/2026-10-06-m3-plan-1-enemy-data.md` | Milestone 3 plan 1 of 5, implemented, reviewed and merged |
 | `plans/2026-10-07-m3-plan-2-enemies-tab.md` | Milestone 3 plan 2 of 5, implemented, reviewed and merged |
 | `plans/2026-10-07-m3-plan-3-boss-data-and-attacks.md` | Milestone 3 plan 3 of 5, implemented, reviewed and merged |
-| `plans/2026-10-07-m3-plan-4-boss-tab.md` | Milestone 3 plan 4 of 5, written, waiting for approval |
+| `plans/2026-10-07-m3-plan-4-boss-tab.md` | Milestone 3 plan 4 of 5, implemented, reviewed and merged |
 
 Milestone 1 is now eight plans (the editor became two):
 
@@ -87,6 +89,16 @@ Milestone 2, your own hero, was five plans:
 2. Try the assistant with a real API key using `docs/superpowers/ai-prompts.md`
    (prompts 1–13), and play what it builds.
 3. Review findings deferred from plans 2 and 3, to decide on:
+   - M3 plan 4: no test for undo after Delete boss (it works when traced).
+   - M3 plan 4: the boss preview test checks the hero only at the end; a
+     death mid-run would respawn and pass (an exhaustive check found none).
+   - M3 plan 4: the attack tips aren't linked to their drop-downs for screen
+     readers (aria-describedby).
+   - M3 plan 4: the spec's section 8 says deleting the boss in use is "not
+     offered", section 6 says "refused"; the code follows section 6.
+   - M3 plan 4: the browser fight test asserts nothing after its wait; tests
+     assume the boss room is the third zone.
+   - M3 plan 4: Palette.tsx imports gamePack above React.
    - M3 plan 3: useBoss swaps bosses in any zone, though its refusal speaks
      of the boss room.
    - M3 plan 3: setThingSettings can override an own boss's attacks and
