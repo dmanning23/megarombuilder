@@ -13,6 +13,8 @@ const UPGRADES: Record<number, (doc: Record<string, unknown>, pack: ContentPack)
     const { player, ...rest } = doc;
     return { ...rest, formatVersion: 2, hero: { abilities: abilitiesFromSettings(player), look: pack.hero } };
   },
+  // Version 3 gave games their own enemies and boss. A version 2 game has none of its own.
+  2: (doc) => ({ ...doc, formatVersion: 3, enemies: [], boss: null }),
 };
 
 const NOT_A_PROJECT = "This file is not a MegaRomBuilder project.";
