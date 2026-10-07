@@ -34,7 +34,7 @@
   ```
   Their own enemies (place them with place_thing using the type; their settings come from their designs):
   - own-e1: Frost Fang, a walker that patrols back and forth: fast, 3 hits, high damage.
-  - own-e2: Ice Eye, a turret that fires at the hero: 1 hit, normal damage, shoots often.
+  - own-e2: Ice Eye, a turret that fires at the hero: 3 hits, normal damage, shoots often.
   Their own boss: Volt Viper, a long fight (40 health). Attacks in order: shots falling from above, a big slow shot at chest height, a dash along the floor. It is in the boss room.
   ```
 
@@ -193,7 +193,7 @@ describe("describeDesigns", () => {
     const text = describeDesigns(designed(), pack);
     expect(text).toContain("Their own enemies (place them with place_thing using the type; their settings come from their designs):");
     expect(text).toContain("- own-e1: Frost Fang, a walker that patrols back and forth: fast, 3 hits, high damage.");
-    expect(text).toContain("- own-e2: Ice Eye, a turret that fires at the hero: 1 hit, normal damage, shoots often.");
+    expect(text).toContain("- own-e2: Ice Eye, a turret that fires at the hero: 3 hits, normal damage, shoots often.");
   });
 
   it("describes the boss's fight and attacks in order, and which boss is in the boss room", () => {
