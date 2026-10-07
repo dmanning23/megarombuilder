@@ -34,4 +34,13 @@ describe("the kid's enemies in the palette", () => {
     const things = save.mock.calls.at(-1)![0].levels[0].zones[0].things;
     expect(things).toContainEqual(expect.objectContaining({ type: "own-e1", x: 6, y: 12, settings: {} }));
   });
+
+  it("leave out the kid's boss: it goes in the boss room from the Boss tab", async () => {
+    const result = applyCommand(withFang(), { name: "createBoss", args: { name: "Volt Viper" } }, { pack: snowPack });
+    if (!result.ok) throw new Error(result.error);
+    render(<Editor initial={result.project} store={{ save: async () => {} }} saveDelay={60_000} />);
+    await userEvent.click(screen.getByRole("tab", { name: "Enemies and items" }));
+    expect(screen.queryByRole("button", { name: /Volt Viper/ })).toBeNull();
+    expect(screen.getByRole("button", { name: /Blizzard Bot/ })).toBeTruthy();
+  });
 });
