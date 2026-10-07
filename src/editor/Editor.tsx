@@ -12,8 +12,8 @@ import { PlayCanvas } from "@/runtime/render/PlayCanvas";
 import { browserCanvas, createSpriteCache } from "@/runtime/render/sprites";
 import { ChatPanel } from "./components/ChatPanel";
 import { CharactersScreen } from "./components/CharactersScreen";
-import { gamePack } from "@/model/gamePack";
-import { ownSkins } from "@/runtime/render/lookArt";
+import { gamePack, ownType } from "@/model/gamePack";
+import { lookArt, ownSkins } from "@/runtime/render/lookArt";
 import type { RawImage } from "./hero/importPicture";
 import { CheckPanel } from "./components/CheckPanel";
 import { Palette } from "./components/Palette";
@@ -75,6 +75,7 @@ export function Editor({
   // The zone canvas and its tools see the kid's own enemies as thing types like any other.
   const fullPack = useMemo(() => gamePack(project, pack), [project, pack]);
   const enemies = project.enemies;
+  const ownArt = useMemo(() => Object.fromEntries(enemies.map((e) => [ownType(e.id), lookArt(e.look)])), [enemies]);
   const skin = useMemo<Skin | undefined>(() => {
     if (!art || typeof document === "undefined") return undefined;
     return {
@@ -432,7 +433,8 @@ export function Editor({
           </div>
           <CheckPanel zoneCheck={zoneCheck} problems={check?.problems ?? []} />
           <Palette
-            pack={pack}
+            pack={fullPack}
+            own={ownArt}
             art={art}
             tool={state.tool}
             canSlide={project.hero.abilities.slide}
