@@ -70,11 +70,13 @@ function EnemyPreview({ enemy, project, pack, art }: { enemy: EnemyDesign; proje
   );
 }
 
-// The name box saves when it loses focus or Enter is pressed, if the name changed.
+// The name box saves when it loses focus or Enter is pressed, if the name changed. It is keyed by
+// the stored name, so undo and redo show through; a refused name goes back to the stored one.
 function NameField({ name, onRename }: { name: string; onRename(name: string): void }) {
   const [text, setText] = useState(name);
   const save = () => {
-    if (tidyName(text) && tidyName(text) !== tidyName(name)) onRename(text);
+    if (tidyName(text) && tidyName(text) !== tidyName(name)) onRename(tidyName(text));
+    setText(name);
   };
   return (
     <label className={styles.field}>
@@ -131,9 +133,18 @@ export function EnemiesScreen({
   const [slot, setSlot] = useState(1);
   const arts = useMemo(() => new Map(enemies.map((e) => [e.id, lookArt(e.look)])), [enemies]);
 
+  const [newError, setNewError] = useState<string | null>(null);
   const create = (behaviour: EnemyBehaviour) => {
+    // Check the name here, so a taken name keeps the form (and the selection) as they are.
+    const name = tidyName(newName) || nextName(enemies);
+    const taken = enemies.find((e) => tidyName(e.name).toLowerCase() === name.toLowerCase());
+    if (taken) {
+      setNewError(`There is already an enemy called "${tidyName(taken.name)}".`);
+      return;
+    }
+    setNewError(null);
     const id = makeId();
-    onCommand({ name: "addEnemy", args: { enemyId: id, name: tidyName(newName) || nextName(enemies), behaviour } });
+    onCommand({ name: "addEnemy", args: { enemyId: id, name, behaviour } });
     setSelectedId(id);
     setMaking(false);
     setNewName("");
@@ -184,6 +195,7 @@ export function EnemiesScreen({
               Enemy name
               <input value={newName} maxLength={40} onChange={(e) => setNewName(e.target.value)} />
             </label>
+            {newError && <p className={styles.bad}>{newError}</p>}
             <div className={styles.steps} role="group" aria-label="Choose how it behaves">
               {ENEMY_BEHAVIOURS.map((b) => (
                 <button key={b} type="button" className={styles.step} onClick={() => create(b)}>
@@ -201,7 +213,7 @@ export function EnemiesScreen({
         <>
           <div className={styles.drawing}>
             <NameField
-              key={enemy.id}
+              key={`${enemy.id}:${enemy.name}`}
               name={tidyName(enemy.name)}
               onRename={(name) => onCommand({ name: "renameEnemy", args: { enemyId: enemy.id, name } })}
             />

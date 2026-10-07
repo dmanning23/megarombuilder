@@ -33,7 +33,7 @@ that use its abilities (crawl spaces only for a hero that can slide) and
 changes its abilities when asked. On the Enemies tab, kids make their own
 enemies (a behaviour and a name), tune them, draw or import their two frames,
 watch them in a preview, and place them from the palette, where they come first
-marked "Yours". 878 tests and 11 browser tests pass; typecheck, lint and build are clean. Browser tests: `npm run e2e`
+marked "Yours". 881 tests and 11 browser tests pass; typecheck, lint and build are clean. Browser tests: `npm run e2e`
 (builds and serves on port 3100).
 
 | Document | State |
@@ -83,6 +83,13 @@ Milestone 2, your own hero, was five plans:
 2. Try the assistant with a real API key using `docs/superpowers/ai-prompts.md`
    (prompts 1–13), and play what it builds.
 3. Review findings deferred from plans 2 and 3, to decide on:
+   - M3 plan 2: no tests switch frames, enemies or tabs mid-stroke on the
+     Enemies tab (it uses the same picture editor the hero tests cover).
+   - M3 plan 2: the Characters tabs lack arrow-key movement; the Enemies tab's
+     canvas and tools don't name their enemy for screen readers; the name box is
+     unstyled.
+   - M3 plan 2: the open import dialog on the Enemies tab recomputes on any
+     re-render (its target is a new object each time).
    - M3 plan 1: settings stored on a placed own enemy (including by the
      assistant's set_thing_settings) override its design's tuning. Decide in M3
      plan 5 whether to refuse them.

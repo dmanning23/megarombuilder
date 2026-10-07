@@ -108,6 +108,44 @@ describe("the Enemies tab", () => {
     expect(saved().enemies.map((e) => e.name)).toEqual(["Frost Fang", "Snow Bat"]);
   });
 
+  it("keeps the name box in step with undo, so leaving it changes nothing", async () => {
+    const { open, saved } = setup();
+    await open();
+    await make("Frost Fang", "Walker");
+    const name = () => screen.getByRole("textbox", { name: "Name" }) as HTMLInputElement;
+    await userEvent.clear(name());
+    await userEvent.type(name(), "Snow Bat{Enter}");
+    await userEvent.click(screen.getByRole("button", { name: "Undo" }));
+    expect(name().value).toBe("Frost Fang");
+    await userEvent.click(name());
+    await userEvent.tab();
+    expect(saved().enemies[0].name).toBe("Frost Fang");
+  });
+
+  it("puts the name back after a refused rename", async () => {
+    const { open } = setup();
+    await open();
+    await make("Frost Fang", "Walker");
+    await make("Ice Bat", "Flyer");
+    const name = screen.getByRole("textbox", { name: "Name" }) as HTMLInputElement;
+    await userEvent.clear(name);
+    await userEvent.type(name, "frost fang{Enter}");
+    expect((await screen.findByRole("alert")).textContent).toContain('There is already an enemy called "Frost Fang".');
+    expect((screen.getByRole("textbox", { name: "Name" }) as HTMLInputElement).value).toBe("Ice Bat");
+  });
+
+  it("keeps the New enemy form open, and the selection, when the name is taken", async () => {
+    const { open, saved } = setup();
+    await open();
+    await make("Frost Fang", "Walker");
+    await make("Ice Bat", "Flyer");
+    await make("frost fang", "Turret");
+    expect(screen.getByText('There is already an enemy called "Frost Fang".')).toBeTruthy();
+    expect((screen.getByRole("textbox", { name: "Enemy name" }) as HTMLInputElement).value).toBe("frost fang");
+    expect(screen.getByRole("button", { name: /^Ice Bat/ }).getAttribute("aria-pressed")).toBe("true");
+    expect(saved().enemies.map((e) => e.name)).toEqual(["Frost Fang", "Ice Bat"]);
+  });
+
   it("draws on either frame", async () => {
     const { open, press, saved } = setup();
     await open();
