@@ -93,7 +93,7 @@ export function thingFrame(e: Entity, steps: number, count: number): number {
     case "jumper":
       return pick(e.onGround ? 0 : 1);
     case "boss":
-      return pick(e.mode === "jump" ? 1 : e.mode === "shot" ? 2 : 0);
+      return pick(e.mode === "jump" ? 1 : ["spread", "aimed", "rain", "big"].includes(e.mode) ? 2 : 0);
     default:
       return Math.floor(steps / 8) % count;
   }

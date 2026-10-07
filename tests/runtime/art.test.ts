@@ -172,11 +172,11 @@ describe("thingFrame", () => {
 
   it("shows the boss's attack", () => {
     expect(thingFrame(thing({ behaviour: "boss", mode: "jump" }), 0, 3)).toBe(1);
-    expect(thingFrame(thing({ behaviour: "boss", mode: "shot" }), 0, 3)).toBe(2);
+    expect(thingFrame(thing({ behaviour: "boss", mode: "spread" }), 0, 3)).toBe(2);
     expect(thingFrame(thing({ behaviour: "boss", mode: "dash" }), 8, 3)).toBe(0);
   });
 
   it("never picks a frame that does not exist", () => {
-    expect(thingFrame(thing({ behaviour: "boss", mode: "shot" }), 0, 1)).toBe(0);
+    expect(thingFrame(thing({ behaviour: "boss", mode: "spread" }), 0, 1)).toBe(0);
   });
 });
