@@ -127,3 +127,13 @@ describe("backgrounds", () => {
     expect(kept.colours).toEqual([13, white, red]);
   });
 });
+
+describe("import targets", () => {
+  it("fit a picture into any size, standing on its feet or centred", () => {
+    const standing = importPicture(image(solid(4, 4, "r")), { w: 16, h: 16, stand: true }, [13], false);
+    expect(standing.rows).toHaveLength(16);
+    expect(standing.rows[15]).toBe("2222222222222222");
+    const centred = importPicture(image(solid(4, 2, "r")), { w: 8, h: 8, stand: false }, [13], false);
+    expect(centred.rows.map((row) => row.includes("2"))).toEqual([false, false, true, true, true, true, false, false]);
+  });
+});

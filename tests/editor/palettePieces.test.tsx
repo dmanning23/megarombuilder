@@ -42,7 +42,7 @@ describe("pieces that need slide", () => {
     const view = render(<Editor initial={project} store={{ save }} saveDelay={60_000} />);
     await userEvent.click(screen.getByRole("tab", { name: "Pieces" }));
     await userEvent.click(screen.getByRole("button", { name: /^Crawl space/ }));
-    await userEvent.click(screen.getByRole("button", { name: "Hero" }));
+    await userEvent.click(screen.getByRole("button", { name: "Characters" }));
     await userEvent.click(within(screen.getByRole("group", { name: "Slide" })).getByRole("button", { name: "Off" }));
     await userEvent.click(screen.getByRole("button", { name: "Level" }));
     const canvas = screen.getByTestId("zone-canvas");

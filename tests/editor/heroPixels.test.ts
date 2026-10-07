@@ -3,6 +3,8 @@ import {
   blankRows,
   bodyBox,
   drawPicture,
+  drawPixels,
+  enemyBody,
   flipRows,
   floodFill,
   linePixels,
@@ -83,5 +85,26 @@ describe("drawPicture", () => {
     const outline = ctx.rects.filter((r) => r.colour === "#ff2d95");
     expect(outline.some((r) => r.x === 1 * ZOOM && r.y === 2 * ZOOM && r.h === 22 * ZOOM)).toBe(true); // left side
     expect(ctx.rects.some((r) => r.colour === "#2ec4b6" && r.y === 24 * ZOOM - 3 && r.w === 16 * ZOOM)).toBe(true);
+  });
+});
+
+describe("enemy pictures", () => {
+  it("know where each behaviour's body sits in a 16 by 16 frame", () => {
+    expect(enemyBody("walker")).toEqual({ x: 1, y: 2, w: 14, h: 14 });
+    expect(enemyBody("flyer")).toEqual({ x: 1, y: 4, w: 14, h: 12 });
+    expect(enemyBody("shielded")).toEqual({ x: 1, y: 0, w: 14, h: 16 });
+  });
+
+  it("are drawn at any size, with the body outline and feet line", () => {
+    const rects: { colour: string; x: number; y: number; w: number; h: number }[] = [];
+    const ctx = {
+      fillStyle: "" as string,
+      fillRect(x: number, y: number, w: number, h: number) {
+        rects.push({ colour: this.fillStyle, x, y, w, h });
+      },
+    };
+    drawPixels(ctx, blankRows(16, 16), {}, { w: 16, h: 16 }, enemyBody("walker"), true);
+    expect(rects.some((r) => r.colour === "#ff2d95" && r.x === 1 * ZOOM && r.y === 2 * ZOOM && r.h === 14 * ZOOM)).toBe(true);
+    expect(rects.some((r) => r.colour === "#2ec4b6" && r.y === 16 * ZOOM - 3)).toBe(true);
   });
 });

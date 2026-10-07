@@ -25,12 +25,15 @@ The chat beside the level builds and changes levels: ask for a change and the
 assistant looks at the level, builds with pieces and small edits, checks every
 zone it changed, and replies in a few sentences; one undo removes a whole turn,
 and Stop puts the level back. It needs `ANTHROPIC_API_KEY` in `.env.local` (see
-the README). The Hero button opens the hero screen: draw the hero picture by
+the README). The Characters button opens Hero and Enemies tabs. The Hero tab: draw the hero picture by
 picture (or import a picture and touch it up), pick its colours from the 8-bit palette, choose its abilities
 (including slide and charge shot), watch the live preview, and see at once
 which zones it can't finish. The assistant knows the hero: it builds levels
 that use its abilities (crawl spaces only for a hero that can slide) and
-changes its abilities when asked. 861 tests and 10 browser tests pass; typecheck, lint and build are clean. Browser tests: `npm run e2e`
+changes its abilities when asked. On the Enemies tab, kids make their own
+enemies (a behaviour and a name), tune them, draw or import their two frames,
+watch them in a preview, and place them from the palette, where they come first
+marked "Yours". 881 tests and 11 browser tests pass; typecheck, lint and build are clean. Browser tests: `npm run e2e`
 (builds and serves on port 3100).
 
 | Document | State |
@@ -52,7 +55,7 @@ changes its abilities when asked. 861 tests and 10 browser tests pass; typecheck
 | `plans/2026-10-06-m2-plan-5-assistant-and-hero.md` | Milestone 2 plan 5 of 5, implemented, reviewed and merged |
 | `specs/2026-10-06-milestone-3-your-own-enemies-and-boss-design.md` | Milestone 3 spec (your own enemies and boss), approved |
 | `plans/2026-10-06-m3-plan-1-enemy-data.md` | Milestone 3 plan 1 of 5, implemented, reviewed and merged |
-| `plans/2026-10-07-m3-plan-2-enemies-tab.md` | Milestone 3 plan 2 of 5, written, waiting for approval |
+| `plans/2026-10-07-m3-plan-2-enemies-tab.md` | Milestone 3 plan 2 of 5, implemented, reviewed and merged |
 
 Milestone 1 is now eight plans (the editor became two):
 
@@ -80,6 +83,13 @@ Milestone 2, your own hero, was five plans:
 2. Try the assistant with a real API key using `docs/superpowers/ai-prompts.md`
    (prompts 1–13), and play what it builds.
 3. Review findings deferred from plans 2 and 3, to decide on:
+   - M3 plan 2: no tests switch frames, enemies or tabs mid-stroke on the
+     Enemies tab (it uses the same picture editor the hero tests cover).
+   - M3 plan 2: the Characters tabs lack arrow-key movement; the Enemies tab's
+     canvas and tools don't name their enemy for screen readers; the name box is
+     unstyled.
+   - M3 plan 2: the open import dialog on the Enemies tab recomputes on any
+     re-render (its target is a new object each time).
    - M3 plan 1: settings stored on a placed own enemy (including by the
      assistant's set_thing_settings) override its design's tuning. Decide in M3
      plan 5 whether to refuse them.

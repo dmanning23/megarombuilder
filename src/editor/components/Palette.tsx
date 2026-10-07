@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { ContentPack } from "@/model/contentPack";
 import type { ArtSet, Sprite } from "@/runtime/render/art";
+import type { LookArt } from "@/runtime/render/lookArt";
 import styles from "../editor.module.css";
 import type { Tool } from "../state";
 
@@ -44,9 +45,16 @@ type Tab = (typeof TABS)[number]["id"];
 
 const range = (min: number, max: number) => Array.from({ length: max - min + 1 }, (_, i) => min + i);
 
-type Props = { pack: ContentPack; art?: ArtSet; tool: Tool; onTool(tool: Tool): void; canSlide?: boolean };
+type Props = {
+  pack: ContentPack;
+  art?: ArtSet;
+  tool: Tool;
+  onTool(tool: Tool): void;
+  canSlide?: boolean;
+  own?: Record<string, LookArt>; // the kid's own enemies' art, by thing type
+};
 
-export function Palette({ pack, art, tool, onTool, canSlide = false }: Props) {
+export function Palette({ pack, art, tool, onTool, canSlide = false, own = {} }: Props) {
   const [tab, setTab] = useState<Tab>("tiles");
   const variant = pack.variants[0];
   const piece = tool.kind === "piece" ? pack.pieces.find((p) => p.id === tool.pieceId) : undefined;
@@ -87,18 +95,30 @@ export function Palette({ pack, art, tool, onTool, canSlide = false }: Props) {
             );
           })}
         {tab === "things" &&
-          pack.things.map((def) => (
-            <button
-              key={def.type}
-              type="button"
-              className={styles.swatch}
-              aria-pressed={tool.kind === "thing" && tool.type === def.type}
-              onClick={() => onTool({ kind: "thing", type: def.type })}
-            >
-              <SpriteSwatch sprite={art?.things[def.type]?.[0]} palette={art?.palette} />
-              {def.name}
-            </button>
-          ))}
+          pack.things.map((def) => {
+            const mine = own[def.type];
+            return (
+              <button
+                key={def.type}
+                type="button"
+                className={styles.swatch}
+                aria-pressed={tool.kind === "thing" && tool.type === def.type}
+                onClick={() => onTool({ kind: "thing", type: def.type })}
+              >
+                <SpriteSwatch
+                  sprite={mine ? mine.frames[0] : art?.things[def.type]?.[0]}
+                  palette={mine ? mine.palette : art?.palette}
+                />
+                {def.name}
+                {def.own && (
+                  <>
+                    {" "}
+                    <span className={styles.needs}>Yours</span>
+                  </>
+                )}
+              </button>
+            );
+          })}
         {tab === "pieces" &&
           pack.pieces.map((p) => {
             const locked = p.needs === "slide" && !canSlide;

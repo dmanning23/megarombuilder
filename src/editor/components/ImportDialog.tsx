@@ -2,13 +2,13 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { PICTURE_NAMES, type HeroPicture } from "@/model/hero";
 import { PALETTE_8BIT } from "@/model/palette";
 import styles from "../editor.module.css";
-import { backgroundOf, importPicture, type Imported, type RawImage } from "../hero/importPicture";
+import { backgroundOf, importPicture, type Imported, type ImportTarget, type RawImage } from "../hero/importPicture";
 
 type Props = {
-  picture: HeroPicture;
+  title: string; // the picture's name
+  target: ImportTarget;
   colours: number[];
   image: RawImage;
   onUse(result: Imported): void;
@@ -44,10 +44,10 @@ function After({ rows, colours }: Imported) {
   return <canvas ref={ref} width={rows[0].length} height={rows.length} className={styles.importPreview} aria-hidden="true" />;
 }
 
-export function ImportDialog({ picture, colours, image, onUse, onCancel }: Props) {
+export function ImportDialog({ title, target, colours, image, onUse, onCancel }: Props) {
   const background = useMemo(() => backgroundOf(image), [image]);
   const [remove, setRemove] = useState(background !== null);
-  const result = useMemo(() => importPicture(image, picture, colours, remove), [image, picture, colours, remove]);
+  const result = useMemo(() => importPicture(image, target, colours, remove), [image, target, colours, remove]);
   const added = result.colours.length - colours.length;
   const use = useRef<HTMLButtonElement>(null);
   const overlay = useRef<HTMLDivElement>(null);
@@ -76,7 +76,7 @@ export function ImportDialog({ picture, colours, image, onUse, onCancel }: Props
         }}
       >
         <h3 id="import-title" className={styles.heroHeading}>
-          Import a picture into {PICTURE_NAMES[picture]}
+          Import a picture into {title}
         </h3>
         <div className={styles.beforeAfter}>
           <figure>

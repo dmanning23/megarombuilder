@@ -1,6 +1,8 @@
 import type { ContentPack } from "@/model/contentPack";
 import { createProject, createZone } from "@/model/factory";
-import type { Abilities, HeroLook } from "@/model/hero";
+import type { EnemyBehaviour, EnemyDesign } from "@/model/designs";
+import { ownType } from "@/model/gamePack";
+import type { Abilities, Hero, HeroLook } from "@/model/hero";
 import type { Level, Project } from "@/model/schema";
 import { createSim, NO_INPUT, type Input, type Sim } from "@/runtime/sim/state";
 
@@ -37,3 +39,33 @@ export function previewInputs(abilities: Abilities): Input[] {
     ...hold({}, 20),
   ];
 }
+
+// Where each behaviour shows best on the preview screen (the hero stands at the left).
+const ENEMY_SPOT: Record<EnemyBehaviour, { x: number; y: number }> = {
+  walker: { x: 11, y: 12 },
+  flyer: { x: 10, y: 8 },
+  turret: { x: 9, y: 12 }, // within its firing range of the hero
+  jumper: { x: 11, y: 12 },
+  shielded: { x: 11, y: 12 },
+  dropper: { x: 1, y: 5 }, // above the hero, so it drops
+};
+
+// The enemy preview: one screen, the hero standing still, the enemy doing what it does.
+export function enemyPreviewSim(enemy: EnemyDesign, hero: Hero, pack: ContentPack): Sim {
+  const spot = ENEMY_SPOT[enemy.behaviour];
+  const zone = {
+    ...createZone({ id: "preview", name: "Preview" }, pack),
+    exit: null,
+    things: [{ id: "preview-enemy", type: ownType(enemy.id), x: spot.x, y: spot.y, settings: {} }],
+  };
+  const level: Level = { id: "preview", name: "Preview", brief: "", zones: [zone], checkpoints: [] };
+  const project: Project = {
+    ...createProject({ id: "preview", name: "Preview" }, pack),
+    hero,
+    enemies: [enemy],
+    levels: [level],
+  };
+  return createSim(project, "preview", pack);
+}
+
+export const IDLE_INPUTS: Input[] = hold({}, 360);

@@ -1,32 +1,26 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import type { LevelCheck } from "@/checker/check";
 import type { Command } from "@/commands/types";
 import type { ContentPack } from "@/model/contentPack";
 import { HERO_PICTURES, PICTURE_NAMES, PICTURE_SIZES, pictureRows, type HeroPicture } from "@/model/hero";
+import type { EnemyDesign } from "@/model/designs";
 import type { Level, Project } from "@/model/schema";
 import type { ArtSet } from "@/runtime/render/art";
 import { heroArt } from "@/runtime/render/heroArt";
 import styles from "../editor.module.css";
-import type { Imported, RawImage } from "../hero/importPicture";
-import { blankRows, flipRows, floodFill, linePixels, setPixels, type Pixel } from "../hero/pixels";
-import { NOT_A_PICTURE, readPicture as readPictureFile } from "../hero/readPicture";
+import type { RawImage } from "../hero/importPicture";
+import { bodyBox } from "../hero/pixels";
+import { previewInputs, previewSim } from "../hero/preview";
+import { readPicture as readPictureFile } from "../hero/readPicture";
 import { HeroAbilities } from "./HeroAbilities";
-import { HeroCanvas } from "./HeroCanvas";
-import { HeroColours } from "./HeroColours";
-import { HeroPreview } from "./HeroPreview";
-import { ImportDialog } from "./ImportDialog";
+import { Colours } from "./Colours";
+import { GamePreview } from "./GamePreview";
 import { SpriteSwatch } from "./Palette";
+import { PictureEditor, type DrawTool } from "./PictureEditor";
 
-type DrawTool = "pencil" | "eraser" | "fill" | "pick";
-
-const TOOLS: { id: DrawTool; label: string }[] = [
-  { id: "pencil", label: "Pencil" },
-  { id: "eraser", label: "Eraser" },
-  { id: "fill", label: "Fill" },
-  { id: "pick", label: "Pick colour" },
-];
+const NO_ENEMIES: EnemyDesign[] = [];
 
 type Props = {
   project: Project;
@@ -64,96 +58,14 @@ export function HeroScreen({
 }: Props) {
   const { look, abilities } = project.hero;
   const sprites = useMemo(() => heroArt(look), [look]);
+  const startPreview = useCallback(() => previewSim(look, abilities, pack), [look, abilities, pack]);
+  const previewShow = useMemo(() => previewInputs(abilities), [abilities]);
   const [picture, setPicture] = useState<HeroPicture>("stand");
   const [tool, setTool] = useState<DrawTool>("pencil");
   const [slot, setSlot] = useState(1);
   const colour = Math.min(slot, look.colours.length); // the chosen colour may have been removed
-  // The stroke being drawn, and the picture it belongs to.
-  const stroke = useRef<{ picture: HeroPicture; rows: string[]; last: Pixel } | null>(null);
-
   const rows = pictureRows(look, picture);
   const size = PICTURE_SIZES[picture];
-  const save = (next: string[]) => onCommand({ name: "setHeroPose", args: { picture, rows: next } });
-  const ink = tool === "eraser" ? "." : String(colour);
-
-  const press = (p: Pixel) => {
-    if (locked) return;
-    if (tool === "pick") {
-      const ch = rows[p.y][p.x];
-      if (ch !== ".") setSlot(Number(ch));
-      return;
-    }
-    if (tool === "fill") {
-      save(floodFill(rows, p, String(colour)));
-      return;
-    }
-    onBegin(tool === "eraser" ? "Erase" : "Draw");
-    const next = setPixels(rows, [p], ink);
-    stroke.current = { picture, rows: next, last: p };
-    save(next);
-  };
-  const drag = (p: Pixel, fresh: boolean) => {
-    const current = stroke.current;
-    if (!current) return;
-    const next = setPixels(current.rows, fresh ? [p] : linePixels(current.last, p), ink);
-    stroke.current = { ...current, rows: next, last: p };
-    onCommand({ name: "setHeroPose", args: { picture: current.picture, rows: next } });
-  };
-  const release = () => {
-    if (!stroke.current) return;
-    stroke.current = null;
-    onCommit();
-  };
-  const choosePicture = (next: HeroPicture) => {
-    release(); // a stroke ends in its own picture
-    setPicture(next);
-  };
-
-  // Leaving the hero screen mid-stroke (opening the level, say) ends the stroke as one undo step.
-  const commitRef = useRef(onCommit);
-  useEffect(() => {
-    commitRef.current = onCommit;
-  });
-  useEffect(() => {
-    const open = stroke;
-    const commit = commitRef;
-    return () => {
-      if (!open.current) return;
-      open.current = null;
-      commit.current();
-    };
-  }, []);
-
-  // Importing a picture: read the file, show the dialog, and on "Use this" make it one undo step.
-  const [importing, setImporting] = useState<RawImage | null>(null);
-  const [importError, setImportError] = useState<string | null>(null);
-  const fileInput = useRef<HTMLInputElement>(null);
-  const importButton = useRef<HTMLButtonElement>(null);
-  // When the dialog closes, focus goes back to the button that opened it.
-  const wasImporting = useRef(false);
-  useEffect(() => {
-    if (wasImporting.current && !importing) importButton.current?.focus();
-    wasImporting.current = importing !== null;
-  }, [importing]);
-  const pickFile = async (file: File | undefined) => {
-    if (!file) return;
-    setImportError(null);
-    try {
-      setImporting(await readPicture(file));
-    } catch {
-      setImportError(NOT_A_PICTURE);
-    }
-  };
-  const useImport = (result: Imported) => {
-    release();
-    onBegin("Import a picture");
-    if (result.colours.length !== look.colours.length) {
-      onCommand({ name: "setHeroColours", args: { colours: result.colours } });
-    }
-    onCommand({ name: "setHeroPose", args: { picture, rows: result.rows } });
-    onCommit();
-    setImporting(null);
-  };
 
   const partners = HERO_PICTURES.filter(
     (other) => other !== picture && PICTURE_SIZES[other].w === size.w && PICTURE_SIZES[other].h === size.h,
@@ -171,14 +83,6 @@ export function HeroScreen({
           </button>
         </p>
       )}
-      {importError && (
-        <p className={styles.alert} role="alert">
-          {importError}
-          <button type="button" onClick={() => setImportError(null)}>
-            Dismiss
-          </button>
-        </p>
-      )}
       <ul className={styles.poses} aria-label="Pictures">
         {HERO_PICTURES.map((p) => (
           <li key={p}>
@@ -186,7 +90,7 @@ export function HeroScreen({
               type="button"
               className={styles.swatch}
               aria-pressed={p === picture}
-              onClick={() => choosePicture(p)}
+              onClick={() => setPicture(p)}
             >
               <SpriteSwatch sprite={spriteOf(p)} palette={sprites.palette} />
               {PICTURE_NAMES[p]}
@@ -200,83 +104,49 @@ export function HeroScreen({
           </li>
         ))}
       </ul>
-      <div className={styles.drawing}>
-        <HeroCanvas
-          rows={rows}
-          palette={sprites.palette}
-          picture={picture}
-          onPress={press}
-          onDrag={drag}
-          onRelease={release}
-        />
-        <div className={styles.drawTools} role="group" aria-label="Drawing tools">
-          {TOOLS.map((t) => (
-            <button
-              key={t.id}
-              type="button"
-              className={styles.swatch}
-              aria-pressed={tool === t.id}
-              onClick={() => setTool(t.id)}
-            >
-              {t.label}
-            </button>
-          ))}
-        </div>
-        <div className={styles.drawTools} role="group" aria-label="Picture tools">
-          {partners.length > 0 && (
-            <label className={styles.field}>
-              Copy from
-              <select
-                value=""
-                onChange={(e) => {
-                  const from = e.target.value as HeroPicture;
-                  if (from) save(pictureRows(look, from));
-                }}
-              >
-                <option value="">Choose a picture…</option>
-                {partners.map((other) => (
-                  <option key={other} value={other}>
-                    {PICTURE_NAMES[other]}
-                  </option>
-                ))}
-              </select>
-            </label>
-          )}
-          <button type="button" className={styles.swatch} onClick={() => save(flipRows(rows))}>
-            Flip
-          </button>
-          <button type="button" className={styles.swatch} onClick={() => save(blankRows(size.w, size.h))}>
-            Clear
-          </button>
-          <button
-            ref={importButton}
-            type="button"
-            className={styles.swatch}
-            onClick={() => fileInput.current?.click()}
-          >
-            Import picture
-          </button>
-          <input
-            ref={fileInput}
-            type="file"
-            accept="image/*"
-            aria-label="Picture file"
-            className={styles.fileInput}
-            onChange={(e) => {
-              void pickFile(e.target.files?.[0]);
-              e.target.value = "";
-            }}
-          />
-        </div>
-      </div>
+      <PictureEditor
+        key={picture}
+        name={PICTURE_NAMES[picture]}
+        rows={rows}
+        palette={sprites.palette}
+        size={size}
+        body={bodyBox(picture)}
+        feet={picture !== "shot" && picture !== "chargedShot"}
+        testId="hero-canvas"
+        colours={look.colours}
+        tool={tool}
+        onTool={setTool}
+        slot={colour}
+        onSlot={setSlot}
+        partners={partners.map((p) => ({ id: p, name: PICTURE_NAMES[p], rows: pictureRows(look, p) }))}
+        importTarget={picture}
+        readPicture={readPicture}
+        locked={locked}
+        onRows={(next) => onCommand({ name: "setHeroPose", args: { picture, rows: next } })}
+        onImport={(result) => {
+          if (result.colours.length !== look.colours.length) {
+            onCommand({ name: "setHeroColours", args: { colours: result.colours } });
+          }
+          onCommand({ name: "setHeroPose", args: { picture, rows: result.rows } });
+        }}
+        onBegin={onBegin}
+        onCommit={onCommit}
+      />
       <div className={styles.heroSide}>
-        <HeroColours
+        <Colours
           colours={look.colours}
           slot={colour}
           onSlot={setSlot}
           onColours={(colours) => onCommand({ name: "setHeroColours", args: { colours } })}
         />
-        <HeroPreview look={look} abilities={abilities} pack={pack} art={art} />
+        <GamePreview
+          label="Your hero in action"
+          start={startPreview}
+          inputs={previewShow}
+          heroLook={look}
+          enemies={NO_ENEMIES}
+          art={art}
+        />
       </div>
       <HeroAbilities
         abilities={abilities}
@@ -290,15 +160,6 @@ export function HeroScreen({
           }
         }}
       />
-      {importing && (
-        <ImportDialog
-          picture={picture}
-          colours={look.colours}
-          image={importing}
-          onUse={useImport}
-          onCancel={() => setImporting(null)}
-        />
-      )}
     </fieldset>
   );
 }

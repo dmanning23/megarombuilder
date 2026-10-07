@@ -11,9 +11,9 @@ import type { Skin } from "@/runtime/render/draw";
 import { PlayCanvas } from "@/runtime/render/PlayCanvas";
 import { browserCanvas, createSpriteCache } from "@/runtime/render/sprites";
 import { ChatPanel } from "./components/ChatPanel";
-import { HeroScreen } from "./components/HeroScreen";
-import { gamePack } from "@/model/gamePack";
-import { ownSkins } from "@/runtime/render/lookArt";
+import { CharactersScreen } from "./components/CharactersScreen";
+import { gamePack, ownType } from "@/model/gamePack";
+import { lookArt, ownSkins } from "@/runtime/render/lookArt";
 import type { RawImage } from "./hero/importPicture";
 import { CheckPanel } from "./components/CheckPanel";
 import { Palette } from "./components/Palette";
@@ -69,12 +69,13 @@ export function Editor({
   const reducer = useMemo(() => editorReducer({ pack }), [pack]);
   const [state, dispatch] = useReducer(reducer, undefined, () => initialEditor(initial, pack.groundTileId));
   const [saveState, setSaveState] = useState<"saved" | "saving" | "error">("saved");
-  const [screen, setScreen] = useState<"level" | "hero">("level");
+  const [screen, setScreen] = useState<"level" | "characters">("level");
 
   const project = state.history.project;
   // The zone canvas and its tools see the kid's own enemies as thing types like any other.
   const fullPack = useMemo(() => gamePack(project, pack), [project, pack]);
   const enemies = project.enemies;
+  const ownArt = useMemo(() => Object.fromEntries(enemies.map((e) => [ownType(e.id), lookArt(e.look)])), [enemies]);
   const skin = useMemo<Skin | undefined>(() => {
     if (!art || typeof document === "undefined") return undefined;
     return {
@@ -378,9 +379,9 @@ export function Editor({
             Stop playing
           </button>
         </main>
-      ) : screen === "hero" ? (
+      ) : screen === "characters" ? (
         <main className={styles.heroWork}>
-          <HeroScreen
+          <CharactersScreen
             project={project}
             pack={pack}
             art={art}
@@ -398,6 +399,7 @@ export function Editor({
             }}
             confirm={confirm}
             readPicture={readPicture}
+            makeId={makeId}
           />
         </main>
       ) : (
@@ -431,7 +433,8 @@ export function Editor({
           </div>
           <CheckPanel zoneCheck={zoneCheck} problems={check?.problems ?? []} />
           <Palette
-            pack={pack}
+            pack={fullPack}
+            own={ownArt}
             art={art}
             tool={state.tool}
             canSlide={project.hero.abilities.slide}
