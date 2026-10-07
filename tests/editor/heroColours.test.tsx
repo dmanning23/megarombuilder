@@ -2,6 +2,7 @@
 import { cleanup, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import { setupHero } from "./heroHelpers";
+import { pictureRows } from "@/model/hero";
 
 afterEach(cleanup);
 
@@ -32,7 +33,7 @@ describe("hero colours", () => {
     const look = saved().hero.look;
     expect(look.colours).toHaveLength(8);
     expect(look.colours[7]).toBe(27);
-    expect(look.poses.stand[0][0]).toBe("8");
+    expect(pictureRows(look, "stand")[0][0]).toBe("8");
   });
 
   it("refuses to remove a colour that is still used, and says where", async () => {
@@ -51,6 +52,6 @@ describe("hero colours", () => {
     press(0, 0);
     const look = saved().hero.look;
     expect(look.colours).toHaveLength(7);
-    expect(look.poses.stand[0][0]).toBe("7");
+    expect(pictureRows(look, "stand")[0][0]).toBe("7");
   });
 });

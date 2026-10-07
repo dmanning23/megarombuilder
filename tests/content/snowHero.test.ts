@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { SNOW_HERO_PICTURES, snowHero } from "@/content/snow/hero";
 import { snowPack } from "@/content/snow/pack";
-import { HERO_PICTURES, HERO_POSES, lookProblems, pictureRows } from "@/model/hero";
+import { HERO_PICTURES, HERO_POSES, pictureRows } from "@/model/hero";
+import { lookProblems } from "@/model/look";
 import { PALETTE_8BIT } from "@/model/palette";
 import { testHero, testPack } from "../fixtures/testPack";
 
@@ -11,7 +12,7 @@ const toLetters = (rows: string[]) =>
 
 describe("the snow hero", () => {
   it("is a complete, valid hero look", () => {
-    expect(lookProblems(snowHero)).toEqual([]);
+    expect(lookProblems("hero", snowHero, "The hero")).toEqual([]);
   });
 
   it("is the snow pack's hero", () => {
@@ -29,14 +30,14 @@ describe("the snow hero", () => {
 
   it("gives every pose something to see", () => {
     for (const pose of HERO_POSES) {
-      expect(snowHero.poses[pose].join("").replace(/\./g, "").length, pose).toBeGreaterThan(50);
+      expect(pictureRows(snowHero, pose).join("").replace(/\./g, "").length, pose).toBeGreaterThan(50);
     }
   });
 });
 
 describe("the test pack's hero", () => {
   it("is a valid hero look", () => {
-    expect(lookProblems(testHero)).toEqual([]);
+    expect(lookProblems("hero", testHero, "The hero")).toEqual([]);
     expect(testPack.hero).toBe(testHero);
   });
 });

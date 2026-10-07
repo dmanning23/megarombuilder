@@ -1,9 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { createLevel, createProject } from "@/model/factory";
 import { parseProject } from "@/model/parse";
-import { DEFAULT_ABILITIES } from "@/model/hero";
+import { DEFAULT_ABILITIES, HERO_PICTURES, pictureRows, withPicture } from "@/model/hero";
+import { designFrames } from "@/model/designs";
 import { DEFAULT_PLAYER, type Project } from "@/model/schema";
-import { testHero, testPack } from "../fixtures/testPack";
+import { testHero, testOldHero, testPack } from "../fixtures/testPack";
 
 const getPack = (id: string) => (id === "test" ? testPack : undefined);
 
@@ -38,7 +39,7 @@ describe("parseProject", () => {
   });
 
   it("refuses a project from a newer version", () => {
-    expect(errorOf({ ...project(), formatVersion: 4 })).toMatch(/newer version/);
+    expect(errorOf({ ...project(), formatVersion: 5 })).toMatch(/newer version/);
   });
 
   it("explains which field is wrong when the shape is bad", () => {
@@ -96,19 +97,66 @@ describe("upgrading games saved before heroes", () => {
 describe("a game's hero", () => {
   it("is refused when a picture is broken", () => {
     const p = project();
-    const bad = { ...p, hero: { ...p.hero, look: { ...p.hero.look, shot: ["1"] } } };
-    expect(errorOf(bad)).toMatch(/The hero: Shot is 1 by 1 pixels, not 6 by 4\./);
+    const bad = { ...p, hero: { ...p.hero, look: withPicture(p.hero.look, "shot", ["1"]) } };
+    expect(errorOf(bad)).toMatch(/The hero's Shot frame 1 is not 6 by 4 pixels\./);
   });
 
   it("is refused when a pixel names a colour the hero does not have", () => {
     const p = project();
-    const stand = p.hero.look.poses.stand.map((row) => row.replace(/1/g, "2"));
-    const bad = { ...p, hero: { ...p.hero, look: { ...p.hero.look, poses: { ...p.hero.look.poses, stand } } } };
-    expect(errorOf(bad)).toMatch(/The hero: Stand uses colour 2/);
+    const stand = pictureRows(p.hero.look, "stand").map((row) => row.replace(/1/g, "2"));
+    const bad = { ...p, hero: { ...p.hero, look: withPicture(p.hero.look, "stand", stand) } };
+    expect(errorOf(bad)).toMatch(/The hero's Stand frame 1 uses colour 2/);
   });
 
   it("is refused when an ability is not a step", () => {
     const p = project();
     expect(errorOf({ ...p, hero: { ...p.hero, abilities: { ...p.hero.abilities, jump: 9 } } })).toMatch(/hero\.abilities\.jump/);
+  });
+});
+
+describe("format 3 games", () => {
+  // A format 3 game: the hero, one enemy and a boss in the old picture shapes.
+  function format3(): Record<string, unknown> {
+    const frame = (w: number, h: number, ch: string) => Array.from({ length: h }, () => ch.repeat(w));
+    return {
+      ...project(),
+      formatVersion: 3,
+      hero: { abilities: DEFAULT_ABILITIES, look: testOldHero },
+      enemies: [
+        {
+          id: "e1",
+          name: "Frost Fang",
+          behaviour: "jumper",
+          tuning: { health: 1, damage: "normal", speed: "normal", shoots: "sometimes" },
+          look: { colours: [13], frames: [frame(16, 16, "1"), frame(16, 16, ".")] },
+        },
+      ],
+      boss: { name: "Volt Viper", fight: "normal", attacks: ["jump", "dash"], look: { colours: [13], frames: [frame(24, 28, "1"), frame(24, 28, "."), frame(24, 28, "1")] } },
+    };
+  }
+
+  it("upgrade to format 4 with every picture where it was read from", () => {
+    const result = parseProject(format3(), getPack);
+    if (!result.ok) throw new Error(result.error);
+    const { project: upgraded } = result;
+    expect(upgraded.formatVersion).toBe(4);
+    for (const picture of HERO_PICTURES) {
+      const old = picture === "shot" ? testOldHero.shot : picture === "chargedShot" ? testOldHero.chargedShot : testOldHero.poses[picture];
+      expect(pictureRows(upgraded.hero.look, picture), picture).toEqual(old);
+    }
+    const old = format3() as { enemies: { look: { frames: string[][] } }[]; boss: { look: { frames: string[][] } } };
+    expect(designFrames("jumper", upgraded.enemies[0].look)).toEqual(old.enemies[0].look.frames);
+    expect(designFrames("boss", upgraded.boss!.look)).toEqual(old.boss.look.frames);
+  });
+
+  it("upgrade a format 1 game without converting the pack's hero twice", () => {
+    const result = parseProject({ ...format3(), formatVersion: 1, hero: undefined, enemies: undefined, boss: undefined, player: {} }, getPack);
+    if (!result.ok) throw new Error(result.error);
+    expect(result.project.hero.look).toEqual(testPack.hero);
+  });
+
+  it("refuse a broken look with a plain message", () => {
+    const doc = { ...project(), hero: { ...project().hero, look: { ...project().hero.look, shotY: 40 } } };
+    expect(errorOf(doc)).toContain("The hero's shot point is outside its hitbox.");
   });
 });

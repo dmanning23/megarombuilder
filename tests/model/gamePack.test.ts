@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { defaultTuning, type EnemyDesign } from "@/model/designs";
 import { createLevel, createProject } from "@/model/factory";
 import { gamePack, ownType } from "@/model/gamePack";
+import { designLookFrom } from "@/model/lookUpgrade";
 import { parseProject } from "@/model/parse";
 import type { Project } from "@/model/schema";
 import { structureProblems } from "@/model/validate";
@@ -13,7 +14,7 @@ const fang: EnemyDesign = {
   name: "Frost Fang",
   behaviour: "walker",
   tuning: { ...defaultTuning("walker"), speed: "fast" },
-  look: { colours: [13], frames: [solid(), solid()] },
+  look: designLookFrom("walker", { colours: [13], frames: [solid(), solid()] }),
 };
 
 function game(enemies: EnemyDesign[] = [fang]): Project {
@@ -61,7 +62,7 @@ describe("designs in the game file", () => {
 
   it("start empty in a new game", () => {
     const project = createProject({ id: "p1", name: "Game" }, testPack);
-    expect(project.formatVersion).toBe(3);
+    expect(project.formatVersion).toBe(4);
     expect(project.enemies).toEqual([]);
     expect(project.boss).toBeNull();
   });
@@ -74,8 +75,8 @@ describe("designs in the game file", () => {
   });
 
   it("refuse broken frames, and two enemies with one id or name", () => {
-    const broken: EnemyDesign = { ...fang, look: { colours: [13], frames: [solid(), ["1"]] } };
-    expect(structureProblems(game([broken]), testPack)).toContain("Frost Fang frame 2 is not 16 by 16 pixels.");
+    const broken: EnemyDesign = { ...fang, look: designLookFrom("walker", { colours: [13], frames: [solid(), ["1"]] }) };
+    expect(structureProblems(game([broken]), testPack)).toContain("Frost Fang's Walk frame 2 is not 16 by 16 pixels.");
     expect(structureProblems(game([fang, { ...fang, name: "Other" }]), testPack)).toContain(
       'Two enemies share the id "e1".',
     );
@@ -85,10 +86,10 @@ describe("designs in the game file", () => {
   });
 
   it("are refused when a file's design is broken", () => {
-    const raw = JSON.parse(JSON.stringify(game([{ ...fang, look: { colours: [13], frames: [solid("2"), solid()] } }])));
+    const raw = JSON.parse(JSON.stringify(game([{ ...fang, look: designLookFrom("walker", { colours: [13], frames: [solid("2"), solid()] }) }])));
     const result = parseProject(raw, getPack);
     expect(result.ok).toBe(false);
-    if (!result.ok) expect(result.error).toMatch(/Frost Fang frame 1 uses colour 2/);
+    if (!result.ok) expect(result.error).toMatch(/Frost Fang's Walk frame 1 uses colour 2/);
   });
 
   it("are added, empty, to a version 2 game", () => {
@@ -105,7 +106,7 @@ describe("the kid's boss in the game pack", () => {
     const frame = Array.from({ length: 28 }, () => "1".repeat(24));
     const project = {
       ...game([]),
-      boss: { name: "Volt Viper", fight: "long" as const, attacks: ["rain" as const, "big" as const], look: { colours: [13], frames: [frame, frame, frame] as [string[], string[], string[]] } },
+      boss: { name: "Volt Viper", fight: "long" as const, attacks: ["rain" as const, "big" as const], look: designLookFrom("boss", { colours: [13], frames: [frame, frame, frame] }) },
     };
     expect(gamePack(project, testPack).things[0]).toEqual({
       type: "own-boss",

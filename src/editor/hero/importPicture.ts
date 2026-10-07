@@ -1,5 +1,8 @@
-import { MAX_COLOURS, PICTURE_SIZES, type HeroPicture } from "@/model/hero";
+import { PICTURE_SIZES, type HeroPicture } from "@/model/hero";
 import { colourDistance, nearestIndex, PALETTE_RGB } from "@/model/palette";
+
+// The screens offer 8 colours until milestone 4, plan 4 (looks can hold 16).
+export const EDITOR_MAX_COLOURS = 8;
 
 // Turning a picture into a hero picture: fit it, keep its see-through parts, snap it to the 8-bit
 // palette and fit it into the hero's colours. Plain code on RGBA pixels, so it can be tested
@@ -111,7 +114,7 @@ export function importPicture(image: RawImage, target: ImportTarget, colours: nu
           nearest = s;
         }
       });
-      if (distance <= CLOSE || next.length >= MAX_COLOURS) slot = nearest;
+      if (distance <= CLOSE || next.length >= EDITOR_MAX_COLOURS) slot = nearest;
       else {
         next.push(index);
         slot = next.length - 1;

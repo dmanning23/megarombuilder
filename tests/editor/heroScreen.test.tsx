@@ -5,6 +5,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { snowHero } from "@/content/snow/hero";
 import { flipRows, ZOOM } from "@/editor/hero/pixels";
 import { setupHero } from "./heroHelpers";
+import { pictureRows } from "@/model/hero";
 
 afterEach(cleanup);
 
@@ -23,7 +24,7 @@ describe("the hero screen", () => {
     const { open, press, saved } = setupHero();
     await open();
     press(3, 3);
-    expect(saved().hero.look.poses.stand[3][3]).toBe("1");
+    expect(pictureRows(saved().hero.look, "stand")[3][3]).toBe("1");
   });
 
   it("draws a whole stroke, with no gaps, as one undo step", async () => {
@@ -32,7 +33,7 @@ describe("the hero screen", () => {
     drag([2, 0], [8, 0]);
     await userEvent.click(screen.getByRole("button", { name: "Undo" }));
     await userEvent.click(screen.getByRole("button", { name: "Redo" }));
-    expect(saved().hero.look.poses.stand[0]).toBe("..1111111.......");
+    expect(pictureRows(saved().hero.look, "stand")[0]).toBe("..1111111.......");
   });
 
   it("undoes a stroke in one step", async () => {
@@ -40,7 +41,7 @@ describe("the hero screen", () => {
     await open();
     drag([2, 0], [8, 0]);
     await userEvent.click(screen.getByRole("button", { name: "Undo" }));
-    expect(saved().hero.look.poses.stand[0]).toBe("................");
+    expect(pictureRows(saved().hero.look, "stand")[0]).toBe("................");
   });
 
   it("erases", async () => {
@@ -48,7 +49,7 @@ describe("the hero screen", () => {
     await open();
     await choose("Eraser");
     press(6, 3);
-    expect(saved().hero.look.poses.stand[3][6]).toBe(".");
+    expect(pictureRows(saved().hero.look, "stand")[3][6]).toBe(".");
   });
 
   it("fills the touching patch", async () => {
@@ -56,7 +57,7 @@ describe("the hero screen", () => {
     await open();
     await choose("Fill");
     press(0, 0);
-    expect(saved().hero.look.poses.stand[0]).toBe("1111111111111111");
+    expect(pictureRows(saved().hero.look, "stand")[0]).toBe("1111111111111111");
   });
 
   it("picks a colour from the picture", async () => {
@@ -66,7 +67,7 @@ describe("the hero screen", () => {
     press(7, 4); // the helmet: colour 2
     await choose("Pencil");
     press(0, 0);
-    expect(saved().hero.look.poses.stand[0][0]).toBe("2");
+    expect(pictureRows(saved().hero.look, "stand")[0][0]).toBe("2");
   });
 
   it("draws on any picture, at its own size", async () => {
@@ -78,7 +79,7 @@ describe("the hero screen", () => {
     await choose("Charged shot");
     expect(screen.getByRole("img", { name: "Charged shot, 12 by 10 pixels" })).toBeTruthy();
     const look = saved().hero.look;
-    expect(look.poses.slide[15][22]).toBe("1");
+    expect(pictureRows(look, "slide")[15][22]).toBe("1");
   });
 
   it("copies, flips and clears a picture", async () => {
@@ -88,15 +89,15 @@ describe("the hero screen", () => {
     await userEvent.selectOptions(screen.getByRole("combobox", { name: "Copy from" }), "stand");
     await choose("Flip");
     expect(screen.getByRole("combobox", { name: "Copy from" })).toHaveProperty("value", "");
-    const flipped = saved().hero.look.poses.run1;
-    expect(flipped).toEqual(flipRows(snowHero.poses.stand));
+    const flipped = pictureRows(saved().hero.look, "run1");
+    expect(flipped).toEqual(flipRows(pictureRows(snowHero, "stand")));
   });
 
   it("clears a picture", async () => {
     const { open, choose, saved } = setupHero();
     await open();
     await choose("Clear");
-    expect(saved().hero.look.poses.stand.every((row) => /^\.+$/.test(row))).toBe(true);
+    expect(pictureRows(saved().hero.look, "stand").every((row) => /^\.+$/.test(row))).toBe(true);
   });
 
   it("only offers to copy pictures of the same size", async () => {
@@ -127,9 +128,9 @@ describe("strokes in awkward places", () => {
     fireEvent.pointerMove(el, { ...at(5, 0), clientY: -20 });
     fireEvent.pointerMove(el, at(5, 23));
     fireEvent.pointerUp(el, at(5, 23));
-    const stand = saved().hero.look.poses.stand;
+    const stand = pictureRows(saved().hero.look, "stand");
     expect([stand[0][5], stand[23][5]]).toEqual(["1", "1"]);
-    for (let y = 1; y < 23; y++) expect(stand[y][5], `row ${y}`).toBe(snowHero.poses.stand[y][5]);
+    for (let y = 1; y < 23; y++) expect(stand[y][5], `row ${y}`).toBe(pictureRows(snowHero, "stand")[y][5]);
   });
 
   it("paints right up to the edge on a fast drag off the canvas", async () => {
@@ -139,7 +140,7 @@ describe("strokes in awkward places", () => {
     fireEvent.pointerDown(el, at(8, 0));
     fireEvent.pointerMove(el, { ...at(8, 0), clientX: 16 * ZOOM + 40 });
     fireEvent.pointerUp(el, { ...at(8, 0), clientX: 16 * ZOOM + 40 });
-    expect(saved().hero.look.poses.stand[0]).toBe("........11111111");
+    expect(pictureRows(saved().hero.look, "stand")[0]).toBe("........11111111");
   });
 
   it("ignores a second finger while one is drawing", async () => {
@@ -151,9 +152,9 @@ describe("strokes in awkward places", () => {
     fireEvent.pointerMove(el, at(0, 12, 2));
     fireEvent.pointerUp(el, at(0, 12, 2));
     fireEvent.pointerUp(el, at(3, 0, 1));
-    const stand = saved().hero.look.poses.stand;
+    const stand = pictureRows(saved().hero.look, "stand");
     expect(stand[0][3]).toBe("1");
-    expect(stand.slice(1).map((row) => row[0])).toEqual(snowHero.poses.stand.slice(1).map((row) => row[0]));
+    expect(stand.slice(1).map((row) => row[0])).toEqual(pictureRows(snowHero, "stand").slice(1).map((row) => row[0]));
   });
 
   it("ends a stroke in its own picture when another picture is chosen", async () => {
@@ -166,8 +167,8 @@ describe("strokes in awkward places", () => {
     fireEvent.pointerUp(canvas(), at(4, 0));
     expect(screen.getByRole("button", { name: "Undo" })).toHaveProperty("disabled", false);
     const look = saved().hero.look;
-    expect(look.poses.stand[0][3]).toBe("1");
-    expect(look.poses.run1).toEqual(snowHero.poses.run1);
+    expect(pictureRows(look, "stand")[0][3]).toBe("1");
+    expect(pictureRows(look, "run1")).toEqual(pictureRows(snowHero, "run1"));
   });
 
   it("ends a stroke when the level is opened in the middle of it", async () => {
@@ -176,6 +177,6 @@ describe("strokes in awkward places", () => {
     fireEvent.pointerDown(canvas(), at(3, 0));
     fireEvent.click(screen.getByRole("button", { name: "Level" }));
     expect(screen.getByRole("button", { name: "Undo" })).toHaveProperty("disabled", false);
-    expect(saved().hero.look.poses.stand[0][3]).toBe("1");
+    expect(pictureRows(saved().hero.look, "stand")[0][3]).toBe("1");
   });
 });

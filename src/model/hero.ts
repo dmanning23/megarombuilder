@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { PALETTE_8BIT } from "./palette";
+import { lookSchema, slotOf, type Look } from "./look";
 import type { PlayerSettings } from "./schema";
 
 // The hero: what the kid chose for it (abilities, from named steps) and what it looks like.
@@ -53,8 +53,6 @@ export const HERO_PICTURE_SLOTS: Record<HeroPicture, { animation: string; frame:
   shot: { animation: "shot", frame: 0 },
   chargedShot: { animation: "chargedShot", frame: 0 },
 };
-
-export const MAX_COLOURS = 8;
 
 // ---- Abilities ----
 
@@ -126,37 +124,28 @@ export function abilitiesFromSettings(old: unknown): Abilities {
 
 // ---- Look ----
 
-const rows = z.array(z.string()).min(1).max(64);
+export type HeroLook = Look;
 
-export const heroLookSchema = z.object({
-  colours: z
-    .array(z.number().int().min(0).max(PALETTE_8BIT.length - 1))
-    .min(1)
-    .max(MAX_COLOURS),
-  poses: z.record(z.enum(HERO_POSES), rows),
-  shot: rows,
-  chargedShot: rows,
-});
-export type HeroLook = z.infer<typeof heroLookSchema>;
-
-export const heroSchema = z.object({ abilities: abilitiesSchema, look: heroLookSchema });
+export const heroSchema = z.object({ abilities: abilitiesSchema, look: lookSchema });
 export type Hero = z.infer<typeof heroSchema>;
 
-export function pictureRows(look: HeroLook, picture: HeroPicture): string[] {
-  if (picture === "shot") return look.shot;
-  if (picture === "chargedShot") return look.chargedShot;
-  return look.poses[picture];
+// The hero's old pictures, read from and written to its look. A run with one frame shows it for run2.
+export function pictureRows(look: Look, picture: HeroPicture): string[] {
+  const { animation, frame } = HERO_PICTURE_SLOTS[picture];
+  const frames = look.animations[animation].frames;
+  return frames[Math.min(frame, frames.length - 1)];
 }
 
-export function withPicture(look: HeroLook, picture: HeroPicture, rows: string[]): HeroLook {
-  if (picture === "shot") return { ...look, shot: rows };
-  if (picture === "chargedShot") return { ...look, chargedShot: rows };
-  return { ...look, poses: { ...look.poses, [picture]: rows } };
+export function withPicture(look: Look, picture: HeroPicture, rows: string[]): Look {
+  const { animation, frame } = HERO_PICTURE_SLOTS[picture];
+  const anim = look.animations[animation];
+  const frames = anim.frames.map((f, i) => (i === Math.min(frame, anim.frames.length - 1) ? rows : f));
+  return { ...look, animations: { ...look.animations, [animation]: { ...anim, frames } } };
 }
 
-// Everything wrong with one picture of a look: its size, and pixels naming missing colours.
-// A pixel is "." (transparent) or a digit naming a colour slot, "1" for the first.
-export function pictureProblems(look: HeroLook, picture: HeroPicture): string[] {
+// Everything wrong with one of the hero's old pictures in a look: its size, and pixels naming
+// missing colours. Used by setHeroPose until the look commands replace it.
+export function pictureProblems(look: Look, picture: HeroPicture): string[] {
   const name = PICTURE_NAMES[picture];
   const { w, h } = PICTURE_SIZES[picture];
   const pixels = pictureRows(look, picture);
@@ -165,17 +154,12 @@ export function pictureProblems(look: HeroLook, picture: HeroPicture): string[] 
   }
   const ragged = pixels.findIndex((row) => row.length !== w);
   if (ragged >= 0) return [`${name} row ${ragged + 1} is ${pixels[ragged].length} pixels wide, not ${w}.`]; // counted from 1
-  const odd = [...pixels.join("")].find((ch) => ch !== "." && !/[1-8]/.test(ch));
+  const odd = [...pixels.join("")].find((ch) => ch !== "." && slotOf(ch) === 0);
   if (odd) return [`${name} has a pixel "${odd}" that is not a colour.`];
-  const highest = Math.max(0, ...[...pixels.join("")].filter((ch) => ch !== ".").map(Number));
+  const highest = Math.max(0, ...[...pixels.join("")].map(slotOf));
   const count = look.colours.length;
   if (highest > count) {
     return [`${name} uses colour ${highest}, but the hero only has ${count} colour${count === 1 ? "" : "s"}.`];
   }
   return [];
-}
-
-// Everything wrong with a look that the schema cannot see.
-export function lookProblems(look: HeroLook): string[] {
-  return HERO_PICTURES.flatMap((picture) => pictureProblems(look, picture));
 }

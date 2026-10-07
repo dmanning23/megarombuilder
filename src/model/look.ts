@@ -177,7 +177,7 @@ export function lookProblems(kind: LookKind, look: Look, name: string): string[]
       const highest = Math.max(0, ...pixels.map(slotOf));
       const count = look.colours.length;
       if (highest > count) {
-        problems.push(`${where} uses colour ${highest}, but ${name} only has ${count} colour${count === 1 ? "" : "s"}.`);
+        problems.push(`${where} uses colour ${highest}, but ${name.replace(/^The /, "the ")} only has ${count} colour${count === 1 ? "" : "s"}.`);
       }
     });
   }

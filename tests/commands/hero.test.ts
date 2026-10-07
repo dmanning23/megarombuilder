@@ -1,7 +1,7 @@
 import { applyCommand } from "@/commands/registry";
 import { describe, expect, it } from "vitest";
 import { createHistory, runCommand, undo } from "@/commands/history";
-import { DEFAULT_ABILITIES, PICTURE_SIZES } from "@/model/hero";
+import { DEFAULT_ABILITIES, PICTURE_SIZES, pictureRows, withPicture } from "@/model/hero";
 import { testHero } from "../fixtures/testPack";
 import { baseProject, ctx, run, runError } from "./helpers";
 
@@ -45,9 +45,9 @@ describe("setHeroColours", () => {
     expect(run(project, "setHeroColours", { colours: [13, 27, 5] }).hero.look.colours).toEqual([13, 27, 5]);
   });
 
-  it("refuses colours outside the palette, and more than eight", () => {
+  it("refuses colours outside the palette, and more than sixteen", () => {
     expect(runError(baseProject(), "setHeroColours", { colours: [55] })).toMatch(/colours/);
-    expect(runError(baseProject(), "setHeroColours", { colours: [0, 1, 2, 3, 4, 5, 6, 7, 8] })).toMatch(/colours/);
+    expect(runError(baseProject(), "setHeroColours", { colours: Array.from({ length: 17 }, (_, i) => i) })).toMatch(/colours/);
     expect(runError(baseProject(), "setHeroColours", { colours: [] })).toMatch(/colours/);
   });
 });
@@ -56,13 +56,13 @@ describe("setHeroPose", () => {
   it("replaces one picture", () => {
     const rows = solid(PICTURE_SIZES.slide.w, PICTURE_SIZES.slide.h, ".");
     const project = run(baseProject(), "setHeroPose", { picture: "slide", rows });
-    expect(project.hero.look.poses.slide).toEqual(rows);
-    expect(project.hero.look.poses.stand).toEqual(testHero.poses.stand);
+    expect(pictureRows(project.hero.look, "slide")).toEqual(rows);
+    expect(pictureRows(project.hero.look, "stand")).toEqual(pictureRows(testHero, "stand"));
   });
 
   it("replaces the shots too", () => {
     const project = run(baseProject(), "setHeroPose", { picture: "chargedShot", rows: solid(12, 10, ".") });
-    expect(project.hero.look.chargedShot[0]).toBe("............");
+    expect(pictureRows(project.hero.look, "chargedShot")[0]).toBe("............");
   });
 
   it("refuses a picture of the wrong size, or with a colour the hero lacks", () => {
@@ -97,7 +97,7 @@ describe("hero commands and review fixes", () => {
     const project = baseProject();
     const broken = {
       ...project,
-      hero: { ...project.hero, look: { ...project.hero.look, poses: { ...project.hero.look.poses, standShoot: ["1"] } } },
+      hero: { ...project.hero, look: withPicture(project.hero.look, "standShoot", ["1"]) },
     };
     const result = applyCommand(broken, { name: "setHeroPose", args: { picture: "stand", rows: solid(16, 24, ".") } }, ctx);
     expect(result.ok).toBe(true);

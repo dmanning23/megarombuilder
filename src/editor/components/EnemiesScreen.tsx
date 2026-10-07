@@ -12,6 +12,8 @@ import {
   SHOOT_STEPS,
   SPEED_STEPS,
   TUNING_USED,
+  designFrames,
+  designLook,
   type EnemyBehaviour,
   type EnemyDesign,
   type EnemyTuning,
@@ -108,7 +110,7 @@ export function EnemiesScreen({
   const [frame, setFrame] = useState<0 | 1>(0);
   const [tool, setTool] = useState<DrawTool>("pencil");
   const [slot, setSlot] = useState(1);
-  const arts = useMemo(() => new Map(enemies.map((e) => [e.id, lookArt(e.look)])), [enemies]);
+  const arts = useMemo(() => new Map(enemies.map((e) => [e.id, lookArt(designLook(e.behaviour, e.look))])), [enemies]);
 
   const [newError, setNewError] = useState<string | null>(null);
   const create = (behaviour: EnemyBehaviour) => {
@@ -238,7 +240,7 @@ export function EnemiesScreen({
             <PictureEditor
               key={`${enemy.id}:${frame}`}
               name={`Frame ${frame + 1}`}
-              rows={enemy.look.frames[frame]}
+              rows={designFrames(enemy.behaviour, enemy.look)[frame]}
               palette={arts.get(enemy.id)!.palette}
               size={ENEMY_FRAME}
               body={enemyBody(enemy.behaviour)}
@@ -249,7 +251,7 @@ export function EnemiesScreen({
               onTool={setTool}
               slot={Math.min(slot, enemy.look.colours.length)}
               onSlot={setSlot}
-              partners={[{ id: String(1 - frame), name: `Frame ${2 - frame}`, rows: enemy.look.frames[1 - frame] }]}
+              partners={[{ id: String(1 - frame), name: `Frame ${2 - frame}`, rows: designFrames(enemy.behaviour, enemy.look)[1 - frame] }]}
               importTarget={{ ...ENEMY_FRAME, stand: true }}
               readPicture={readPicture}
               locked={locked}

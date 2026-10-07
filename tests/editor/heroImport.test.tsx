@@ -8,6 +8,7 @@ import type { RawImage } from "@/editor/hero/importPicture";
 import { MAX_FILE_BYTES, NOT_A_PICTURE, readPicture } from "@/editor/hero/readPicture";
 import { newProject } from "@/editor/newProject";
 import type { Project } from "@/model/schema";
+import { pictureRows } from "@/model/hero";
 
 afterEach(cleanup);
 
@@ -56,8 +57,8 @@ describe("importing a picture", () => {
     await userEvent.click(screen.getByRole("button", { name: "Redo" }));
     const look = saved().hero.look;
     expect(look.colours).toHaveLength(8);
-    expect(look.poses.stand[8]).toBe("....88888888....");
-    expect(look.poses.stand[0]).toBe("................");
+    expect(pictureRows(look, "stand")[8]).toBe("....88888888....");
+    expect(pictureRows(look, "stand")[0]).toBe("................");
   });
 
   it("undoes the colours and the picture together", async () => {
@@ -81,14 +82,14 @@ describe("importing a picture", () => {
     await removed.choose();
     expect(screen.getByRole("checkbox", { name: "Remove background" })).toHaveProperty("checked", true);
     await userEvent.click(screen.getByRole("button", { name: "Use this" }));
-    expect(removed.saved().hero.look.poses.stand[0]).toBe("................");
+    expect(pictureRows(removed.saved().hero.look, "stand")[0]).toBe("................");
     cleanup();
 
     const kept = setup(async () => picture("white"));
     await kept.choose();
     await userEvent.click(screen.getByRole("checkbox", { name: "Remove background" }));
     await userEvent.click(screen.getByRole("button", { name: "Use this" }));
-    expect(kept.saved().hero.look.poses.stand[0]).toBe("4444444444444444"); // white is the snow hero's colour 4
+    expect(pictureRows(kept.saved().hero.look, "stand")[0]).toBe("4444444444444444"); // white is the snow hero's colour 4
   });
 
   it("says plainly when a file isn't a picture, and changes nothing", async () => {

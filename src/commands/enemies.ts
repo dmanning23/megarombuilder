@@ -4,7 +4,10 @@ import {
   DAMAGE_STEPS,
   ENEMY_BEHAVIOURS,
   ENEMY_FRAME,
+  designFrames,
+  designLook,
   framesProblems,
+  withDesignFrame,
   HEALTH_STEPS,
   MAX_ENEMIES,
   SHOOT_STEPS,
@@ -12,7 +15,8 @@ import {
   type EnemyDesign,
 } from "@/model/designs";
 import { ownType } from "@/model/gamePack";
-import { MAX_COLOURS } from "@/model/hero";
+import { MAX_LOOK_COLOURS } from "@/model/look";
+import { designLookFrom } from "@/model/lookUpgrade";
 import { PALETTE_8BIT } from "@/model/palette";
 import { tidyName, type Project } from "@/model/schema";
 import { listNames } from "./helpers";
@@ -76,7 +80,12 @@ const setEnemyBehaviourCommand = defineCommand({
   description: "Change how one of the kid's own enemies behaves. Its drawing and tuning stay.",
   args: z.strictObject({ enemyId: idArg, behaviour: behaviourArg }),
   apply(project, args) {
-    return editEnemy(project, args.enemyId, (enemy) => ({ ...enemy, behaviour: args.behaviour }));
+    // The drawing carries over by position: the old frames fill the new behaviour's animations.
+    return editEnemy(project, args.enemyId, (enemy) => ({
+      ...enemy,
+      behaviour: args.behaviour,
+      look: designLookFrom(args.behaviour, designLook(enemy.behaviour, enemy.look)),
+    }));
   },
 });
 
@@ -100,15 +109,15 @@ const setEnemyTuningCommand = defineCommand({
 
 const setEnemyColoursCommand = defineCommand({
   name: "setEnemyColours",
-  description: `Set an enemy's colour slots: 1 to ${MAX_COLOURS} colours from the 8-bit palette.`,
+  description: `Set an enemy's colour slots: 1 to ${MAX_LOOK_COLOURS} colours from the 8-bit palette.`,
   args: z.strictObject({
     enemyId: idArg,
-    colours: z.array(z.number().int().min(0).max(PALETTE_8BIT.length - 1)).min(1).max(MAX_COLOURS),
+    colours: z.array(z.number().int().min(0).max(PALETTE_8BIT.length - 1)).min(1).max(MAX_LOOK_COLOURS),
   }),
   apply(project, args) {
     return editEnemy(project, args.enemyId, (enemy) => {
       for (let slot = args.colours.length + 1; slot <= enemy.look.colours.length; slot++) {
-        const frames = enemy.look.frames.flatMap((rows, i) => (rows.some((row) => row.includes(String(slot))) ? [`frame ${i + 1}`] : []));
+        const frames = designFrames(enemy.behaviour, enemy.look).flatMap((rows, i) => (rows.some((row) => row.includes(String(slot))) ? [`frame ${i + 1}`] : []));
         if (frames.length > 0) return `Colour ${slot} is still used in ${tidyName(enemy.name)}'s ${listNames(frames)}.`;
       }
       return { ...enemy, look: { ...enemy.look, colours: args.colours } };
@@ -122,8 +131,7 @@ const setEnemyFrameCommand = defineCommand({
   args: z.strictObject({ enemyId: idArg, frame: z.union([z.literal(0), z.literal(1)]), rows: z.array(z.string()).min(1).max(64) }),
   apply(project, args) {
     return editEnemy(project, args.enemyId, (enemy) => {
-      const frames = enemy.look.frames.map((rows, i) => (i === args.frame ? args.rows : rows));
-      const look = { ...enemy.look, frames: frames as [string[], string[]] };
+      const look = withDesignFrame(enemy.behaviour, enemy.look, args.frame, args.rows);
       const problem = framesProblems(tidyName(enemy.name), { colours: look.colours, frames: [args.rows] }, ENEMY_FRAME)[0];
       if (problem) return problem.replace(" frame 1 ", ` frame ${args.frame + 1} `);
       return { ...enemy, look };

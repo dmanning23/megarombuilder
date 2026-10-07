@@ -3,12 +3,12 @@ import {
   abilitiesSchema,
   HERO_PICTURES,
   pictureProblems,
-  MAX_COLOURS,
   PICTURE_NAMES,
   pictureRows,
   withPicture,
   type HeroLook,
 } from "@/model/hero";
+import { MAX_LOOK_COLOURS } from "@/model/look";
 import { PALETTE_8BIT } from "@/model/palette";
 import type { Project } from "@/model/schema";
 import { listNames } from "./helpers";
@@ -30,12 +30,12 @@ const setHeroAbilitiesCommand = defineCommand({
 
 const setHeroColoursCommand = defineCommand({
   name: "setHeroColours",
-  description: `Set the hero's colour slots: 1 to ${MAX_COLOURS} colours from the 8-bit palette (0 to ${PALETTE_8BIT.length - 1}). Pixels name slots, so changing a slot recolours it everywhere.`,
+  description: `Set the hero's colour slots: 1 to ${MAX_LOOK_COLOURS} colours from the 8-bit palette (0 to ${PALETTE_8BIT.length - 1}). Pixels name slots, so changing a slot recolours it everywhere.`,
   args: z.strictObject({
     colours: z
       .array(z.number().int().min(0).max(PALETTE_8BIT.length - 1))
       .min(1)
-      .max(MAX_COLOURS),
+      .max(MAX_LOOK_COLOURS),
   }),
   apply(project, args) {
     const look = project.hero.look;

@@ -1,6 +1,6 @@
 "use client";
 
-import { MAX_COLOURS } from "@/model/hero";
+import { EDITOR_MAX_COLOURS } from "../hero/importPicture";
 import { PALETTE_8BIT } from "@/model/palette";
 import styles from "../editor.module.css";
 
@@ -34,7 +34,7 @@ export function Colours({ colours, slot, onSlot, onColours }: Props) {
         ))}
       </div>
       <div className={styles.drawTools}>
-        {colours.length < MAX_COLOURS && (
+        {colours.length < EDITOR_MAX_COLOURS && (
           <button
             type="button"
             className={styles.swatch}

@@ -8,6 +8,7 @@ import { Editor } from "@/editor/Editor";
 import { ZOOM } from "@/editor/hero/pixels";
 import { newProject } from "@/editor/newProject";
 import type { Project } from "@/model/schema";
+import { designFrames } from "@/model/designs";
 
 afterEach(cleanup);
 
@@ -91,7 +92,7 @@ describe("the Enemies tab", () => {
     const enemy = saved().enemies[0];
     expect(enemy.behaviour).toBe("turret");
     expect(enemy.tuning).toMatchObject({ speed: "fast", health: 5 });
-    expect(enemy.look).toEqual(snowPack.enemyLooks.walker); // the drawing stays
+    expect(designFrames("turret", enemy.look)).toEqual(designFrames("walker", snowPack.enemyLooks.walker)); // the drawing stays
   });
 
   it("renames, and shows a clashing name's message", async () => {
@@ -153,7 +154,7 @@ describe("the Enemies tab", () => {
     await userEvent.click(screen.getByRole("button", { name: "Frame 2" }));
     expect(screen.getByRole("img", { name: "Frame 2, 16 by 16 pixels" })).toBeTruthy();
     press(0, 0);
-    expect(saved().enemies[0].look.frames[1][0][0]).toBe("1");
+    expect(designFrames("walker", saved().enemies[0].look)[1][0][0]).toBe("1");
   });
 
   it("deletes an enemy after asking, and selects another", async () => {

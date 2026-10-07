@@ -1,7 +1,6 @@
-import { KINDS, type Look, type LookBox } from "./look";
 import { z } from "zod";
-import { MAX_COLOURS } from "./hero";
-import { nearestColour, PALETTE_8BIT } from "./palette";
+import { KINDS, lookSchema, MAX_LOOK_COLOURS, slotChar, slotOf, type Look, type LookBox } from "./look";
+import { nearestColour } from "./palette";
 
 // The kid's own enemies and boss: what they chose (named steps), and what they drew.
 
@@ -82,14 +81,6 @@ export function tuningSettings(behaviour: EnemyBehaviour, tuning: EnemyTuning): 
 
 // ---- Looks ----
 
-const rows = z.array(z.string()).min(1).max(64);
-const colours = z
-  .array(z.number().int().min(0).max(PALETTE_8BIT.length - 1))
-  .min(1)
-  .max(MAX_COLOURS);
-
-export const enemyLookSchema = z.object({ colours, frames: z.tuple([rows, rows]) });
-export const bossLookSchema = z.object({ colours, frames: z.tuple([rows, rows, rows]) });
 export type DesignLook = { colours: number[]; frames: string[][] };
 
 // Each behaviour's body today, in a 16 by 16 picture: centred, feet on the bottom. The boss fills its 24 by 28.
@@ -124,6 +115,14 @@ export function designFrames(kind: EnemyBehaviour | "boss", look: Look): string[
   });
 }
 
+// Writes one of an enemy's or boss's old frames into its look.
+export function withDesignFrame(kind: EnemyBehaviour | "boss", look: Look, index: number, rows: string[]): Look {
+  const { animation, frame } = designFrameSlot(kind, index);
+  const anim = look.animations[animation];
+  const at = Math.min(frame, anim.frames.length - 1);
+  return { ...look, animations: { ...look.animations, [animation]: { ...anim, frames: anim.frames.map((f, i) => (i === at ? rows : f)) } } };
+}
+
 export const designLook = (kind: EnemyBehaviour | "boss", look: Look): DesignLook => ({
   colours: look.colours,
   frames: designFrames(kind, look),
@@ -137,7 +136,7 @@ export const enemyDesignSchema = z.object({
   name,
   behaviour: z.enum(ENEMY_BEHAVIOURS),
   tuning: enemyTuningSchema,
-  look: enemyLookSchema,
+  look: lookSchema,
 });
 export type EnemyDesign = z.infer<typeof enemyDesignSchema>;
 
@@ -149,7 +148,7 @@ export const bossDesignSchema = z.object({
   name,
   fight: z.enum(BOSS_FIGHTS),
   attacks: z.array(z.enum(BOSS_ATTACKS)).min(2).max(3),
-  look: bossLookSchema,
+  look: lookSchema,
 });
 export type BossDesign = z.infer<typeof bossDesignSchema>;
 
@@ -170,12 +169,12 @@ export function framesProblems(name: string, look: DesignLook, size: { w: number
       return;
     }
     const pixels = frame.join("");
-    const odd = [...pixels].find((ch) => ch !== "." && !/[1-8]/.test(ch));
+    const odd = [...pixels].find((ch) => ch !== "." && slotOf(ch) === 0);
     if (odd) {
       problems.push(`${label} has a pixel "${odd}" that is not a colour.`);
       return;
     }
-    const highest = Math.max(0, ...[...pixels].filter((ch) => ch !== ".").map(Number));
+    const highest = Math.max(0, ...[...pixels].map(slotOf));
     const count = look.colours.length;
     if (highest > count) {
       problems.push(`${label} uses colour ${highest}, but ${name} only has ${count} colour${count === 1 ? "" : "s"}.`);
@@ -195,9 +194,9 @@ export function lettersToLook(frames: string[][], palette: Record<string, string
       colours.push(index);
       slot = colours.length - 1;
     }
-    return String(slot + 1);
+    return slotChar(slot + 1);
   };
   const converted = frames.map((frame) => frame.map((row) => [...row].map((ch) => (ch === "." ? "." : slotOf(ch))).join("")));
-  if (colours.length > MAX_COLOURS) throw new Error(`This art uses more than ${MAX_COLOURS} colours.`);
+  if (colours.length > MAX_LOOK_COLOURS) throw new Error(`This art uses more than ${MAX_LOOK_COLOURS} colours.`);
   return { colours, frames: converted };
 }

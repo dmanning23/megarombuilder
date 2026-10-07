@@ -65,5 +65,10 @@ describe("designLookFrom", () => {
 });
 
 describe("pictureRows on a hero whose run has one frame", () => {
-  it.todo("reads run2 as the run's only frame");
+  it("reads run2 as the run's only frame", async () => {
+    const { pictureRows } = await import("@/model/hero");
+    const look = heroLookFrom(oldHero());
+    const oneFrame = { ...look, animations: { ...look.animations, run: { frames: [look.animations.run.frames[0]], speed: "normal" as const } } };
+    expect(pictureRows(oneFrame, "run2")).toEqual(look.animations.run.frames[0]);
+  });
 });

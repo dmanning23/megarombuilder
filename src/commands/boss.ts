@@ -1,7 +1,7 @@
 import { z } from "zod";
-import { BOSS_ATTACKS, BOSS_FIGHTS, BOSS_FRAME, framesProblems, type BossDesign } from "@/model/designs";
+import { BOSS_ATTACKS, BOSS_FIGHTS, BOSS_FRAME, designFrames, framesProblems, withDesignFrame, type BossDesign } from "@/model/designs";
 import { OWN_BOSS } from "@/model/gamePack";
-import { MAX_COLOURS } from "@/model/hero";
+import { MAX_LOOK_COLOURS } from "@/model/look";
 import { PALETTE_8BIT } from "@/model/palette";
 import { tidyName, type Project } from "@/model/schema";
 import { listNames } from "./helpers";
@@ -42,14 +42,14 @@ const setBossCommand = defineCommand({
 
 const setBossColoursCommand = defineCommand({
   name: "setBossColours",
-  description: `Set the boss's colour slots: 1 to ${MAX_COLOURS} colours from the 8-bit palette.`,
+  description: `Set the boss's colour slots: 1 to ${MAX_LOOK_COLOURS} colours from the 8-bit palette.`,
   args: z.strictObject({
-    colours: z.array(z.number().int().min(0).max(PALETTE_8BIT.length - 1)).min(1).max(MAX_COLOURS),
+    colours: z.array(z.number().int().min(0).max(PALETTE_8BIT.length - 1)).min(1).max(MAX_LOOK_COLOURS),
   }),
   apply(project, args) {
     return editBoss(project, (boss) => {
       for (let slot = args.colours.length + 1; slot <= boss.look.colours.length; slot++) {
-        const frames = boss.look.frames.flatMap((rows, i) => (rows.some((row) => row.includes(String(slot))) ? [`frame ${i + 1}`] : []));
+        const frames = designFrames("boss", boss.look).flatMap((rows, i) => (rows.some((row) => row.includes(String(slot))) ? [`frame ${i + 1}`] : []));
         if (frames.length > 0) return `Colour ${slot} is still used in ${tidyName(boss.name)}'s ${listNames(frames)}.`;
       }
       return { ...boss, look: { ...boss.look, colours: args.colours } };
@@ -68,8 +68,7 @@ const setBossFrameCommand = defineCommand({
     return editBoss(project, (boss) => {
       const problem = framesProblems(tidyName(boss.name), { colours: boss.look.colours, frames: [args.rows] }, BOSS_FRAME)[0];
       if (problem) return problem.replace(" frame 1 ", ` frame ${args.frame + 1} `);
-      const frames = boss.look.frames.map((rows, i) => (i === args.frame ? args.rows : rows)) as BossDesign["look"]["frames"];
-      return { ...boss, look: { ...boss.look, frames } };
+      return { ...boss, look: withDesignFrame("boss", boss.look, args.frame, args.rows) };
     });
   },
 });

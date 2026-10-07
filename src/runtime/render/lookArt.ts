@@ -1,4 +1,4 @@
-import type { BossDesign, DesignLook, EnemyDesign } from "@/model/designs";
+import { designLook, type BossDesign, type DesignLook, type EnemyDesign } from "@/model/designs";
 import { OWN_BOSS, ownType } from "@/model/gamePack";
 import { PALETTE_8BIT } from "@/model/palette";
 import { sprite, type Sprite } from "./art";
@@ -25,7 +25,7 @@ export function ownSkins(
     const art = lookArt(look);
     return { art, image: imageFor(art.palette) };
   };
-  const skins: Record<string, OwnSkin> = Object.fromEntries(enemies.map((enemy) => [ownType(enemy.id), skin(enemy.look)]));
-  if (boss) skins[OWN_BOSS] = skin(boss.look);
+  const skins: Record<string, OwnSkin> = Object.fromEntries(enemies.map((enemy) => [ownType(enemy.id), skin(designLook(enemy.behaviour, enemy.look))]));
+  if (boss) skins[OWN_BOSS] = skin(designLook("boss", boss.look));
   return skins;
 }

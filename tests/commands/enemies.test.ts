@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createHistory, runCommand, undo } from "@/commands/history";
-import { defaultTuning } from "@/model/designs";
+import { defaultTuning, designFrames } from "@/model/designs";
 import { testEnemyLooks } from "../fixtures/testPack";
 import { baseProject, ctx, run, runError } from "./helpers";
 
@@ -44,8 +44,8 @@ describe("changing an enemy", () => {
       name: "Ice Fang",
       behaviour: "jumper",
       tuning: { ...defaultTuning("walker"), speed: "fast", health: 5 },
-      look: testEnemyLooks.walker,
     });
+    expect(designFrames("jumper", project.enemies[0].look)).toEqual(designFrames("walker", testEnemyLooks.walker)); // the drawing stays
     expect(runError(project, "setEnemyTuning", { enemyId: "e1" })).toBe("Give at least one step to change.");
     expect(runError(project, "renameEnemy", { enemyId: "nope", name: "X" })).toBe('There is no enemy with the id "nope".');
   });
@@ -54,7 +54,7 @@ describe("changing an enemy", () => {
     let project = add();
     project = run(project, "setEnemyColours", { enemyId: "e1", colours: [13, 20] });
     project = run(project, "setEnemyFrame", { enemyId: "e1", frame: 1, rows: solid("2") });
-    expect(project.enemies[0].look.frames[1]).toEqual(solid("2"));
+    expect(designFrames("walker", project.enemies[0].look)[1]).toEqual(solid("2"));
     expect(runError(project, "setEnemyColours", { enemyId: "e1", colours: [13] })).toBe(
       "Colour 2 is still used in Frost Fang's frame 2.",
     );

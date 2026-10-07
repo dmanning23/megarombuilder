@@ -1,6 +1,5 @@
-import { BOSS_FRAME, ENEMY_FRAME, framesProblems } from "./designs";
 import { gamePack } from "./gamePack";
-import { lookProblems } from "./hero";
+import { lookProblems } from "./look";
 import type { ContentPack } from "./contentPack";
 import {
   MAX_SCREENS,
@@ -154,7 +153,7 @@ export function structureProblems(project: Project, pack: ContentPack): string[]
     ids.add(level.id);
     problems.push(...levelProblems(level, full));
   }
-  problems.push(...lookProblems(project.hero.look).map((p) => `The hero: ${p}`));
+  problems.push(...lookProblems("hero", project.hero.look, "The hero"));
   const enemyIds = new Set<string>();
   const enemyNames = new Map<string, string>(); // tidied, lower case → the first spelling
   for (const enemy of project.enemies) {
@@ -164,9 +163,9 @@ export function structureProblems(project: Project, pack: ContentPack): string[]
     const first = enemyNames.get(key);
     if (first) problems.push(`Two enemies are called "${first}".`);
     else enemyNames.set(key, tidyName(enemy.name));
-    problems.push(...framesProblems(tidyName(enemy.name), enemy.look, ENEMY_FRAME));
+    problems.push(...lookProblems(enemy.behaviour, enemy.look, tidyName(enemy.name)));
   }
-  if (project.boss) problems.push(...framesProblems(tidyName(project.boss.name), project.boss.look, BOSS_FRAME));
+  if (project.boss) problems.push(...lookProblems("boss", project.boss.look, tidyName(project.boss.name)));
   return problems;
 }
 
