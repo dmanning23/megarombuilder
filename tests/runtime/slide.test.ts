@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { Abilities } from "@/model/hero";
 import type { Checkpoint } from "@/model/schema";
-import { playerPose } from "@/runtime/render/art";
+import { heroShown } from "@/runtime/render/animate";
 import { PLAYER_H, SLIDE_H } from "@/runtime/sim/constants";
 import { createSim, type Sim } from "@/runtime/sim/state";
 import { testPack } from "../fixtures/testPack";
@@ -43,7 +43,7 @@ describe("sliding", () => {
     slideRight(s);
     expect(s.player.h).toBe(SLIDE_H);
     expect(s.player.vx).toBeGreaterThan(1.875);
-    expect(playerPose(s.player, s.steps).pose).toBe("slide");
+    expect(heroShown(s.player, s.steps, {}).animation).toBe("slide");
     runUntil(s, {}, standing);
     expect(s.player.x - start).toBeGreaterThan(56);
     expect(s.player.x - start).toBeLessThan(76);

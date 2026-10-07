@@ -19,6 +19,8 @@ import { heroArt } from "@/runtime/render/heroArt";
 import { createKeyboard } from "@/runtime/render/keyboard";
 import { MAX_STEPS_PER_FRAME, STEP_MS, stepsFor } from "@/runtime/render/loop";
 import { NO_INPUT } from "@/runtime/sim/state";
+import { ownSkins } from "@/runtime/render/lookArt";
+import { game, run as runCommand } from "../ai/helpers";
 import { flatArt, thing } from "./helpers";
 import { makeSim, run, runUntil } from "./simHelpers";
 
@@ -372,5 +374,67 @@ describe("drawing with sprites", () => {
     draw(ctx, sim, skin());
     expect(ctx.images).toContainEqual({ sprite: hero.shot, flip: true, x: 50, y: 190 });
     expect(ctx.images).toContainEqual({ sprite: snowArt.enemyShot, flip: false, x: 90, y: 100 });
+  });
+});
+
+describe("animations in the game", () => {
+  // A walker of the kid's whose walk has four frames, each a different solid colour slot, played fast.
+  function fourFrameWalker() {
+    let project = runCommand(game(), "addEnemy", { enemyId: "e1", name: "Frost Fang", behaviour: "walker" });
+    const target = { enemy: "e1" };
+    const solid = (ch: string) => Array.from({ length: 16 }, () => ch.repeat(16));
+    project = runCommand(project, "setFrame", { target, animation: "walk", frame: 0, rows: solid("1") });
+    project = runCommand(project, "setFrame", { target, animation: "walk", frame: 1, rows: solid("2") });
+    project = runCommand(project, "addFrame", { target, animation: "walk", after: 1 });
+    project = runCommand(project, "setFrame", { target, animation: "walk", frame: 2, rows: solid("3") });
+    project = runCommand(project, "addFrame", { target, animation: "walk", after: 2 });
+    project = runCommand(project, "setFrame", { target, animation: "walk", frame: 3, rows: solid("4") });
+    project = runCommand(project, "setLookColours", { target, colours: [1, 2, 3, 4] });
+    project = runCommand(project, "setAnimationSpeed", { target, animation: "walk", speed: "fast" });
+    return runCommand(project, "placeThing", { levelId: "L1", zoneId: "z1", thingId: "t1", type: "own-e1", x: 8, y: 12 });
+  }
+
+  it("cycles a kid's enemy through all its frames at its speed", () => {
+    const project = fourFrameWalker();
+    const own = ownSkins(project.enemies, () => fakeImage);
+    const walk = own["own-e1"].animations.walk.frames;
+    const sim = createSim(project, "L1", snowPack);
+    sim.player.invuln = 1_000_000;
+    const seen = new Set<Sprite>();
+    for (let i = 0; i < 20; i++) {
+      step(sim, NO_INPUT);
+      const ctx = fakeContext();
+      draw(ctx, sim, { set: snowArt, image: fakeImage, own });
+      const shown = ctx.images.find((img) => walk.includes(img.sprite));
+      if (shown) seen.add(shown.sprite);
+    }
+    expect(seen.size).toBe(4); // fast: 5 steps a frame, so 20 steps show all four
+  });
+
+  it("still blinks a kid's enemy after a hit", () => {
+    const project = fourFrameWalker();
+    const own = ownSkins(project.enemies, () => fakeImage);
+    const sim = createSim(project, "L1", snowPack);
+    step(sim, NO_INPUT);
+    const fang = sim.slots.find((s) => s.thing.type === "own-e1")!.entity!;
+    fang.flash = 1; // flash % 4 < 2: hidden on this draw
+    const ctx = fakeContext();
+    draw(ctx, sim, { set: snowArt, image: fakeImage, own });
+    const walk = own["own-e1"].animations.walk.frames;
+    expect(ctx.images.some((img) => walk.includes(img.sprite))).toBe(false);
+  });
+
+  it("draws an upgraded hero exactly as before at every step of a run", () => {
+    const project = game();
+    const art = heroArt(project.hero.look);
+    const sim = createSim(project, "L1", snowPack);
+    for (let i = 0; i < 24; i++) {
+      step(sim, { ...NO_INPUT, right: true });
+      if (!sim.player.onGround) continue;
+      const ctx = fakeContext();
+      draw(ctx, sim, { set: snowArt, image: fakeImage, hero: { art, image: fakeImage } });
+      const expected = sim.player.vx === 0 ? art.poses.stand : Math.floor(sim.steps / 6) % 2 === 0 ? art.poses.run1 : art.poses.run2;
+      expect(ctx.images.map((img) => img.sprite)).toContain(expected);
+    }
   });
 });
