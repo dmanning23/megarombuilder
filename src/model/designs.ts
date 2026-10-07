@@ -115,6 +115,13 @@ export const bossDesignSchema = z.object({
 });
 export type BossDesign = z.infer<typeof bossDesignSchema>;
 
+export const FIGHT_HEALTH: Record<BossDesign["fight"], number> = { short: 20, normal: 28, long: 40 };
+
+// The thing settings for the kid's boss: its health and its attacks in order.
+export function bossSettings(boss: BossDesign): { health: number; attacks: string } {
+  return { health: FIGHT_HEALTH[boss.fight], attacks: boss.attacks.join(",") };
+}
+
 // Everything wrong with a design's frames that the schema can't see.
 export function framesProblems(name: string, look: DesignLook, size: { w: number; h: number }): string[] {
   const problems: string[] = [];

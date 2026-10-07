@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { snowArt } from "@/content/snow/art";
-import { snowEnemyLooks } from "@/content/snow/enemies";
+import { snowBossLook, snowEnemyLooks } from "@/content/snow/enemies";
 import { snowPack } from "@/content/snow/pack";
-import { ENEMY_BEHAVIOURS, ENEMY_FRAME, framesProblems } from "@/model/designs";
+import { BOSS_FRAME, ENEMY_BEHAVIOURS, ENEMY_FRAME, framesProblems } from "@/model/designs";
 
 describe("the snow enemies as starting looks", () => {
   it("give every behaviour two good 16 by 16 frames", () => {
@@ -20,5 +20,14 @@ describe("the snow enemies as starting looks", () => {
 
   it("are the snow pack's starting looks", () => {
     expect(snowPack.enemyLooks).toBe(snowEnemyLooks);
+  });
+});
+
+describe("the Blizzard Bot as a starting look", () => {
+  it("has three good 24 by 28 frames in at most eight colours", () => {
+    expect(framesProblems("boss", snowBossLook, BOSS_FRAME)).toEqual([]);
+    expect(snowBossLook.frames).toHaveLength(3);
+    expect(snowBossLook.colours.length).toBeLessThanOrEqual(8);
+    expect(snowPack.bossLook).toBe(snowBossLook);
   });
 });
