@@ -7,6 +7,7 @@ import { Editor } from "@/editor/Editor";
 import { ZOOM } from "@/editor/hero/pixels";
 import { newProject } from "@/editor/newProject";
 import type { Project } from "@/model/schema";
+import { designFrames } from "@/model/designs";
 
 afterEach(cleanup);
 
@@ -90,9 +91,9 @@ describe("the Boss tab", () => {
     await make();
     await userEvent.click(within(screen.getByRole("group", { name: "Frames" })).getByRole("button", { name: "Attack" }));
     expect(screen.getByRole("img", { name: "Attack, 24 by 28 pixels" })).toBeTruthy();
-    expect(snowPack.bossLook.frames[2][0][0]).toBe(".");
+    expect(designFrames("boss", snowPack.bossLook)[2][0][0]).toBe(".");
     press(0, 0);
-    expect(saved().boss?.look.frames[2][0][0]).toBe("1");
+    expect(designFrames("boss", saved().boss!.look)[2][0][0]).toBe("1");
   });
 
   it("puts it in the boss room and back, and undo follows", async () => {

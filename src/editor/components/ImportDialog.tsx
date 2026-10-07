@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import { PALETTE_8BIT } from "@/model/palette";
 import styles from "../editor.module.css";
 import { backgroundOf, importPicture, type Imported, type ImportTarget, type RawImage } from "../hero/importPicture";
+import { slotOf } from "@/model/look";
 
 type Props = {
   title: string; // the picture's name
@@ -36,7 +37,7 @@ function After({ rows, colours }: Imported) {
     rows.forEach((row, y) =>
       [...row].forEach((ch, x) => {
         if (ch === ".") return;
-        ctx.fillStyle = PALETTE_8BIT[colours[Number(ch) - 1]];
+        ctx.fillStyle = PALETTE_8BIT[colours[slotOf(ch) - 1]];
         ctx.fillRect(x, y, 1, 1);
       }),
     );

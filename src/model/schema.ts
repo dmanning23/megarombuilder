@@ -2,7 +2,7 @@ import { z } from "zod";
 import { bossDesignSchema, enemyDesignSchema, MAX_ENEMIES } from "./designs";
 import { heroSchema } from "./hero";
 
-export const FORMAT_VERSION = 3;
+export const FORMAT_VERSION = 4;
 
 export const MAX_ID_LENGTH = 64;
 

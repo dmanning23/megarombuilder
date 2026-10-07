@@ -1,4 +1,5 @@
 import { HERO_POSES, type HeroLook, type HeroPicture } from "@/model/hero";
+import { heroLookFrom, type OldHeroLook } from "@/model/lookUpgrade";
 import { nearestColour } from "@/model/palette";
 import { SNOW_PALETTE } from "./palette";
 
@@ -144,9 +145,11 @@ function toSlots(rows: string[]): string[] {
   );
 }
 
-export const snowHero: HeroLook = {
+const snowHeroPictures: OldHeroLook = {
   colours: LETTERS.map((ch) => nearestColour(SNOW_PALETTE[ch])),
-  poses: Object.fromEntries(HERO_POSES.map((pose) => [pose, toSlots(SNOW_HERO_PICTURES[pose])])) as HeroLook["poses"],
+  poses: Object.fromEntries(HERO_POSES.map((pose) => [pose, toSlots(SNOW_HERO_PICTURES[pose])])) as OldHeroLook["poses"],
   shot: toSlots(SHOT),
   chargedShot: toSlots(CHARGED_SHOT),
 };
+
+export const snowHero: HeroLook = heroLookFrom(snowHeroPictures);

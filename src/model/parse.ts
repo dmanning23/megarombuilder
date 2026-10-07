@@ -1,5 +1,7 @@
 import type { ContentPack } from "./contentPack";
+import type { EnemyBehaviour } from "./designs";
 import { abilitiesFromSettings } from "./hero";
+import { designLookFrom, heroLookFrom, type OldDesignLook, type OldHeroLook } from "./lookUpgrade";
 import { FORMAT_VERSION, projectSchema, type Project } from "./schema";
 import { structureProblems } from "./validate";
 
@@ -15,7 +17,38 @@ const UPGRADES: Record<number, (doc: Record<string, unknown>, pack: ContentPack)
   },
   // Version 3 gave games their own enemies and boss. A version 2 game has none of its own.
   2: (doc) => ({ ...doc, formatVersion: 3, enemies: [], boss: null }),
+  // Version 4 gave every character a look: named animations, canvas sizes, a hitbox and a shot point.
+  // A version 1 game's hero came from the pack, whose hero is already a look.
+  3: (doc) => ({
+    ...doc,
+    formatVersion: 4,
+    hero: upgradeHero(doc.hero),
+    enemies: Array.isArray(doc.enemies) ? doc.enemies.map(upgradeEnemy) : doc.enemies,
+    boss: upgradeDesign(doc.boss, "boss"),
+  }),
 };
+
+const isObject = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v);
+
+// Each converts only an old-shaped picture set, and leaves anything else for the schema to judge.
+function upgradeHero(hero: unknown): unknown {
+  if (!isObject(hero) || !isObject(hero.look) || !isObject(hero.look.poses)) return hero;
+  return { ...hero, look: heroLookFrom(hero.look as unknown as OldHeroLook) };
+}
+
+function upgradeDesign(design: unknown, kind: EnemyBehaviour | "boss"): unknown {
+  if (!isObject(design) || !isObject(design.look) || !Array.isArray(design.look.frames)) return design;
+  try {
+    return { ...design, look: designLookFrom(kind, design.look as unknown as OldDesignLook) };
+  } catch {
+    return design; // a damaged old look: the schema refuses it
+  }
+}
+
+function upgradeEnemy(enemy: unknown): unknown {
+  if (!isObject(enemy) || typeof enemy.behaviour !== "string") return enemy;
+  return upgradeDesign(enemy, enemy.behaviour as EnemyBehaviour);
+}
 
 const NOT_A_PROJECT = "This file is not a MegaRomBuilder project.";
 

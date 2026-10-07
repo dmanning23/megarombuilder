@@ -43,9 +43,10 @@ describe("command registry", () => {
         "placeThing", "moveThing", "removeThing", "setThingSettings",
         "insertPiece",
         "addCheckpoint", "removeCheckpoint",
-        "setHeroAbilities", "setHeroColours", "setHeroPose", "resetHeroLook",
-        "addEnemy", "renameEnemy", "setEnemyBehaviour", "setEnemyTuning", "setEnemyColours", "setEnemyFrame", "removeEnemy",
-        "createBoss", "setBoss", "setBossColours", "setBossFrame", "useBoss", "removeBoss",
+        "setHeroAbilities", "resetHeroLook",
+        "addEnemy", "renameEnemy", "setEnemyBehaviour", "setEnemyTuning", "removeEnemy",
+        "createBoss", "setBoss", "useBoss", "removeBoss",
+        "setLookColours", "setFrame", "addFrame", "removeFrame", "moveFrame", "setAnimationSpeed", "resizeCanvas", "setBody", "fitBody", "setShotY",
       ].sort(),
     );
     for (const def of commandDefs) expect(def.description.length).toBeGreaterThan(10);

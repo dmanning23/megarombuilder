@@ -1,25 +1,28 @@
 import { KEEP_TILE, type ContentPack } from "@/model/contentPack";
-import { ENEMY_BEHAVIOURS, type BossDesign, type EnemyBehaviour, type EnemyDesign } from "@/model/designs";
-import { HERO_PICTURES, PICTURE_SIZES, type HeroLook, type HeroPicture } from "@/model/hero";
+import { ENEMY_BEHAVIOURS, type EnemyBehaviour } from "@/model/designs";
+import { HERO_POSES, PICTURE_SIZES, type HeroLook, type HeroPicture } from "@/model/hero";
+import type { Look } from "@/model/look";
+import { designLookFrom, heroLookFrom, type OldHeroLook } from "@/model/lookUpgrade";
 
 const solid = (picture: HeroPicture) =>
   Array.from({ length: PICTURE_SIZES[picture].h }, () => "1".repeat(PICTURE_SIZES[picture].w));
 
 const enemyFrame = Array.from({ length: 16 }, () => "1".repeat(16));
 export const testEnemyLooks = Object.fromEntries(
-  ENEMY_BEHAVIOURS.map((b) => [b, { colours: [13], frames: [enemyFrame, enemyFrame] }]),
-) as Record<EnemyBehaviour, EnemyDesign["look"]>;
+  ENEMY_BEHAVIOURS.map((b) => [b, designLookFrom(b, { colours: [13], frames: [enemyFrame, enemyFrame] })]),
+) as Record<EnemyBehaviour, Look>;
 
 const bossFrame = Array.from({ length: 28 }, () => "1".repeat(24));
-export const testBossLook = { colours: [13], frames: [bossFrame, bossFrame, bossFrame] } as BossDesign["look"];
+export const testBossLook: Look = designLookFrom("boss", { colours: [13], frames: [bossFrame, bossFrame, bossFrame] });
 
 // A plain black hero: every picture filled with its one colour.
-export const testHero: HeroLook = {
+export const testOldHero: OldHeroLook = {
   colours: [13],
-  poses: Object.fromEntries(HERO_PICTURES.filter((p) => p !== "shot" && p !== "chargedShot").map((p) => [p, solid(p)])) as HeroLook["poses"],
+  poses: Object.fromEntries(HERO_POSES.map((p) => [p, solid(p)])) as OldHeroLook["poses"],
   shot: solid("shot"),
   chargedShot: solid("chargedShot"),
 };
+export const testHero: HeroLook = heroLookFrom(testOldHero);
 
 export const testPack: ContentPack = {
   id: "test",

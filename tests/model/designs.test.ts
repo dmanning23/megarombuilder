@@ -4,13 +4,14 @@ import {
   defaultTuning,
   ENEMY_BEHAVIOURS,
   enemyDesignSchema,
-  framesProblems,
   lettersToLook,
   tuningSettings,
   TUNING_USED,
   type EnemyDesign,
 } from "@/model/designs";
-import { nearestColour } from "@/model/palette";
+import { lookProblems } from "@/model/look";
+import { designLookFrom } from "@/model/lookUpgrade";
+import { nearestColour, PALETTE_8BIT } from "@/model/palette";
 
 const solid = (ch = "1") => Array.from({ length: 16 }, () => ch.repeat(16));
 
@@ -20,7 +21,7 @@ function design(changes: Partial<EnemyDesign> = {}): EnemyDesign {
     name: "Frost Fang",
     behaviour: "walker",
     tuning: defaultTuning("walker"),
-    look: { colours: [13], frames: [solid(), solid()] },
+    look: designLookFrom("walker", { colours: [13], frames: [solid(), solid()] }),
     ...changes,
   };
 }
@@ -66,36 +67,18 @@ describe("design schemas", () => {
     expect(enemyDesignSchema.safeParse(design()).success).toBe(true);
     expect(enemyDesignSchema.safeParse({ ...design(), behaviour: "dragon" }).success).toBe(false);
     expect(enemyDesignSchema.safeParse({ ...design(), tuning: { ...design().tuning, health: 4 } }).success).toBe(false);
-    expect(enemyDesignSchema.safeParse({ ...design(), look: { colours: [0, 1, 2, 3, 4, 5, 6, 7, 8], frames: [solid(), solid()] } }).success).toBe(false);
-    expect(enemyDesignSchema.safeParse({ ...design(), look: { colours: [13], frames: [solid()] } }).success).toBe(false);
+    expect(enemyDesignSchema.safeParse({ ...design(), look: { ...design().look, colours: Array.from({ length: 17 }, (_, i) => i) } }).success).toBe(false);
+    expect(lookProblems("walker", { ...design().look, animations: {} }, "Frost Fang")).toEqual(["Frost Fang has no Walk animation."]);
     expect(enemyDesignSchema.safeParse({ ...design(), name: "" }).success).toBe(false);
   });
 
   it("accept a boss with two or three attacks, and no other number", () => {
     const frame = Array.from({ length: 28 }, () => "1".repeat(24));
-    const boss = { name: "Volt Viper", fight: "normal", attacks: ["jump", "rain"], look: { colours: [13], frames: [frame, frame, frame] } };
+    const boss = { name: "Volt Viper", fight: "normal", attacks: ["jump", "rain"], look: designLookFrom("boss", { colours: [13], frames: [frame, frame, frame] }) };
     expect(bossDesignSchema.safeParse(boss).success).toBe(true);
     expect(bossDesignSchema.safeParse({ ...boss, attacks: ["jump", "dash", "spread", "big"] }).success).toBe(false);
     expect(bossDesignSchema.safeParse({ ...boss, attacks: ["jump"] }).success).toBe(false);
     expect(bossDesignSchema.safeParse({ ...boss, attacks: ["jump", "fireworks"] }).success).toBe(false);
-  });
-});
-
-describe("framesProblems", () => {
-  it("finds nothing wrong with a good look", () => {
-    expect(framesProblems("Frost Fang", design().look, { w: 16, h: 16 })).toEqual([]);
-  });
-
-  it("names a frame of the wrong size, an odd pixel, or a missing colour", () => {
-    expect(framesProblems("Frost Fang", { colours: [13], frames: [solid(), ["1"]] }, { w: 16, h: 16 })).toEqual([
-      "Frost Fang frame 2 is not 16 by 16 pixels.",
-    ]);
-    expect(framesProblems("Frost Fang", { colours: [13], frames: [solid("x"), solid()] }, { w: 16, h: 16 })).toEqual([
-      'Frost Fang frame 1 has a pixel "x" that is not a colour.',
-    ]);
-    expect(framesProblems("Frost Fang", { colours: [13], frames: [solid(), solid("2")] }, { w: 16, h: 16 })).toEqual([
-      "Frost Fang frame 2 uses colour 2, but Frost Fang only has 1 colour.",
-    ]);
   });
 });
 
@@ -106,9 +89,11 @@ describe("lettersToLook", () => {
     expect(look.frames).toEqual([["12", "21"], ["21", "12"]]);
   });
 
-  it("keeps see-through pixels and refuses more than eight colours", () => {
+  it("keeps see-through pixels, names slots past 9 with letters, and refuses more than sixteen colours", () => {
     expect(lettersToLook([[".k"]], { k: "#000000" }).frames).toEqual([[".1"]]);
-    const many = Object.fromEntries("abcdefghi".split("").map((ch, i) => [ch, ["#000000", "#ffffff", "#ff0000", "#00ff00", "#0000ff", "#ffff00", "#00ffff", "#ff00ff", "#888888"][i]]));
-    expect(() => lettersToLook([["abcdefghi"]], many)).toThrow(/more than 8 colours/);
+    const letters = "ABCDEFGHIJKLMNOPQ";
+    const many = Object.fromEntries([...letters].map((ch, i) => [ch, PALETTE_8BIT[i * 3]]));
+    expect(lettersToLook([[letters.slice(0, 16)]], many).frames).toEqual([["123456789abcdefg"]]);
+    expect(() => lettersToLook([[letters]], many)).toThrow(/more than 16 colours/);
   });
 });

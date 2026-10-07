@@ -41,7 +41,10 @@ import its three frames, watch it fight in a preview, and put it in the boss
 room. The assistant knows the kid's own enemies and boss: asked for "a level
 for my Frost Fang", it makes that enemy the star, builds the boss room for the
 boss's attacks, and never changes the designs (their settings come from the
-Characters screen alone). 928 tests and 12 browser tests pass; typecheck, lint and build are clean. Browser tests: `npm run e2e`
+Characters screen alone). Milestone 4 has begun: game files are format 4, and
+every character (hero, enemies, boss) stores one shared look with canvas sizes,
+up to 16 colours, named animations of 1 to 8 frames, a hitbox and a shot point,
+changed by ten look commands; nothing visible has changed yet. 953 tests and 12 browser tests pass; typecheck, lint and build are clean. Browser tests: `npm run e2e`
 (builds and serves on port 3100).
 
 | Document | State |
@@ -68,7 +71,7 @@ Characters screen alone). 928 tests and 12 browser tests pass; typecheck, lint a
 | `plans/2026-10-07-m3-plan-4-boss-tab.md` | Milestone 3 plan 4 of 5, implemented, reviewed and merged |
 | `plans/2026-10-07-m3-plan-5-assistant.md` | Milestone 3 plan 5 of 5, implemented, reviewed and merged |
 | `specs/2026-10-07-milestone-4-characters-that-fit-design.md` | Milestone 4 spec (characters that fit), approved |
-| `plans/2026-10-07-m4-plan-1-shared-look.md` | Milestone 4 plan 1 of 5, written, waiting for approval |
+| `plans/2026-10-07-m4-plan-1-shared-look.md` | Milestone 4 plan 1 of 5, implemented, reviewed and merged |
 
 Milestone 1 is now eight plans (the editor became two):
 
@@ -104,6 +107,13 @@ Milestone 3, your own enemies and boss, was five plans:
 2. Try the assistant with a real API key using `docs/superpowers/ai-prompts.md`
    (prompts 1–17), and play what it builds.
 3. Review findings deferred in each plan's final review, to decide on:
+   - M4 plan 1: runShoot is copied from run once and doesn't follow run edits;
+     plan 2 must resync or mirror it before the game plays runShoot.
+   - M4 plan 1: fitBody or resizeCanvas on a shooter shorter than its shot
+     refuses with "shot point is outside its hitbox" instead of the real cause.
+   - M4 plan 1: resizeCanvas's comment on odd differences is wrong for trims
+     (unreachable: resizable sides are even); pixels.ts comments still say
+     pixels are digits.
    - M3 plan 5: the assistant's boss line can name a boss that isn't there
      (the Blizzard Bot erased, or the kid's boss placed outside the boss room).
    - M3 plan 5: enemy lines say a bare "normal" or "slow" for speed; "normal

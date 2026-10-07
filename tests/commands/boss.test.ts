@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { designFrames } from "@/model/designs";
 import { createHistory, runCommand, undo } from "@/commands/history";
 import { testBossLook } from "../fixtures/testPack";
 import { baseProject, ctx, run, runError } from "./helpers";
@@ -32,11 +33,13 @@ describe("changing the boss", () => {
 
   it("draws frames and recolours, refusing to drop a used colour", () => {
     let project = run(baseProject(), "createBoss", { name: "Volt Viper" });
-    project = run(project, "setBossColours", { colours: [13, 20] });
-    project = run(project, "setBossFrame", { frame: 2, rows: frame("2") });
-    expect(project.boss?.look.frames[2]).toEqual(frame("2"));
-    expect(runError(project, "setBossColours", { colours: [13] })).toBe("Colour 2 is still used in Volt Viper's frame 3.");
-    expect(runError(project, "setBossFrame", { frame: 0, rows: ["1"] })).toBe("Volt Viper frame 1 is not 24 by 28 pixels.");
+    project = run(project, "setLookColours", { target: "boss", colours: [13, 20] });
+    project = run(project, "setFrame", { target: "boss", animation: "attack", frame: 0, rows: frame("2") });
+    expect(designFrames("boss", project.boss!.look)[2]).toEqual(frame("2"));
+    expect(runError(project, "setLookColours", { target: "boss", colours: [13] })).toBe("Colour 2 is still used in Attack frame 1.");
+    expect(runError(project, "setFrame", { target: "boss", animation: "stand", frame: 0, rows: ["1"] })).toBe(
+      "Volt Viper's Stand frame 1 is not 24 by 28 pixels.",
+    );
   });
 });
 

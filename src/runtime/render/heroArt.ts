@@ -1,4 +1,5 @@
-import { HERO_POSES, type HeroLook, type HeroPose } from "@/model/hero";
+import { HERO_POSES, pictureRows, type HeroLook, type HeroPose } from "@/model/hero";
+import { slotChar } from "@/model/look";
 import { PALETTE_8BIT } from "@/model/palette";
 import { sprite, type Sprite } from "./art";
 
@@ -17,10 +18,10 @@ const FLASH_WHITE = "#fcfcfc";
 
 export function heroArt(look: HeroLook): HeroArt {
   return {
-    palette: Object.fromEntries(look.colours.map((colour, i) => [String(i + 1), PALETTE_8BIT[colour]])),
-    flashPalette: Object.fromEntries(look.colours.map((_, i) => [String(i + 1), FLASH_WHITE])),
-    poses: Object.fromEntries(HERO_POSES.map((pose) => [pose, sprite(look.poses[pose])])) as Record<HeroPose, Sprite>,
-    shot: sprite(look.shot),
-    chargedShot: sprite(look.chargedShot),
+    palette: Object.fromEntries(look.colours.map((colour, i) => [slotChar(i + 1), PALETTE_8BIT[colour]])),
+    flashPalette: Object.fromEntries(look.colours.map((_, i) => [slotChar(i + 1), FLASH_WHITE])),
+    poses: Object.fromEntries(HERO_POSES.map((pose) => [pose, sprite(pictureRows(look, pose))])) as Record<HeroPose, Sprite>,
+    shot: sprite(pictureRows(look, "shot")),
+    chargedShot: sprite(pictureRows(look, "chargedShot")),
   };
 }

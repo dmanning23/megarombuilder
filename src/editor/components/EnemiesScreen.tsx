@@ -12,6 +12,9 @@ import {
   SHOOT_STEPS,
   SPEED_STEPS,
   TUNING_USED,
+  designFrames,
+  designSlot,
+  designLook,
   type EnemyBehaviour,
   type EnemyDesign,
   type EnemyTuning,
@@ -108,7 +111,7 @@ export function EnemiesScreen({
   const [frame, setFrame] = useState<0 | 1>(0);
   const [tool, setTool] = useState<DrawTool>("pencil");
   const [slot, setSlot] = useState(1);
-  const arts = useMemo(() => new Map(enemies.map((e) => [e.id, lookArt(e.look)])), [enemies]);
+  const arts = useMemo(() => new Map(enemies.map((e) => [e.id, lookArt(designLook(e.behaviour, e.look))])), [enemies]);
 
   const [newError, setNewError] = useState<string | null>(null);
   const create = (behaviour: EnemyBehaviour) => {
@@ -238,7 +241,7 @@ export function EnemiesScreen({
             <PictureEditor
               key={`${enemy.id}:${frame}`}
               name={`Frame ${frame + 1}`}
-              rows={enemy.look.frames[frame]}
+              rows={designFrames(enemy.behaviour, enemy.look)[frame]}
               palette={arts.get(enemy.id)!.palette}
               size={ENEMY_FRAME}
               body={enemyBody(enemy.behaviour)}
@@ -249,16 +252,16 @@ export function EnemiesScreen({
               onTool={setTool}
               slot={Math.min(slot, enemy.look.colours.length)}
               onSlot={setSlot}
-              partners={[{ id: String(1 - frame), name: `Frame ${2 - frame}`, rows: enemy.look.frames[1 - frame] }]}
+              partners={[{ id: String(1 - frame), name: `Frame ${2 - frame}`, rows: designFrames(enemy.behaviour, enemy.look)[1 - frame] }]}
               importTarget={{ ...ENEMY_FRAME, stand: true }}
               readPicture={readPicture}
               locked={locked}
-              onRows={(rows) => onCommand({ name: "setEnemyFrame", args: { enemyId: enemy.id, frame, rows } })}
+              onRows={(rows) => onCommand({ name: "setFrame", args: { target: { enemy: enemy.id }, ...designSlot(enemy.behaviour, enemy.look, frame), rows } })}
               onImport={(result) => {
                 if (result.colours.length !== enemy.look.colours.length) {
-                  onCommand({ name: "setEnemyColours", args: { enemyId: enemy.id, colours: result.colours } });
+                  onCommand({ name: "setLookColours", args: { target: { enemy: enemy.id }, colours: result.colours } });
                 }
-                onCommand({ name: "setEnemyFrame", args: { enemyId: enemy.id, frame, rows: result.rows } });
+                onCommand({ name: "setFrame", args: { target: { enemy: enemy.id }, ...designSlot(enemy.behaviour, enemy.look, frame), rows: result.rows } });
               }}
               onBegin={onBegin}
               onCommit={onCommit}
@@ -269,7 +272,7 @@ export function EnemiesScreen({
               colours={enemy.look.colours}
               slot={Math.min(slot, enemy.look.colours.length)}
               onSlot={setSlot}
-              onColours={(colours) => onCommand({ name: "setEnemyColours", args: { enemyId: enemy.id, colours } })}
+              onColours={(colours) => onCommand({ name: "setLookColours", args: { target: { enemy: enemy.id }, colours } })}
             />
             <EnemyPreview enemy={enemy} project={project} pack={pack} art={art} />
             <button

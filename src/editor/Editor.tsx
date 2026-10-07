@@ -12,6 +12,7 @@ import { PlayCanvas } from "@/runtime/render/PlayCanvas";
 import { browserCanvas, createSpriteCache } from "@/runtime/render/sprites";
 import { ChatPanel } from "./components/ChatPanel";
 import { CharactersScreen } from "./components/CharactersScreen";
+import { designLook } from "@/model/designs";
 import { gamePack, ownType } from "@/model/gamePack";
 import { lookArt, ownSkins } from "@/runtime/render/lookArt";
 import type { RawImage } from "./hero/importPicture";
@@ -76,7 +77,7 @@ export function Editor({
   const fullPack = useMemo(() => gamePack(project, pack), [project, pack]);
   const enemies = project.enemies;
   const boss = project.boss;
-  const ownArt = useMemo(() => Object.fromEntries(enemies.map((e) => [ownType(e.id), lookArt(e.look)])), [enemies]);
+  const ownArt = useMemo(() => Object.fromEntries(enemies.map((e) => [ownType(e.id), lookArt(designLook(e.behaviour, e.look))])), [enemies]);
   const skin = useMemo<Skin | undefined>(() => {
     if (!art || typeof document === "undefined") return undefined;
     return {

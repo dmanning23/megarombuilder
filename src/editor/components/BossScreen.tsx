@@ -3,7 +3,17 @@
 import { useCallback, useMemo, useState } from "react";
 import type { Command } from "@/commands/types";
 import type { ContentPack } from "@/model/contentPack";
-import { BOSS_ATTACKS, BOSS_FIGHTS, BOSS_FRAME, type BossAttack, type BossDesign, type EnemyDesign } from "@/model/designs";
+import {
+  BOSS_ATTACKS,
+  BOSS_FIGHTS,
+  BOSS_FRAME,
+  designFrames,
+  designSlot,
+  designLook,
+  type BossAttack,
+  type BossDesign,
+  type EnemyDesign,
+} from "@/model/designs";
 import { OWN_BOSS } from "@/model/gamePack";
 import { tidyName, type Project } from "@/model/schema";
 import type { ArtSet } from "@/runtime/render/art";
@@ -88,7 +98,7 @@ export function BossScreen({
   const [tool, setTool] = useState<DrawTool>("pencil");
   const [slot, setSlot] = useState(1);
   const look = boss?.look;
-  const bossArt = useMemo(() => (look ? lookArt(look) : null), [look]);
+  const bossArt = useMemo(() => (look ? lookArt(designLook("boss", look)) : null), [look]);
   const packBoss = pack.things.find((d) => d.behaviour === "boss" && !d.own);
   const inUse = bossInUse(project, pack);
 
@@ -175,7 +185,7 @@ export function BossScreen({
             <PictureEditor
               key={frame}
               name={FRAME_NAMES[frame]}
-              rows={boss.look.frames[frame]}
+              rows={designFrames("boss", boss.look)[frame]}
               palette={bossArt.palette}
               size={BOSS_FRAME}
               body={WHOLE_FRAME}
@@ -188,16 +198,16 @@ export function BossScreen({
               onSlot={setSlot}
               partners={([0, 1, 2] as const)
                 .filter((f) => f !== frame)
-                .map((f) => ({ id: String(f), name: FRAME_NAMES[f], rows: boss.look.frames[f] }))}
+                .map((f) => ({ id: String(f), name: FRAME_NAMES[f], rows: designFrames("boss", boss.look)[f] }))}
               importTarget={{ ...BOSS_FRAME, stand: true }}
               readPicture={readPicture}
               locked={locked}
-              onRows={(rows) => onCommand({ name: "setBossFrame", args: { frame, rows } })}
+              onRows={(rows) => onCommand({ name: "setFrame", args: { target: "boss", ...designSlot("boss", boss.look, frame), rows } })}
               onImport={(result) => {
                 if (result.colours.length !== boss.look.colours.length) {
-                  onCommand({ name: "setBossColours", args: { colours: result.colours } });
+                  onCommand({ name: "setLookColours", args: { target: "boss", colours: result.colours } });
                 }
-                onCommand({ name: "setBossFrame", args: { frame, rows: result.rows } });
+                onCommand({ name: "setFrame", args: { target: "boss", ...designSlot("boss", boss.look, frame), rows: result.rows } });
               }}
               onBegin={onBegin}
               onCommit={onCommit}
@@ -208,7 +218,7 @@ export function BossScreen({
               colours={boss.look.colours}
               slot={Math.min(slot, boss.look.colours.length)}
               onSlot={setSlot}
-              onColours={(colours) => onCommand({ name: "setBossColours", args: { colours } })}
+              onColours={(colours) => onCommand({ name: "setLookColours", args: { target: "boss", colours } })}
             />
             <BossPreview boss={boss} project={project} pack={pack} art={art} />
             <div role="group" aria-label="Use in the boss room" className={styles.ability}>
