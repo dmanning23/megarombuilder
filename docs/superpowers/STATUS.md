@@ -30,7 +30,7 @@ picture (or import a picture and touch it up), pick its colours from the 8-bit p
 (including slide and charge shot), watch the live preview, and see at once
 which zones it can't finish. The assistant knows the hero: it builds levels
 that use its abilities (crawl spaces only for a hero that can slide) and
-changes its abilities when asked. 860 tests and 10 browser tests pass; typecheck, lint and build are clean. Browser tests: `npm run e2e`
+changes its abilities when asked. 861 tests and 10 browser tests pass; typecheck, lint and build are clean. Browser tests: `npm run e2e`
 (builds and serves on port 3100).
 
 | Document | State |
@@ -79,6 +79,13 @@ Milestone 2, your own hero, was five plans:
 2. Try the assistant with a real API key using `docs/superpowers/ai-prompts.md`
    (prompts 1–13), and play what it builds.
 3. Review findings deferred from plans 2 and 3, to decide on:
+   - M3 plan 1: settings stored on a placed own enemy (including by the
+     assistant's set_thing_settings) override its design's tuning. Decide in M3
+     plan 5 whether to refuse them.
+   - M3 plan 1: once a game has its own enemies, the zone canvas redraws after
+     every edit (the editor's game pack is memoised on the whole project).
+   - M3 plan 1: a file with a placed own enemy but no design says "unknown thing
+     type" rather than kid-facing words.
    - M2 plan 5: the hero sentence shows low and normal jump both as "2 tiles",
      so "jump higher" from low may skip a step; name the step in the sentence.
    - M2 plan 5: the jump heights in the hero sentence are copied by hand; add a

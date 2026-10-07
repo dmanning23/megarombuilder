@@ -79,6 +79,15 @@ describe("placing and removing an enemy", () => {
     );
   });
 
+  it("names the level too when the enemy is used in more than one", () => {
+    let project = place(add());
+    project = run(project, "createLevel", { levelId: "L2", name: "Ice Stage", zoneIds: ["a", "b", "c"] });
+    project = run(project, "placeThing", { levelId: "L2", zoneId: "a", thingId: "t9", type: "own-e1", x: 3, y: 12 });
+    expect(runError(project, "removeEnemy", { enemyId: "e1" })).toBe(
+      "Frost Fang is used in Zone 1 in Snow Stage and Zone 1 in Ice Stage.",
+    );
+  });
+
   it("removes an enemy that isn't placed", () => {
     expect(run(add(), "removeEnemy", { enemyId: "e1" }).enemies).toEqual([]);
   });

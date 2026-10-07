@@ -139,8 +139,13 @@ const removeEnemyCommand = defineCommand({
     const enemy = findEnemy(project, args.enemyId);
     if (typeof enemy === "string") return fail(enemy);
     const type = ownType(enemy.id);
-    const zones = project.levels.flatMap((level) => level.zones.filter((z) => z.things.some((t) => t.type === type)).map((z) => z.name));
-    if (zones.length > 0) return fail(`${tidyName(enemy.name)} is used in ${listNames(zones)}.`);
+    const uses = project.levels.flatMap((level) =>
+      level.zones.filter((z) => z.things.some((t) => t.type === type)).map((z) => ({ zone: z.name, level: level.name })),
+    );
+    // Zone names are only unique within a level, so name the level too when there is more than one.
+    const manyLevels = new Set(uses.map((u) => u.level)).size > 1;
+    const places = uses.map((u) => (manyLevels ? `${u.zone} in ${u.level}` : u.zone));
+    if (places.length > 0) return fail(`${tidyName(enemy.name)} is used in ${listNames(places)}.`);
     return ok({ ...project, enemies: project.enemies.filter((e) => e.id !== enemy.id) });
   },
 });
