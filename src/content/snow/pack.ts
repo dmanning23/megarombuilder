@@ -1,6 +1,6 @@
 import type { ContentPack } from "@/model/contentPack";
 
-import { snowEnemyLooks } from "./enemies";
+import { snowBossLook, snowEnemyLooks } from "./enemies";
 import { snowHero } from "./hero";
 import { snowPieces } from "./pieces";
 import { GROUND, ICE, LADDER, LEDGE, SPIKE } from "./tiles";
@@ -34,4 +34,5 @@ export const snowPack: ContentPack = {
     pieces: snowPieces,
     hero: snowHero,
     enemyLooks: snowEnemyLooks,
+    bossLook: snowBossLook,
 };

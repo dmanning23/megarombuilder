@@ -1,40 +1,117 @@
+import { BOSS_ATTACKS, type BossAttack } from "@/model/designs";
+import { TILE_SIZE } from "@/model/geometry";
 import { moveX } from "../body";
-import { BOSS_IDLE_STEPS } from "../constants";
+import {
+  AIMED_SHOT_SPEED,
+  BIG_SHOT_DAMAGE,
+  BIG_SHOT_HEIGHT,
+  BIG_SHOT_SIZE,
+  BIG_SHOT_SPEED,
+  BOSS_HURRIED_IDLE_STEPS,
+  BOSS_IDLE_STEPS,
+  ENEMY_SHOT_SIZE,
+  RAIN_SPACING,
+  RAIN_SPEED,
+  SCREEN_H,
+} from "../constants";
 import type { Sim } from "../state";
+import { firstTile, isSolid } from "../tilemap";
+import { cameraFor } from "../view";
 import { fall, fireAt, towardPlayer } from "./motion";
 import { num, type Entity } from "./types";
 
-const ATTACKS = ["jump", "shot", "dash"] as const;
+const DEFAULT_ATTACKS: BossAttack[] = ["jump", "spread", "dash"]; // the Blizzard Bot's
+const SHOOTING: ReadonlySet<string> = new Set(["spread", "aimed", "rain", "big"]);
+
+// The boss's attacks, in order, from its settings ("jump,rain"); unknown names are skipped.
+export function attacksOf(e: Entity): BossAttack[] {
+  const list = e.settings.attacks;
+  if (typeof list !== "string") return DEFAULT_ATTACKS;
+  const attacks = list
+    .split(",")
+    .map((name) => name.trim())
+    .filter((name): name is BossAttack => (BOSS_ATTACKS as readonly string[]).includes(name));
+  return attacks.length > 0 ? attacks : DEFAULT_ATTACKS;
+}
+
+// The first open tile at or below `top` in the column at `cx`, so rain falls from under a ceiling
+// rather than vanishing inside it; null when the column is solid all the way down the screen.
+function belowCeiling(sim: Sim, cx: number, top: number): number | null {
+  const tx = firstTile(cx);
+  for (let ty = firstTile(top); ty * TILE_SIZE < top + SCREEN_H; ty++) {
+    if (!isSolid(sim.map.behaviourAt(tx, ty))) return Math.max(top, ty * TILE_SIZE);
+  }
+  return null;
+}
 
 function toIdle(e: Entity): void {
   e.mode = "idle";
-  e.timer = BOSS_IDLE_STEPS;
+  // Only a boss with its own attack list hurries when hurt, so the Blizzard Bot fights as it always has.
+  const hurt = typeof e.settings.attacks === "string" && e.health < num(e.settings, "health", 28) / 2;
+  e.timer = hurt ? BOSS_HURRIED_IDLE_STEPS : BOSS_IDLE_STEPS;
   e.vx = 0;
 }
 
 function startAttack(sim: Sim, e: Entity): void {
-  const attack = ATTACKS[e.attack % ATTACKS.length];
+  const attacks = attacksOf(e);
+  const attack = attacks[e.attack % attacks.length];
+  // How many rains came before this one, so the rain's gap moves every other rain whatever the list.
+  const cycles = Math.floor(e.attack / attacks.length);
+  const rainsBefore =
+    cycles * attacks.filter((a) => a === "rain").length +
+    attacks.slice(0, e.attack % attacks.length).filter((a) => a === "rain").length;
   e.attack++;
   e.facing = towardPlayer(sim, e);
   e.mode = attack;
   const s = e.settings;
+  const damage = num(s, "shotDamage", 3);
   if (attack === "jump") {
     e.vy = -num(s, "jumpSpeed", 5.5);
     e.vx = e.facing * num(s, "jumpDrift", 1.75);
-  } else if (attack === "shot") {
+  } else if (attack === "dash") {
+    e.vx = e.facing * num(s, "dashSpeed", 3);
+  } else if (attack === "spread") {
     const speed = num(s, "shotSpeed", 2);
-    const damage = num(s, "shotDamage", 3);
     for (const vy of [-0.5, 0, 0.5]) fireAt(sim, e, e.facing * speed, vy, damage);
     e.timer = 40;
+  } else if (attack === "aimed") {
+    const p = sim.player;
+    const dx = p.x + p.w / 2 - (e.x + e.w / 2);
+    const dy = p.y + p.h / 2 - (e.y + e.h / 2);
+    const distance = Math.hypot(dx, dy) || 1;
+    fireAt(sim, e, (dx / distance) * AIMED_SHOT_SPEED, (dy / distance) * AIMED_SHOT_SPEED, damage);
+    e.timer = 40;
+  } else if (attack === "rain") {
+    // Four shots from the top of the screen, around the hero, with gaps over two tiles wide. Every
+    // other rain the pattern shifts, so standing still isn't always safe.
+    const p = sim.player;
+    const top = cameraFor(sim).y;
+    const shift = rainsBefore % 2 === 0 ? 0 : -RAIN_SPACING / 2;
+    const centre = p.x + p.w / 2 - ENEMY_SHOT_SIZE / 2 + shift;
+    for (const k of [-2, -1, 0, 1]) {
+      const x = centre + k * RAIN_SPACING;
+      const y = belowCeiling(sim, x + ENEMY_SHOT_SIZE / 2, top);
+      if (y !== null) sim.enemyShots.push({ x, y, vx: 0, vy: RAIN_SPEED, damage });
+    }
+    e.timer = 40;
   } else {
-    e.vx = e.facing * num(s, "dashSpeed", 3);
+    // big: one large, slow shot at chest height, low enough to jump, high enough to slide under.
+    sim.enemyShots.push({
+      x: e.facing > 0 ? e.x + e.w : e.x - BIG_SHOT_SIZE,
+      y: e.y + e.h - BIG_SHOT_HEIGHT,
+      vx: e.facing * BIG_SHOT_SPEED,
+      vy: 0,
+      damage: BIG_SHOT_DAMAGE,
+      size: BIG_SHOT_SIZE,
+    });
+    e.timer = 40;
   }
 }
 
-// Blizzard Bot: an intro, then idle and an attack in turn, forever.
+// A boss: an intro, then idle and an attack in turn, forever.
 export function updateBoss(sim: Sim, e: Entity): void {
   if (e.flash > 0) e.flash--;
-  if (e.mode === "intro" || e.mode === "idle" || e.mode === "shot") {
+  if (e.mode === "intro" || e.mode === "idle" || SHOOTING.has(e.mode)) {
     e.timer--;
     if (e.timer <= 0) {
       if (e.mode === "idle") startAttack(sim, e);

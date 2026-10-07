@@ -35,7 +35,7 @@ describe("the boss", () => {
     expect(boss.health).toBe(28);
   });
 
-  it("attacks in the order jump, shot, dash, then repeats", () => {
+  it("attacks in the order jump, spread, dash, then repeats", () => {
     const { sim, boss } = arena();
     sim.player.invuln = 1_000_000;
     const attacks: string[] = [];
@@ -44,13 +44,13 @@ describe("the boss", () => {
       run(sim, {}, 1);
       if (boss.mode !== before && boss.mode !== "idle") attacks.push(boss.mode);
     }
-    expect(attacks).toEqual(["jump", "shot", "dash", "jump"]);
+    expect(attacks).toEqual(["jump", "spread", "dash", "jump"]);
   });
 
   it("fires three spreading shots in its shot attack", () => {
     const { sim, boss } = arena();
     sim.player.invuln = 1_000_000;
-    for (let i = 0; i < 1500 && boss.mode !== "shot"; i++) run(sim, {}, 1);
+    for (let i = 0; i < 1500 && boss.mode !== "spread"; i++) run(sim, {}, 1);
     expect(sim.enemyShots.map((s) => s.vy).sort((a, b) => a - b)).toEqual([-0.5, 0, 0.5]);
     expect(sim.enemyShots.every((s) => s.vx === -2 && s.damage === 3)).toBe(true);
   });
@@ -106,6 +106,6 @@ describe("the boss", () => {
       attacks.add(boss.mode);
       expect(boss.y).toBeLessThanOrEqual(sim.map.heightPx);
     }
-    expect([...attacks]).toEqual(expect.arrayContaining(["jump", "shot", "dash"]));
+    expect([...attacks]).toEqual(expect.arrayContaining(["jump", "spread", "dash"]));
   });
 });

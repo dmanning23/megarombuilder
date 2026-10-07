@@ -190,8 +190,9 @@ export function draw(ctx: Ctx2D, sim: Sim, skin?: Skin): void {
   for (const shot of sim.enemyShots) {
     const x = Math.round(shot.x) + originX;
     const y = Math.round(shot.y) + originY;
-    if (skin) ctx.drawImage(skin.image(skin.set.enemyShot, shot.vx < 0), x, y);
-    else rect(ctx, ENEMY_SHOT_COLOUR, x, y, ENEMY_SHOT_SIZE, ENEMY_SHOT_SIZE);
+    const size = shot.size ?? ENEMY_SHOT_SIZE;
+    if (skin) ctx.drawImage(skin.image(skin.set.enemyShot, shot.vx < 0), x, y, size, size);
+    else rect(ctx, ENEMY_SHOT_COLOUR, x, y, size, size);
   }
 
   healthBar(ctx, 16, p.health, sim.settings.maxHealth, "#ffe08a");

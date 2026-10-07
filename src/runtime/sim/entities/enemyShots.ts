@@ -6,8 +6,8 @@ import { cameraFor } from "../view";
 // Moves enemy shots, removing any that hit a solid tile or leave the screen.
 export function updateEnemyShots(sim: Sim): void {
   const camera = cameraFor(sim);
-  const size = ENEMY_SHOT_SIZE;
   sim.enemyShots = sim.enemyShots.filter((shot) => {
+    const size = shot.size ?? ENEMY_SHOT_SIZE;
     shot.x += shot.vx;
     shot.y += shot.vy;
     const cx = shot.x + size / 2;

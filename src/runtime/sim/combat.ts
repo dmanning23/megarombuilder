@@ -69,9 +69,10 @@ export function touchEntities(sim: Sim): void {
     hurtPlayer(sim, num(e.settings, "damage", e.behaviour === "boss" ? 4 : 2), e.x + e.w / 2);
   }
   sim.enemyShots = sim.enemyShots.filter((shot) => {
-    const box = { x: shot.x, y: shot.y, w: ENEMY_SHOT_SIZE, h: ENEMY_SHOT_SIZE };
+    const size = shot.size ?? ENEMY_SHOT_SIZE;
+    const box = { x: shot.x, y: shot.y, w: size, h: size };
     if (!overlaps(p, box)) return true;
-    hurtPlayer(sim, shot.damage, shot.x + ENEMY_SHOT_SIZE / 2);
+    hurtPlayer(sim, shot.damage, shot.x + size / 2);
     return false;
   });
 }

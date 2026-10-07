@@ -39,7 +39,7 @@ export function PlayCanvas({ project, levelId, pack, art, startZoneId, scale = 3
             image: createSpriteCache(hero.palette, browserCanvas),
             flashImage: createSpriteCache(hero.flashPalette, browserCanvas),
           },
-          own: ownSkins(project.enemies, (palette) => createSpriteCache(palette, browserCanvas)),
+          own: ownSkins(project.enemies, (palette) => createSpriteCache(palette, browserCanvas), project.boss),
         }
       : undefined;
     const keyboard = createKeyboard(window);

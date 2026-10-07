@@ -1,0 +1,130 @@
+import { z } from "zod";
+import { BOSS_ATTACKS, BOSS_FIGHTS, BOSS_FRAME, framesProblems, type BossDesign } from "@/model/designs";
+import { OWN_BOSS } from "@/model/gamePack";
+import { MAX_COLOURS } from "@/model/hero";
+import { PALETTE_8BIT } from "@/model/palette";
+import { tidyName, type Project } from "@/model/schema";
+import { listNames } from "./helpers";
+import { defineCommand, fail, nameArg, ok, type CommandResult } from "./types";
+
+const NO_BOSS = "Your game has no boss of its own yet.";
+
+function editBoss(project: Project, change: (boss: BossDesign) => BossDesign | string): CommandResult {
+  if (!project.boss) return fail(NO_BOSS);
+  const next = change(project.boss);
+  return typeof next === "string" ? fail(next) : ok({ ...project, boss: next });
+}
+
+const createBossCommand = defineCommand({
+  name: "createBoss",
+  description: "Give the game a boss of its own, starting from the content pack's boss drawing and attacks.",
+  args: z.strictObject({ name: nameArg }),
+  apply(project, args, ctx) {
+    if (project.boss) return fail("Your game already has a boss of its own.");
+    return ok({ ...project, boss: { name: args.name, fight: "normal", attacks: ["jump", "spread", "dash"], look: ctx.pack.bossLook } });
+  },
+});
+
+const setBossCommand = defineCommand({
+  name: "setBoss",
+  description: "Change the kid's boss: its name, its fight length (short, normal, long), its 2 or 3 attacks in order.",
+  args: z.strictObject({
+    name: nameArg.optional(),
+    fight: z.enum(BOSS_FIGHTS).optional(),
+    attacks: z.array(z.enum(BOSS_ATTACKS)).min(2).max(3).optional(),
+  }),
+  apply(project, args) {
+    const given = Object.fromEntries(Object.entries(args).filter(([, value]) => value !== undefined));
+    if (Object.keys(given).length === 0) return fail("Give something about the boss to change.");
+    return editBoss(project, (boss) => ({ ...boss, ...given }));
+  },
+});
+
+const setBossColoursCommand = defineCommand({
+  name: "setBossColours",
+  description: `Set the boss's colour slots: 1 to ${MAX_COLOURS} colours from the 8-bit palette.`,
+  args: z.strictObject({
+    colours: z.array(z.number().int().min(0).max(PALETTE_8BIT.length - 1)).min(1).max(MAX_COLOURS),
+  }),
+  apply(project, args) {
+    return editBoss(project, (boss) => {
+      for (let slot = args.colours.length + 1; slot <= boss.look.colours.length; slot++) {
+        const frames = boss.look.frames.flatMap((rows, i) => (rows.some((row) => row.includes(String(slot))) ? [`frame ${i + 1}`] : []));
+        if (frames.length > 0) return `Colour ${slot} is still used in ${tidyName(boss.name)}'s ${listNames(frames)}.`;
+      }
+      return { ...boss, look: { ...boss.look, colours: args.colours } };
+    });
+  },
+});
+
+const setBossFrameCommand = defineCommand({
+  name: "setBossFrame",
+  description: 'Replace one of the boss\'s three frames (0 stand, 1 jump, 2 attack) with rows of pixels.',
+  args: z.strictObject({
+    frame: z.union([z.literal(0), z.literal(1), z.literal(2)]),
+    rows: z.array(z.string()).min(1).max(64),
+  }),
+  apply(project, args) {
+    return editBoss(project, (boss) => {
+      const problem = framesProblems(tidyName(boss.name), { colours: boss.look.colours, frames: [args.rows] }, BOSS_FRAME)[0];
+      if (problem) return problem.replace(" frame 1 ", ` frame ${args.frame + 1} `);
+      const frames = boss.look.frames.map((rows, i) => (i === args.frame ? args.rows : rows)) as BossDesign["look"]["frames"];
+      return { ...boss, look: { ...boss.look, frames } };
+    });
+  },
+});
+
+const useBossCommand = defineCommand({
+  name: "useBoss",
+  description: 'Put the content pack\'s boss ("snow") or the kid\'s own ("yours") in the boss room, in the same place.',
+  args: z.strictObject({ boss: z.enum(["snow", "yours"]) }),
+  apply(project, args, ctx) {
+    if (args.boss === "yours" && !project.boss) return fail(NO_BOSS);
+    const snow = ctx.pack.things.find((d) => d.behaviour === "boss" && !d.own);
+    if (args.boss === "snow" && !snow) return fail("This content pack has no boss.");
+    const isBoss = (type: string) => ctx.pack.things.find((d) => d.type === type)?.behaviour === "boss";
+    let swapped = 0;
+    const levels = project.levels.map((level) => ({
+      ...level,
+      zones: level.zones.map((zone) => {
+        if (!zone.things.some((t) => isBoss(t.type))) return zone;
+        return {
+          ...zone,
+          things: zone.things.map((t) => {
+            if (!isBoss(t.type)) return t;
+            swapped++;
+            return args.boss === "yours"
+              ? { ...t, type: OWN_BOSS, settings: {} }
+              : { ...t, type: snow!.type, settings: { ...snow!.defaults } };
+          }),
+        };
+      }),
+    }));
+    if (swapped === 0) return fail("There is no boss in a boss room to swap. Put one there first.");
+    return ok({ ...project, levels });
+  },
+});
+
+const removeBossCommand = defineCommand({
+  name: "removeBoss",
+  description: "Remove the kid's own boss. Refused while it is in the boss room.",
+  args: z.strictObject({}),
+  apply(project, _args, ctx) {
+    if (!project.boss) return fail(NO_BOSS);
+    const zones = project.levels.flatMap((level) => level.zones.filter((z) => z.things.some((t) => t.type === OWN_BOSS)).map((z) => z.name));
+    if (zones.length > 0) {
+      const snow = ctx.pack.things.find((d) => d.behaviour === "boss" && !d.own);
+      return fail(`${tidyName(project.boss.name)} is in ${listNames(zones)}. Put the ${snow?.name ?? "other boss"} back first.`);
+    }
+    return ok({ ...project, boss: null });
+  },
+});
+
+export const bossCommands = [
+  createBossCommand,
+  setBossCommand,
+  setBossColoursCommand,
+  setBossFrameCommand,
+  useBossCommand,
+  removeBossCommand,
+];

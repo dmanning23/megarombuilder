@@ -99,3 +99,22 @@ describe("designs in the game file", () => {
     expect(result).toEqual({ ok: true, project: game([]) });
   });
 });
+
+describe("the kid's boss in the game pack", () => {
+  it("is a boss thing type with its health and attack list", () => {
+    const frame = Array.from({ length: 28 }, () => "1".repeat(24));
+    const project = {
+      ...game([]),
+      boss: { name: "Volt Viper", fight: "long" as const, attacks: ["rain" as const, "big" as const], look: { colours: [13], frames: [frame, frame, frame] as [string[], string[], string[]] } },
+    };
+    expect(gamePack(project, testPack).things[0]).toEqual({
+      type: "own-boss",
+      name: "Volt Viper",
+      category: "boss",
+      behaviour: "boss",
+      description: "Yours",
+      defaults: { health: 40, attacks: "rain,big" },
+      own: true,
+    });
+  });
+});

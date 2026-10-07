@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import type { EnemyDesign } from "@/model/designs";
+import type { BossDesign, EnemyDesign } from "@/model/designs";
 import type { HeroLook } from "@/model/hero";
 import type { ArtSet } from "@/runtime/render/art";
 import { draw, type Skin } from "@/runtime/render/draw";
@@ -20,11 +20,12 @@ type Props = {
   inputs: Input[];
   heroLook: HeroLook;
   enemies: EnemyDesign[];
+  boss?: BossDesign | null;
   art?: ArtSet;
 };
 
 // Plays a short show over and over, starting again whenever what it shows changes.
-export function GamePreview({ label, start, inputs, heroLook, enemies, art }: Props) {
+export function GamePreview({ label, start, inputs, heroLook, enemies, boss = null, art }: Props) {
   const ref = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -39,7 +40,7 @@ export function GamePreview({ label, start, inputs, heroLook, enemies, art }: Pr
         image: createSpriteCache(hero.palette, browserCanvas),
         flashImage: createSpriteCache(hero.flashPalette, browserCanvas),
       },
-      own: ownSkins(enemies, (palette) => createSpriteCache(palette, browserCanvas)),
+      own: ownSkins(enemies, (palette) => createSpriteCache(palette, browserCanvas), boss),
     };
     let sim = start();
     let next = 0;
@@ -62,7 +63,7 @@ export function GamePreview({ label, start, inputs, heroLook, enemies, art }: Pr
     };
     frame = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(frame);
-  }, [start, inputs, heroLook, enemies, art]);
+  }, [start, inputs, heroLook, enemies, boss, art]);
 
   return (
     <canvas ref={ref} width={SCREEN_W} height={SCREEN_H} role="img" aria-label={label} className={styles.preview} />

@@ -33,7 +33,9 @@ that use its abilities (crawl spaces only for a hero that can slide) and
 changes its abilities when asked. On the Enemies tab, kids make their own
 enemies (a behaviour and a name), tune them, draw or import their two frames,
 watch them in a preview, and place them from the palette, where they come first
-marked "Yours". 881 tests and 11 browser tests pass; typecheck, lint and build are clean. Browser tests: `npm run e2e`
+marked "Yours". A game can also have a boss of its own (made through
+commands for now; the Boss tab is next) with 2 or 3 of six attacks in order:
+jump, dash, spread, aimed, rain and big, quicker when hurt. 903 tests and 11 browser tests pass; typecheck, lint and build are clean. Browser tests: `npm run e2e`
 (builds and serves on port 3100).
 
 | Document | State |
@@ -56,7 +58,7 @@ marked "Yours". 881 tests and 11 browser tests pass; typecheck, lint and build a
 | `specs/2026-10-06-milestone-3-your-own-enemies-and-boss-design.md` | Milestone 3 spec (your own enemies and boss), approved |
 | `plans/2026-10-06-m3-plan-1-enemy-data.md` | Milestone 3 plan 1 of 5, implemented, reviewed and merged |
 | `plans/2026-10-07-m3-plan-2-enemies-tab.md` | Milestone 3 plan 2 of 5, implemented, reviewed and merged |
-| `plans/2026-10-07-m3-plan-3-boss-data-and-attacks.md` | Milestone 3 plan 3 of 5, written, waiting for approval |
+| `plans/2026-10-07-m3-plan-3-boss-data-and-attacks.md` | Milestone 3 plan 3 of 5, implemented, reviewed and merged |
 
 Milestone 1 is now eight plans (the editor became two):
 
@@ -84,6 +86,14 @@ Milestone 2, your own hero, was five plans:
 2. Try the assistant with a real API key using `docs/superpowers/ai-prompts.md`
    (prompts 1–13), and play what it builds.
 3. Review findings deferred from plans 2 and 3, to decide on:
+   - M3 plan 3: useBoss swaps bosses in any zone, though its refusal speaks
+     of the boss room.
+   - M3 plan 3: setThingSettings can override an own boss's attacks and
+     health past the design's rules (decide with the M3 plan 1 item below).
+   - M3 plan 3: the Blizzard Bot's attacks are an in-code default, not in its
+     pack settings as the spec's section 3 says.
+   - M3 plan 3: setBossFrame renumbers its error by string replacement, so a
+     boss named with " frame 1 " in it would get odd text.
    - M3 plan 2: no tests switch frames, enemies or tabs mid-stroke on the
      Enemies tab (it uses the same picture editor the hero tests cover).
    - M3 plan 2: the Characters tabs lack arrow-key movement; the Enemies tab's

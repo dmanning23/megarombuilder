@@ -1,4 +1,4 @@
-import { ENEMY_BEHAVIOURS, lettersToLook, type EnemyBehaviour, type EnemyDesign } from "@/model/designs";
+import { ENEMY_BEHAVIOURS, lettersToLook, type BossDesign, type EnemyBehaviour, type EnemyDesign } from "@/model/designs";
 import { snowArt } from "./art";
 import { SNOW_PALETTE } from "./palette";
 
@@ -14,3 +14,9 @@ export const snowEnemyLooks = Object.fromEntries(ENEMY_BEHAVIOURS.map((b) => [b,
   EnemyBehaviour,
   EnemyDesign["look"]
 >;
+
+// The Blizzard Bot as the drawing a kid's new boss starts from.
+export const snowBossLook = lettersToLook(
+  snowArt.things.boss.map((sprite) => sprite.rows),
+  SNOW_PALETTE,
+) as BossDesign["look"];

@@ -64,3 +64,18 @@ describe("drawing the kid's enemies", () => {
     expect(ctx.images.some((i) => i.sprite === own["own-e1"].art.frames[0])).toBe(true);
   });
 });
+
+describe("the kid's boss", () => {
+  it("includes the kid's boss when there is one", () => {
+    let project = run(game(), "createBoss", { name: "Volt Viper" });
+    project = run(project, "useBoss", { boss: "yours" });
+    const skins = ownSkins(project.enemies, () => fake, project.boss);
+    expect(skins["own-boss"].art.frames).toHaveLength(3);
+    // Start the game in the boss room so the boss is on screen.
+    const sim = createSim(project, "L1", pack, { startZoneId: "boss" });
+    step(sim, NO_INPUT);
+    const ctx = recorder();
+    draw(ctx, sim, { set: snowArt, image: fake, own: skins });
+    expect(ctx.images.some((i) => skins["own-boss"].art.frames.includes(i.sprite))).toBe(true);
+  });
+});

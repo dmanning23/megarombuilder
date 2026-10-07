@@ -19,7 +19,7 @@ export type Entity = Body & {
   settings: ThingSettings;
 };
 
-export type EnemyShot = { x: number; y: number; vx: number; vy: number; damage: number };
+export type EnemyShot = { x: number; y: number; vx: number; vy: number; damage: number; size?: number };
 
 // One placed thing in the current zone, and its live entity if it exists right now.
 export type Slot = { thing: Thing; def: ThingDef; entity: Entity | null; wasInView: boolean };
