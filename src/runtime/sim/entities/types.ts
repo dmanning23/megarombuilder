@@ -16,6 +16,7 @@ export type Entity = Body & {
   dx: number; // last step's movement, for platforms
   dy: number;
   flash: number; // steps left of the hit flash
+  modeSteps: number; // steps in the current mode, for once-through animations
   settings: ThingSettings;
 };
 

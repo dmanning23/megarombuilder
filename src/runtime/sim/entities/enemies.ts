@@ -99,6 +99,9 @@ export function updateEntities(sim: Sim): void {
     const e = slot.entity;
     if (!e) continue;
     if (e.flash > 0 && e.behaviour !== "boss") e.flash--;
+    const before = e.mode;
+    const round = e.attack; // a boss starting the same attack again restarts its count, not its mode
     BEHAVIOURS[e.behaviour]?.(sim, e);
+    e.modeSteps = e.mode !== before || e.attack !== round ? 0 : e.modeSteps + 1;
   }
 }

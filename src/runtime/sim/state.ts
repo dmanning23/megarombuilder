@@ -46,6 +46,7 @@ export type Player = {
   shotTimer: number; // steps left of the shooting pose
   slide: number; // steps left of a slide's own length (it carries on past this under a low ceiling)
   charge: number; // steps shoot has been held, for a charged shot
+  airSteps: number; // steps since leaving the ground, for the jump animation
 };
 
 export type Shot = { x: number; y: number; vx: number; charged?: boolean };
@@ -142,6 +143,7 @@ export function createSim(
     shotTimer: 0,
     slide: 0,
     charge: 0,
+    airSteps: 0,
   };
   player.onLadder = touchingLadder(map, player);
   const sim: Sim = {
