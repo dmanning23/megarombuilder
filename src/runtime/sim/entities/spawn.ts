@@ -49,7 +49,9 @@ export function spawnBox(thing: Thing, behaviour: ThingBehaviour): Box {
 export function createEntity(thing: Thing, def: ThingDef, playerCentreX: number): Entity {
   const behaviour = def.behaviour;
   const box = spawnBox(thing, behaviour);
-  const settings = { ...def.defaults, ...thing.settings };
+  // The kid's own enemies and boss take their settings from their designs alone, even when an
+  // older game stored some on the placed copy.
+  const settings = def.own ? { ...def.defaults } : { ...def.defaults, ...thing.settings };
   const initialMode: Partial<Record<ThingBehaviour, string>> = { boss: "intro", dropper: "hang" };
   return {
     ...box,
