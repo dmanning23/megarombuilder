@@ -50,7 +50,8 @@ changes its abilities when asked. 824 tests and 10 browser tests pass; typecheck
 | `plans/2026-10-06-m2-plan-3-hero-screen.md` | Milestone 2 plan 3 of 5, implemented, reviewed and merged |
 | `plans/2026-10-06-m2-plan-4-picture-import.md` | Milestone 2 plan 4 of 5, implemented, reviewed and merged |
 | `plans/2026-10-06-m2-plan-5-assistant-and-hero.md` | Milestone 2 plan 5 of 5, implemented, reviewed and merged |
-| `specs/2026-10-06-milestone-3-your-own-enemies-and-boss-design.md` | Milestone 3 spec (your own enemies and boss), written, awaiting review |
+| `specs/2026-10-06-milestone-3-your-own-enemies-and-boss-design.md` | Milestone 3 spec (your own enemies and boss), approved |
+| `plans/2026-10-06-m3-plan-1-enemy-data.md` | Milestone 3 plan 1 of 5, written, waiting for approval |
 
 Milestone 1 is now eight plans (the editor became two):
 
