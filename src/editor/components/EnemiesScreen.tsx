@@ -13,6 +13,7 @@ import {
   SPEED_STEPS,
   TUNING_USED,
   designFrames,
+  designFrameSlot,
   designLook,
   type EnemyBehaviour,
   type EnemyDesign,
@@ -255,12 +256,12 @@ export function EnemiesScreen({
               importTarget={{ ...ENEMY_FRAME, stand: true }}
               readPicture={readPicture}
               locked={locked}
-              onRows={(rows) => onCommand({ name: "setEnemyFrame", args: { enemyId: enemy.id, frame, rows } })}
+              onRows={(rows) => onCommand({ name: "setFrame", args: { target: { enemy: enemy.id }, ...designFrameSlot(enemy.behaviour, frame), rows } })}
               onImport={(result) => {
                 if (result.colours.length !== enemy.look.colours.length) {
-                  onCommand({ name: "setEnemyColours", args: { enemyId: enemy.id, colours: result.colours } });
+                  onCommand({ name: "setLookColours", args: { target: { enemy: enemy.id }, colours: result.colours } });
                 }
-                onCommand({ name: "setEnemyFrame", args: { enemyId: enemy.id, frame, rows: result.rows } });
+                onCommand({ name: "setFrame", args: { target: { enemy: enemy.id }, ...designFrameSlot(enemy.behaviour, frame), rows: result.rows } });
               }}
               onBegin={onBegin}
               onCommit={onCommit}
@@ -271,7 +272,7 @@ export function EnemiesScreen({
               colours={enemy.look.colours}
               slot={Math.min(slot, enemy.look.colours.length)}
               onSlot={setSlot}
-              onColours={(colours) => onCommand({ name: "setEnemyColours", args: { enemyId: enemy.id, colours } })}
+              onColours={(colours) => onCommand({ name: "setLookColours", args: { target: { enemy: enemy.id }, colours } })}
             />
             <EnemyPreview enemy={enemy} project={project} pack={pack} art={art} />
             <button

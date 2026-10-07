@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { KINDS, lookSchema, MAX_LOOK_COLOURS, slotChar, slotOf, type Look, type LookBox } from "./look";
+import { KINDS, lookSchema, MAX_LOOK_COLOURS, slotChar, type Look, type LookBox } from "./look";
 import { nearestColour } from "./palette";
 
 // The kid's own enemies and boss: what they chose (named steps), and what they drew.
@@ -115,14 +115,6 @@ export function designFrames(kind: EnemyBehaviour | "boss", look: Look): string[
   });
 }
 
-// Writes one of an enemy's or boss's old frames into its look.
-export function withDesignFrame(kind: EnemyBehaviour | "boss", look: Look, index: number, rows: string[]): Look {
-  const { animation, frame } = designFrameSlot(kind, index);
-  const anim = look.animations[animation];
-  const at = Math.min(frame, anim.frames.length - 1);
-  return { ...look, animations: { ...look.animations, [animation]: { ...anim, frames: anim.frames.map((f, i) => (i === at ? rows : f)) } } };
-}
-
 export const designLook = (kind: EnemyBehaviour | "boss", look: Look): DesignLook => ({
   colours: look.colours,
   frames: designFrames(kind, look),
@@ -157,30 +149,6 @@ export const FIGHT_HEALTH: Record<BossDesign["fight"], number> = { short: 20, no
 // The thing settings for the kid's boss: its health and its attacks in order.
 export function bossSettings(boss: BossDesign): { health: number; attacks: string } {
   return { health: FIGHT_HEALTH[boss.fight], attacks: boss.attacks.join(",") };
-}
-
-// Everything wrong with a design's frames that the schema can't see.
-export function framesProblems(name: string, look: DesignLook, size: { w: number; h: number }): string[] {
-  const problems: string[] = [];
-  look.frames.forEach((frame, i) => {
-    const label = `${name} frame ${i + 1}`;
-    if (frame.length !== size.h || frame.some((row) => row.length !== size.w)) {
-      problems.push(`${label} is not ${size.w} by ${size.h} pixels.`);
-      return;
-    }
-    const pixels = frame.join("");
-    const odd = [...pixels].find((ch) => ch !== "." && slotOf(ch) === 0);
-    if (odd) {
-      problems.push(`${label} has a pixel "${odd}" that is not a colour.`);
-      return;
-    }
-    const highest = Math.max(0, ...[...pixels].map(slotOf));
-    const count = look.colours.length;
-    if (highest > count) {
-      problems.push(`${label} uses colour ${highest}, but ${name} only has ${count} colour${count === 1 ? "" : "s"}.`);
-    }
-  });
-  return problems;
 }
 
 // Pixel art written in palette letters (as the snow pack's) as a look: each letter's colour snapped

@@ -4,7 +4,7 @@ import { useCallback, useMemo, useState } from "react";
 import type { LevelCheck } from "@/checker/check";
 import type { Command } from "@/commands/types";
 import type { ContentPack } from "@/model/contentPack";
-import { HERO_PICTURES, PICTURE_NAMES, PICTURE_SIZES, pictureRows, type HeroPicture } from "@/model/hero";
+import { HERO_PICTURE_SLOTS, HERO_PICTURES, PICTURE_NAMES, PICTURE_SIZES, pictureRows, type HeroPicture } from "@/model/hero";
 import type { EnemyDesign } from "@/model/designs";
 import type { Level, Project } from "@/model/schema";
 import type { ArtSet } from "@/runtime/render/art";
@@ -122,12 +122,12 @@ export function HeroScreen({
         importTarget={picture}
         readPicture={readPicture}
         locked={locked}
-        onRows={(next) => onCommand({ name: "setHeroPose", args: { picture, rows: next } })}
+        onRows={(next) => onCommand({ name: "setFrame", args: { target: "hero", ...HERO_PICTURE_SLOTS[picture], rows: next } })}
         onImport={(result) => {
           if (result.colours.length !== look.colours.length) {
-            onCommand({ name: "setHeroColours", args: { colours: result.colours } });
+            onCommand({ name: "setLookColours", args: { target: "hero", colours: result.colours } });
           }
-          onCommand({ name: "setHeroPose", args: { picture, rows: result.rows } });
+          onCommand({ name: "setFrame", args: { target: "hero", ...HERO_PICTURE_SLOTS[picture], rows: result.rows } });
         }}
         onBegin={onBegin}
         onCommit={onCommit}
@@ -137,7 +137,7 @@ export function HeroScreen({
           colours={look.colours}
           slot={colour}
           onSlot={setSlot}
-          onColours={(colours) => onCommand({ name: "setHeroColours", args: { colours } })}
+          onColours={(colours) => onCommand({ name: "setLookColours", args: { target: "hero", colours } })}
         />
         <GamePreview
           label="Your hero in action"

@@ -52,16 +52,15 @@ describe("changing an enemy", () => {
 
   it("draws frames and recolours, refusing to drop a colour that is used", () => {
     let project = add();
-    project = run(project, "setEnemyColours", { enemyId: "e1", colours: [13, 20] });
-    project = run(project, "setEnemyFrame", { enemyId: "e1", frame: 1, rows: solid("2") });
+    const target = { enemy: "e1" };
+    project = run(project, "setLookColours", { target, colours: [13, 20] });
+    project = run(project, "setFrame", { target, animation: "walk", frame: 1, rows: solid("2") });
     expect(designFrames("walker", project.enemies[0].look)[1]).toEqual(solid("2"));
-    expect(runError(project, "setEnemyColours", { enemyId: "e1", colours: [13] })).toBe(
-      "Colour 2 is still used in Frost Fang's frame 2.",
+    expect(runError(project, "setLookColours", { target, colours: [13] })).toBe("Colour 2 is still used in Walk frame 2.");
+    expect(runError(project, "setFrame", { target, animation: "walk", frame: 0, rows: ["1"] })).toBe(
+      "Frost Fang's Walk frame 1 is not 16 by 16 pixels.",
     );
-    expect(runError(project, "setEnemyFrame", { enemyId: "e1", frame: 0, rows: ["1"] })).toBe(
-      "Frost Fang frame 1 is not 16 by 16 pixels.",
-    );
-    expect(runError(project, "setEnemyFrame", { enemyId: "e1", frame: 2, rows: solid("1") })).toMatch(/frame/);
+    expect(runError(project, "setFrame", { target, animation: "walk", frame: 2, rows: solid("1") })).toBe("Walk has no frame 3.");
   });
 });
 

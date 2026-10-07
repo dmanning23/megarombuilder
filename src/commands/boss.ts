@@ -1,8 +1,6 @@
 import { z } from "zod";
-import { BOSS_ATTACKS, BOSS_FIGHTS, BOSS_FRAME, designFrames, framesProblems, withDesignFrame, type BossDesign } from "@/model/designs";
+import { BOSS_ATTACKS, BOSS_FIGHTS, type BossDesign } from "@/model/designs";
 import { OWN_BOSS } from "@/model/gamePack";
-import { MAX_LOOK_COLOURS } from "@/model/look";
-import { PALETTE_8BIT } from "@/model/palette";
 import { tidyName, type Project } from "@/model/schema";
 import { listNames } from "./helpers";
 import { defineCommand, fail, nameArg, ok, type CommandResult } from "./types";
@@ -37,39 +35,6 @@ const setBossCommand = defineCommand({
     const given = Object.fromEntries(Object.entries(args).filter(([, value]) => value !== undefined));
     if (Object.keys(given).length === 0) return fail("Give something about the boss to change.");
     return editBoss(project, (boss) => ({ ...boss, ...given }));
-  },
-});
-
-const setBossColoursCommand = defineCommand({
-  name: "setBossColours",
-  description: `Set the boss's colour slots: 1 to ${MAX_LOOK_COLOURS} colours from the 8-bit palette.`,
-  args: z.strictObject({
-    colours: z.array(z.number().int().min(0).max(PALETTE_8BIT.length - 1)).min(1).max(MAX_LOOK_COLOURS),
-  }),
-  apply(project, args) {
-    return editBoss(project, (boss) => {
-      for (let slot = args.colours.length + 1; slot <= boss.look.colours.length; slot++) {
-        const frames = designFrames("boss", boss.look).flatMap((rows, i) => (rows.some((row) => row.includes(String(slot))) ? [`frame ${i + 1}`] : []));
-        if (frames.length > 0) return `Colour ${slot} is still used in ${tidyName(boss.name)}'s ${listNames(frames)}.`;
-      }
-      return { ...boss, look: { ...boss.look, colours: args.colours } };
-    });
-  },
-});
-
-const setBossFrameCommand = defineCommand({
-  name: "setBossFrame",
-  description: 'Replace one of the boss\'s three frames (0 stand, 1 jump, 2 attack) with rows of pixels.',
-  args: z.strictObject({
-    frame: z.union([z.literal(0), z.literal(1), z.literal(2)]),
-    rows: z.array(z.string()).min(1).max(64),
-  }),
-  apply(project, args) {
-    return editBoss(project, (boss) => {
-      const problem = framesProblems(tidyName(boss.name), { colours: boss.look.colours, frames: [args.rows] }, BOSS_FRAME)[0];
-      if (problem) return problem.replace(" frame 1 ", ` frame ${args.frame + 1} `);
-      return { ...boss, look: withDesignFrame("boss", boss.look, args.frame, args.rows) };
-    });
   },
 });
 
@@ -129,8 +94,6 @@ const removeBossCommand = defineCommand({
 export const bossCommands = [
   createBossCommand,
   setBossCommand,
-  setBossColoursCommand,
-  setBossFrameCommand,
   useBossCommand,
   removeBossCommand,
 ];

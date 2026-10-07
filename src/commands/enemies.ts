@@ -3,11 +3,7 @@ import {
   defaultTuning,
   DAMAGE_STEPS,
   ENEMY_BEHAVIOURS,
-  ENEMY_FRAME,
-  designFrames,
   designLook,
-  framesProblems,
-  withDesignFrame,
   HEALTH_STEPS,
   MAX_ENEMIES,
   SHOOT_STEPS,
@@ -15,9 +11,7 @@ import {
   type EnemyDesign,
 } from "@/model/designs";
 import { ownType } from "@/model/gamePack";
-import { MAX_LOOK_COLOURS } from "@/model/look";
 import { designLookFrom } from "@/model/lookUpgrade";
-import { PALETTE_8BIT } from "@/model/palette";
 import { tidyName, type Project } from "@/model/schema";
 import { listNames } from "./helpers";
 import { defineCommand, fail, idArg, nameArg, ok, type CommandResult } from "./types";
@@ -107,38 +101,6 @@ const setEnemyTuningCommand = defineCommand({
   },
 });
 
-const setEnemyColoursCommand = defineCommand({
-  name: "setEnemyColours",
-  description: `Set an enemy's colour slots: 1 to ${MAX_LOOK_COLOURS} colours from the 8-bit palette.`,
-  args: z.strictObject({
-    enemyId: idArg,
-    colours: z.array(z.number().int().min(0).max(PALETTE_8BIT.length - 1)).min(1).max(MAX_LOOK_COLOURS),
-  }),
-  apply(project, args) {
-    return editEnemy(project, args.enemyId, (enemy) => {
-      for (let slot = args.colours.length + 1; slot <= enemy.look.colours.length; slot++) {
-        const frames = designFrames(enemy.behaviour, enemy.look).flatMap((rows, i) => (rows.some((row) => row.includes(String(slot))) ? [`frame ${i + 1}`] : []));
-        if (frames.length > 0) return `Colour ${slot} is still used in ${tidyName(enemy.name)}'s ${listNames(frames)}.`;
-      }
-      return { ...enemy, look: { ...enemy.look, colours: args.colours } };
-    });
-  },
-});
-
-const setEnemyFrameCommand = defineCommand({
-  name: "setEnemyFrame",
-  description: 'Replace one of an enemy\'s two frames (0 or 1) with rows of pixels: "." is empty, a digit is a colour.',
-  args: z.strictObject({ enemyId: idArg, frame: z.union([z.literal(0), z.literal(1)]), rows: z.array(z.string()).min(1).max(64) }),
-  apply(project, args) {
-    return editEnemy(project, args.enemyId, (enemy) => {
-      const look = withDesignFrame(enemy.behaviour, enemy.look, args.frame, args.rows);
-      const problem = framesProblems(tidyName(enemy.name), { colours: look.colours, frames: [args.rows] }, ENEMY_FRAME)[0];
-      if (problem) return problem.replace(" frame 1 ", ` frame ${args.frame + 1} `);
-      return { ...enemy, look };
-    });
-  },
-});
-
 const removeEnemyCommand = defineCommand({
   name: "removeEnemy",
   description: "Remove one of the kid's own enemies. Refused while it is placed in any zone.",
@@ -163,7 +125,5 @@ export const enemyCommands = [
   renameEnemyCommand,
   setEnemyBehaviourCommand,
   setEnemyTuningCommand,
-  setEnemyColoursCommand,
-  setEnemyFrameCommand,
   removeEnemyCommand,
 ];

@@ -7,6 +7,7 @@ import { checkpointCommands } from "./checkpoints";
 import { pieceCommands } from "./pieces";
 import { enemyCommands } from "./enemies";
 import { bossCommands } from "./boss";
+import { lookCommands } from "./look";
 import { heroCommands } from "./hero";
 import { gamePack } from "@/model/gamePack";
 import {
@@ -27,6 +28,7 @@ export const commandDefs: CommandDef[] = [
   ...heroCommands,
   ...enemyCommands,
   ...bossCommands,
+  ...lookCommands,
 ];
 
 const byName = new Map(commandDefs.map((def) => [def.name, def]));

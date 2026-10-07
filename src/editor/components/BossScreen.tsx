@@ -8,6 +8,7 @@ import {
   BOSS_FIGHTS,
   BOSS_FRAME,
   designFrames,
+  designFrameSlot,
   designLook,
   type BossAttack,
   type BossDesign,
@@ -201,12 +202,12 @@ export function BossScreen({
               importTarget={{ ...BOSS_FRAME, stand: true }}
               readPicture={readPicture}
               locked={locked}
-              onRows={(rows) => onCommand({ name: "setBossFrame", args: { frame, rows } })}
+              onRows={(rows) => onCommand({ name: "setFrame", args: { target: "boss", ...designFrameSlot("boss", frame), rows } })}
               onImport={(result) => {
                 if (result.colours.length !== boss.look.colours.length) {
-                  onCommand({ name: "setBossColours", args: { colours: result.colours } });
+                  onCommand({ name: "setLookColours", args: { target: "boss", colours: result.colours } });
                 }
-                onCommand({ name: "setBossFrame", args: { frame, rows: result.rows } });
+                onCommand({ name: "setFrame", args: { target: "boss", ...designFrameSlot("boss", frame), rows: result.rows } });
               }}
               onBegin={onBegin}
               onCommit={onCommit}
@@ -217,7 +218,7 @@ export function BossScreen({
               colours={boss.look.colours}
               slot={Math.min(slot, boss.look.colours.length)}
               onSlot={setSlot}
-              onColours={(colours) => onCommand({ name: "setBossColours", args: { colours } })}
+              onColours={(colours) => onCommand({ name: "setLookColours", args: { target: "boss", colours } })}
             />
             <BossPreview boss={boss} project={project} pack={pack} art={art} />
             <div role="group" aria-label="Use in the boss room" className={styles.ability}>

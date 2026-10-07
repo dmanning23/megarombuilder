@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { lookSchema, slotOf, type Look } from "./look";
+import { lookSchema, type Look } from "./look";
 import type { PlayerSettings } from "./schema";
 
 // The hero: what the kid chose for it (abilities, from named steps) and what it looks like.
@@ -141,25 +141,4 @@ export function withPicture(look: Look, picture: HeroPicture, rows: string[]): L
   const anim = look.animations[animation];
   const frames = anim.frames.map((f, i) => (i === Math.min(frame, anim.frames.length - 1) ? rows : f));
   return { ...look, animations: { ...look.animations, [animation]: { ...anim, frames } } };
-}
-
-// Everything wrong with one of the hero's old pictures in a look: its size, and pixels naming
-// missing colours. Used by setHeroPose until the look commands replace it.
-export function pictureProblems(look: Look, picture: HeroPicture): string[] {
-  const name = PICTURE_NAMES[picture];
-  const { w, h } = PICTURE_SIZES[picture];
-  const pixels = pictureRows(look, picture);
-  if (pixels.length !== h || pixels[0].length !== w) {
-    return [`${name} is ${pixels[0].length} by ${pixels.length} pixels, not ${w} by ${h}.`];
-  }
-  const ragged = pixels.findIndex((row) => row.length !== w);
-  if (ragged >= 0) return [`${name} row ${ragged + 1} is ${pixels[ragged].length} pixels wide, not ${w}.`]; // counted from 1
-  const odd = [...pixels.join("")].find((ch) => ch !== "." && slotOf(ch) === 0);
-  if (odd) return [`${name} has a pixel "${odd}" that is not a colour.`];
-  const highest = Math.max(0, ...[...pixels.join("")].map(slotOf));
-  const count = look.colours.length;
-  if (highest > count) {
-    return [`${name} uses colour ${highest}, but the hero only has ${count} colour${count === 1 ? "" : "s"}.`];
-  }
-  return [];
 }

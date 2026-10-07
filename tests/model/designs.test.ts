@@ -4,7 +4,6 @@ import {
   defaultTuning,
   ENEMY_BEHAVIOURS,
   enemyDesignSchema,
-  framesProblems,
   lettersToLook,
   tuningSettings,
   TUNING_USED,
@@ -80,24 +79,6 @@ describe("design schemas", () => {
     expect(bossDesignSchema.safeParse({ ...boss, attacks: ["jump", "dash", "spread", "big"] }).success).toBe(false);
     expect(bossDesignSchema.safeParse({ ...boss, attacks: ["jump"] }).success).toBe(false);
     expect(bossDesignSchema.safeParse({ ...boss, attacks: ["jump", "fireworks"] }).success).toBe(false);
-  });
-});
-
-describe("framesProblems", () => {
-  it("finds nothing wrong with a good look", () => {
-    expect(framesProblems("Frost Fang", { colours: [13], frames: [solid(), solid()] }, { w: 16, h: 16 })).toEqual([]);
-  });
-
-  it("names a frame of the wrong size, an odd pixel, or a missing colour", () => {
-    expect(framesProblems("Frost Fang", { colours: [13], frames: [solid(), ["1"]] }, { w: 16, h: 16 })).toEqual([
-      "Frost Fang frame 2 is not 16 by 16 pixels.",
-    ]);
-    expect(framesProblems("Frost Fang", { colours: [13], frames: [solid("x"), solid()] }, { w: 16, h: 16 })).toEqual([
-      'Frost Fang frame 1 has a pixel "x" that is not a colour.',
-    ]);
-    expect(framesProblems("Frost Fang", { colours: [13], frames: [solid(), solid("2")] }, { w: 16, h: 16 })).toEqual([
-      "Frost Fang frame 2 uses colour 2, but Frost Fang only has 1 colour.",
-    ]);
   });
 });
 
