@@ -44,7 +44,10 @@ boss's attacks, and never changes the designs (their settings come from the
 Characters screen alone). Milestone 4 has begun: game files are format 4, and
 every character (hero, enemies, boss) stores one shared look with canvas sizes,
 up to 16 colours, named animations of 1 to 8 frames, a hitbox and a shot point,
-changed by ten look commands; nothing visible has changed yet. 953 tests and 12 browser tests pass; typecheck, lint and build are clean. Browser tests: `npm run e2e`
+changed by ten look commands. Characters now play their animations in the game
+and previews (1 to 8 frames, slow, normal or fast, looping or played once and
+held, climbs by distance); existing games look as before, and the content pack's
+own snow characters keep their art set. 965 tests and 12 browser tests pass; typecheck, lint and build are clean. Browser tests: `npm run e2e`
 (builds and serves on port 3100).
 
 | Document | State |
@@ -72,7 +75,7 @@ changed by ten look commands; nothing visible has changed yet. 953 tests and 12 
 | `plans/2026-10-07-m3-plan-5-assistant.md` | Milestone 3 plan 5 of 5, implemented, reviewed and merged |
 | `specs/2026-10-07-milestone-4-characters-that-fit-design.md` | Milestone 4 spec (characters that fit), approved |
 | `plans/2026-10-07-m4-plan-1-shared-look.md` | Milestone 4 plan 1 of 5, implemented, reviewed and merged |
-| `plans/2026-10-07-m4-plan-2-animations-in-game.md` | Milestone 4 plan 2 of 5, written, waiting for approval |
+| `plans/2026-10-07-m4-plan-2-animations-in-game.md` | Milestone 4 plan 2 of 5, implemented, reviewed and merged |
 
 Milestone 1 is now eight plans (the editor became two):
 
@@ -108,8 +111,13 @@ Milestone 3, your own enemies and boss, was five plans:
 2. Try the assistant with a real API key using `docs/superpowers/ai-prompts.md`
    (prompts 1–17), and play what it builds.
 3. Review findings deferred in each plan's final review, to decide on:
-   - M4 plan 1: runShoot is copied from run once and doesn't follow run edits;
-     plan 2 must resync or mirror it before the game plays runShoot.
+   - M4 plan 2: jumpShoot shares jump's air clock, so firing late in a jump
+     shows jumpShoot's later frames (the spec says from the pose's start).
+   - M4 plan 2: games saved between plans 1 and 2 with an edited Run keep a
+     stale "Run and shoot" (the hero screen now keeps them in step).
+   - M4 plan 2: timingsOf allocates for every character on every draw; small
+     nits (a shadowed name in HeroScreen, a roundabout palette in ownSkins, a
+     misleading comment on the boss's attack counter).
    - M4 plan 1: fitBody or resizeCanvas on a shooter shorter than its shot
      refuses with "shot point is outside its hitbox" instead of the real cause.
    - M4 plan 1: resizeCanvas's comment on odd differences is wrong for trims
