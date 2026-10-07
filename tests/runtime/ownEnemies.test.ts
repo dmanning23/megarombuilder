@@ -42,3 +42,23 @@ describe("the kid's own enemies in the game", () => {
     expect(check.warnings).toContain("The Frost Fang at (1, 12) is right where the player arrives.");
   });
 });
+
+describe("the kid's boss in the game", () => {
+  it("fights with its own attacks and health", () => {
+    let project = run(game(), "createBoss", { name: "Volt Viper" });
+    project = run(project, "setBoss", { fight: "long", attacks: ["rain", "big"] });
+    project = run(project, "useBoss", { boss: "yours" });
+    const sim = createSim(project, "L1", pack, { startZoneId: "boss" });
+    step(sim, NO_INPUT);
+    const boss = sim.slots.find((s) => s.def.behaviour === "boss")!.entity!;
+    expect(boss.health).toBe(40);
+    expect(boss.settings.attacks).toBe("rain,big");
+  });
+
+  it("leaves the checker's verdict on the boss room unchanged", () => {
+    let project = run(game(), "createBoss", { name: "Volt Viper" });
+    const before = checkZone(project, "L1", "boss", pack).passable;
+    project = run(project, "useBoss", { boss: "yours" });
+    expect(checkZone(project, "L1", "boss", pack).passable).toBe(before);
+  });
+});

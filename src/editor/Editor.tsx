@@ -75,15 +75,16 @@ export function Editor({
   // The zone canvas and its tools see the kid's own enemies as thing types like any other.
   const fullPack = useMemo(() => gamePack(project, pack), [project, pack]);
   const enemies = project.enemies;
+  const boss = project.boss;
   const ownArt = useMemo(() => Object.fromEntries(enemies.map((e) => [ownType(e.id), lookArt(e.look)])), [enemies]);
   const skin = useMemo<Skin | undefined>(() => {
     if (!art || typeof document === "undefined") return undefined;
     return {
       set: art,
       image: createSpriteCache(art.palette, browserCanvas),
-      own: ownSkins(enemies, (palette) => createSpriteCache(palette, browserCanvas)),
+      own: ownSkins(enemies, (palette) => createSpriteCache(palette, browserCanvas), boss),
     };
-  }, [art, enemies]); // rebuilt when the kid's enemies change, not on every edit
+  }, [art, enemies, boss]); // rebuilt when the kid's enemies or boss change, not on every edit
   const level = currentLevel(state);
   const zone = currentZone(state);
   const strokeOpen = state.history.open !== null;
