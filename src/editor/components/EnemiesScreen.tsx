@@ -13,7 +13,7 @@ import {
   SPEED_STEPS,
   TUNING_USED,
   designFrames,
-  designFrameSlot,
+  designSlot,
   designLook,
   type EnemyBehaviour,
   type EnemyDesign,
@@ -256,12 +256,12 @@ export function EnemiesScreen({
               importTarget={{ ...ENEMY_FRAME, stand: true }}
               readPicture={readPicture}
               locked={locked}
-              onRows={(rows) => onCommand({ name: "setFrame", args: { target: { enemy: enemy.id }, ...designFrameSlot(enemy.behaviour, frame), rows } })}
+              onRows={(rows) => onCommand({ name: "setFrame", args: { target: { enemy: enemy.id }, ...designSlot(enemy.behaviour, enemy.look, frame), rows } })}
               onImport={(result) => {
                 if (result.colours.length !== enemy.look.colours.length) {
                   onCommand({ name: "setLookColours", args: { target: { enemy: enemy.id }, colours: result.colours } });
                 }
-                onCommand({ name: "setFrame", args: { target: { enemy: enemy.id }, ...designFrameSlot(enemy.behaviour, frame), rows: result.rows } });
+                onCommand({ name: "setFrame", args: { target: { enemy: enemy.id }, ...designSlot(enemy.behaviour, enemy.look, frame), rows: result.rows } });
               }}
               onBegin={onBegin}
               onCommit={onCommit}

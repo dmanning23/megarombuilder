@@ -35,4 +35,10 @@ describe("heroArt", () => {
     expect(art.shot).toEqual(sprite(testOldHero.shot));
     expect(art.chargedShot).toEqual(sprite(testOldHero.chargedShot));
   });
+
+  it("names hero colour slots 10 to 16 by their letters", () => {
+    const art16 = heroArt({ ...snowHero, colours: Array.from({ length: 16 }, (_, i) => i) });
+    expect(art16.palette.a).toBe(PALETTE_8BIT[9]);
+    expect(art16.flashPalette.g).toBeDefined();
+  });
 });

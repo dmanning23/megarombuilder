@@ -129,6 +129,12 @@ export type HeroLook = Look;
 export const heroSchema = z.object({ abilities: abilitiesSchema, look: lookSchema });
 export type Hero = z.infer<typeof heroSchema>;
 
+// Where an old picture is in this look: run2 is run's only frame when it has one.
+export function heroPictureSlot(look: Look, picture: HeroPicture): { animation: string; frame: number } {
+  const { animation, frame } = HERO_PICTURE_SLOTS[picture];
+  return { animation, frame: Math.min(frame, look.animations[animation].frames.length - 1) };
+}
+
 // The hero's old pictures, read from and written to its look. A run with one frame shows it for run2.
 export function pictureRows(look: Look, picture: HeroPicture): string[] {
   const { animation, frame } = HERO_PICTURE_SLOTS[picture];

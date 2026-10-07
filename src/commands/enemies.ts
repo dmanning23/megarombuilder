@@ -3,7 +3,6 @@ import {
   defaultTuning,
   DAMAGE_STEPS,
   ENEMY_BEHAVIOURS,
-  designLook,
   HEALTH_STEPS,
   MAX_ENEMIES,
   SHOOT_STEPS,
@@ -11,7 +10,7 @@ import {
   type EnemyDesign,
 } from "@/model/designs";
 import { ownType } from "@/model/gamePack";
-import { designLookFrom } from "@/model/lookUpgrade";
+import { lookForKind, lookProblems } from "@/model/look";
 import { tidyName, type Project } from "@/model/schema";
 import { listNames } from "./helpers";
 import { defineCommand, fail, idArg, nameArg, ok, type CommandResult } from "./types";
@@ -74,12 +73,12 @@ const setEnemyBehaviourCommand = defineCommand({
   description: "Change how one of the kid's own enemies behaves. Its drawing and tuning stay.",
   args: z.strictObject({ enemyId: idArg, behaviour: behaviourArg }),
   apply(project, args) {
-    // The drawing carries over by position: the old frames fill the new behaviour's animations.
-    return editEnemy(project, args.enemyId, (enemy) => ({
-      ...enemy,
-      behaviour: args.behaviour,
-      look: designLookFrom(args.behaviour, designLook(enemy.behaviour, enemy.look)),
-    }));
+    // The drawing carries over: its canvas, hitbox and frames, moved into the new behaviour's animations.
+    return editEnemy(project, args.enemyId, (enemy) => {
+      const look = lookForKind(enemy.look, enemy.behaviour, args.behaviour);
+      const problem = lookProblems(args.behaviour, look, tidyName(enemy.name))[0];
+      return problem ?? { ...enemy, behaviour: args.behaviour, look };
+    });
   },
 });
 

@@ -79,3 +79,13 @@ describe("the kid's boss", () => {
     expect(ctx.images.some((i) => skins["own-boss"].art.frames.includes(i.sprite))).toBe(true);
   });
 });
+
+describe("looks with more than nine colours", () => {
+  it("name slots 10 to 16 by their letters", () => {
+    const colours = Array.from({ length: 16 }, (_, i) => i);
+    const art = lookArt({ colours, frames: [["9ag"]] });
+    expect(art.palette["9"]).toBe(PALETTE_8BIT[8]);
+    expect(art.palette.a).toBe(PALETTE_8BIT[9]);
+    expect(art.palette.g).toBe(PALETTE_8BIT[15]);
+  });
+});

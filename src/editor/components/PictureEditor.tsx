@@ -7,6 +7,7 @@ import { blankRows, flipRows, floodFill, linePixels, setPixels, type Box, type P
 import { NOT_A_PICTURE } from "../hero/readPicture";
 import { ImportDialog } from "./ImportDialog";
 import { PixelCanvas } from "./PixelCanvas";
+import { slotChar, slotOf } from "@/model/look";
 
 export type DrawTool = "pencil" | "eraser" | "fill" | "pick";
 
@@ -65,18 +66,18 @@ export function PictureEditor({
   onCommit,
 }: Props) {
   const colour = Math.min(slot, colours.length); // the chosen colour may have been removed
-  const ink = tool === "eraser" ? "." : String(colour);
+  const ink = tool === "eraser" ? "." : slotChar(colour);
   const stroke = useRef<{ rows: string[]; last: Pixel } | null>(null);
 
   const press = (p: Pixel) => {
     if (locked) return;
     if (tool === "pick") {
       const ch = rows[p.y][p.x];
-      if (ch !== ".") onSlot(Number(ch));
+      if (ch !== ".") onSlot(slotOf(ch));
       return;
     }
     if (tool === "fill") {
-      onRows(floodFill(rows, p, String(colour)));
+      onRows(floodFill(rows, p, ink));
       return;
     }
     onBegin(tool === "eraser" ? "Erase" : "Draw");

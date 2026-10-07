@@ -1,4 +1,5 @@
 import { PICTURE_SIZES, type HeroPicture } from "@/model/hero";
+import { slotChar } from "@/model/look";
 import { colourDistance, nearestIndex, PALETTE_RGB } from "@/model/palette";
 
 // The screens offer 8 colours until milestone 4, plan 4 (looks can hold 16).
@@ -124,7 +125,7 @@ export function importPicture(image: RawImage, target: ImportTarget, colours: nu
   }
 
   return {
-    rows: grid.map((row) => row.map((c) => (c === null ? "." : String(slotOf.get(c)! + 1))).join("")),
+    rows: grid.map((row) => row.map((c) => (c === null ? "." : slotChar(slotOf.get(c)! + 1))).join("")),
     colours: next,
   };
 }

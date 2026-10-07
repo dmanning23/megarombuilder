@@ -8,7 +8,7 @@ import {
   BOSS_FIGHTS,
   BOSS_FRAME,
   designFrames,
-  designFrameSlot,
+  designSlot,
   designLook,
   type BossAttack,
   type BossDesign,
@@ -202,12 +202,12 @@ export function BossScreen({
               importTarget={{ ...BOSS_FRAME, stand: true }}
               readPicture={readPicture}
               locked={locked}
-              onRows={(rows) => onCommand({ name: "setFrame", args: { target: "boss", ...designFrameSlot("boss", frame), rows } })}
+              onRows={(rows) => onCommand({ name: "setFrame", args: { target: "boss", ...designSlot("boss", boss.look, frame), rows } })}
               onImport={(result) => {
                 if (result.colours.length !== boss.look.colours.length) {
                   onCommand({ name: "setLookColours", args: { target: "boss", colours: result.colours } });
                 }
-                onCommand({ name: "setFrame", args: { target: "boss", ...designFrameSlot("boss", frame), rows: result.rows } });
+                onCommand({ name: "setFrame", args: { target: "boss", ...designSlot("boss", boss.look, frame), rows: result.rows } });
               }}
               onBegin={onBegin}
               onCommit={onCommit}

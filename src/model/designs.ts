@@ -115,6 +115,12 @@ export function designFrames(kind: EnemyBehaviour | "boss", look: Look): string[
   });
 }
 
+// Where an old frame is in this look, when its animation has fewer frames than the old slot.
+export function designSlot(kind: EnemyBehaviour | "boss", look: Look, index: number): { animation: string; frame: number } {
+  const { animation, frame } = designFrameSlot(kind, index);
+  return { animation, frame: Math.min(frame, look.animations[animation].frames.length - 1) };
+}
+
 export const designLook = (kind: EnemyBehaviour | "boss", look: Look): DesignLook => ({
   colours: look.colours,
   frames: designFrames(kind, look),

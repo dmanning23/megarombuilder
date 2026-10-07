@@ -6,6 +6,10 @@ import { snowHero } from "@/content/snow/hero";
 import { flipRows, ZOOM } from "@/editor/hero/pixels";
 import { setupHero } from "./heroHelpers";
 import { pictureRows } from "@/model/hero";
+import { applyCommand } from "@/commands/registry";
+import { snowPack } from "@/content/snow/pack";
+import { newProject } from "@/editor/newProject";
+import type { Project } from "@/model/schema";
 
 afterEach(cleanup);
 
@@ -178,5 +182,44 @@ describe("strokes in awkward places", () => {
     fireEvent.click(screen.getByRole("button", { name: "Level" }));
     expect(screen.getByRole("button", { name: "Undo" })).toHaveProperty("disabled", false);
     expect(pictureRows(saved().hero.look, "stand")[0][3]).toBe("1");
+  });
+});
+
+describe("looks the old screen can't make", () => {
+  const counter = () => {
+    let n = 0;
+    return () => `id-${++n}`;
+  };
+  const withCommands = (project: Project, ...commands: [string, unknown][]) => {
+    for (const [name, args] of commands) {
+      const result = applyCommand(project, { name, args }, { pack: snowPack });
+      if (!result.ok) throw new Error(result.error);
+      project = result.project;
+    }
+    return project;
+  };
+
+  it("draws on Run 2 when the run has only one frame", async () => {
+    const project = withCommands(newProject("One frame", counter()), ["removeFrame", { target: "hero", animation: "run", frame: 1 }]);
+    const { open, choose, press, saved } = setupHero(project);
+    await open();
+    await choose(/^Run 2/);
+    press(0, 0);
+    expect(screen.queryByRole("alert")).toBeNull();
+    expect(saved().hero.look.animations.run.frames[0][0][0]).toBe("1");
+  });
+
+  it("draws and picks colours past nine with their letters", async () => {
+    const colours = Array.from({ length: 10 }, (_, i) => i + 1);
+    const project = withCommands(newProject("Ten", counter()), ["setLookColours", { target: "hero", colours }]);
+    const { open, choose, press, saved } = setupHero(project);
+    await open();
+    await choose("Colour 10");
+    press(0, 0);
+    await choose("Colour 1");
+    await choose("Pick colour");
+    press(0, 0);
+    expect(screen.getByRole("button", { name: "Colour 10" }).getAttribute("aria-pressed")).toBe("true");
+    expect(pictureRows(saved().hero.look, "stand")[0][0]).toBe("a");
   });
 });

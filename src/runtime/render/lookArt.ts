@@ -1,14 +1,15 @@
 import { designLook, type BossDesign, type DesignLook, type EnemyDesign } from "@/model/designs";
 import { OWN_BOSS, ownType } from "@/model/gamePack";
+import { slotChar } from "@/model/look";
 import { PALETTE_8BIT } from "@/model/palette";
 import { sprite, type Sprite } from "./art";
 
-// A design's look as sprites. Pixels are colour slot digits, so the palette maps "1" to the first.
+// A design's look as sprites. Pixels name colour slots ("1" to "9", then "a" to "g"), so the palette maps "1" to the first.
 export type LookArt = { palette: Record<string, string>; frames: Sprite[] };
 
 export function lookArt(look: DesignLook): LookArt {
   return {
-    palette: Object.fromEntries(look.colours.map((colour, i) => [String(i + 1), PALETTE_8BIT[colour]])),
+    palette: Object.fromEntries(look.colours.map((colour, i) => [slotChar(i + 1), PALETTE_8BIT[colour]])),
     frames: look.frames.map((rows) => sprite(rows)),
   };
 }

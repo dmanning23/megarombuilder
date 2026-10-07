@@ -245,3 +245,27 @@ export function fitBody(rows: string[], canvas: Size, maxH: number | null): Look
   if (maxH !== null && box.h > maxH) box = { ...box, y: box.y + box.h - maxH, h: maxH };
   return box;
 }
+
+// A look moved to another kind of enemy: its canvas, hitbox and colours stay, and its frames move
+// across by position (one animation into two: the first frame, then the rest; two into one: all
+// of them in order). A shot point is kept, added at the middle of the hitbox, or dropped.
+export function lookForKind(look: Look, from: LookKind, to: LookKind): Look {
+  const olds = Object.keys(KINDS[from].animations).map((a) => look.animations[a]);
+  const names = Object.keys(KINDS[to].animations);
+  let groups: Animation[];
+  if (olds.length === names.length) groups = olds;
+  else if (olds.length === 1) {
+    const [first, ...rest] = olds[0].frames;
+    groups = [{ ...olds[0], frames: [first] }, ...names.slice(1).map(() => ({ ...olds[0], frames: rest.length > 0 ? rest : [first] }))];
+  } else {
+    groups = [{ ...olds[0], frames: olds.flatMap((a) => a.frames).slice(0, MAX_FRAMES) }];
+  }
+  const animations = Object.fromEntries(names.map((name, i) => [name, groups[i] ?? groups[0]]));
+  const shotHeight = KINDS[to].shotHeight;
+  const rest: Look = { ...look };
+  delete rest.shotY;
+  if (shotHeight === null) return { ...rest, animations };
+  const highest = Math.max(0, look.body.h - shotHeight);
+  const shotY = Math.min(look.shotY ?? Math.round(look.body.h / 2) - Math.round(shotHeight / 2), highest);
+  return { ...rest, animations, shotY: Math.max(0, shotY) };
+}

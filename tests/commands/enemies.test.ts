@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { createHistory, runCommand, undo } from "@/commands/history";
 import { defaultTuning, designFrames } from "@/model/designs";
 import { testEnemyLooks } from "../fixtures/testPack";
+import { lookProblems } from "@/model/look";
 import { baseProject, ctx, run, runError } from "./helpers";
 
 const add = (project = baseProject(), enemyId = "e1", name = "Frost Fang", behaviour = "walker") =>
@@ -95,5 +96,25 @@ describe("placing and removing an enemy", () => {
     const history = createHistory(baseProject());
     const { history: added } = runCommand(history, { name: "addEnemy", args: { enemyId: "e1", name: "Fang", behaviour: "flyer" } }, ctx);
     expect(undo(added).project).toBe(history.project);
+  });
+});
+
+describe("changing behaviour after the look has changed", () => {
+  it("keeps the canvas, hitbox and frames, so the game stays valid", () => {
+    let project = add();
+    const target = { enemy: "e1" };
+    project = run(project, "resizeCanvas", { target, canvas: "main", w: 24, h: 24 });
+    project = run(project, "addFrame", { target, animation: "walk", after: 1, copy: true });
+    const before = project.enemies[0].look;
+    project = run(project, "setEnemyBehaviour", { enemyId: "e1", behaviour: "jumper" });
+    const look = project.enemies[0].look;
+    expect(lookProblems("jumper", look, "Frost Fang")).toEqual([]);
+    expect(look.canvases.main).toEqual({ w: 24, h: 24 });
+    expect(look.body).toEqual(before.body);
+    expect(look.animations.ground.frames).toEqual([before.animations.walk.frames[0]]);
+    expect(look.animations.air.frames).toEqual(before.animations.walk.frames.slice(1));
+    project = run(project, "setEnemyBehaviour", { enemyId: "e1", behaviour: "turret" });
+    expect(project.enemies[0].look.animations.idle.frames).toEqual(before.animations.walk.frames);
+    expect(lookProblems("turret", project.enemies[0].look, "Frost Fang")).toEqual([]);
   });
 });
