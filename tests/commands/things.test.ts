@@ -167,3 +167,37 @@ describe("checkpoints", () => {
     ).toMatch(/no checkpoint at \(8, 12\)/);
   });
 });
+
+describe("the kid's own designs own their settings", () => {
+  const withFang = () => run(baseProject(), "addEnemy", { enemyId: "e1", name: "Frost Fang", behaviour: "walker" });
+  const place = (settings?: Record<string, number>) => ({
+    levelId: "L1",
+    zoneId: "z1",
+    thingId: "t1",
+    type: "own-e1",
+    x: 6,
+    y: 12,
+    ...(settings ? { settings } : {}),
+  });
+  const message = "Frost Fang's settings come from its design. The user can change it on the Characters screen.";
+
+  it("places an own enemy with no settings, or empty ones", () => {
+    expect(run(withFang(), "placeThing", place()).levels[0].zones[0].things[0].settings).toEqual({});
+    expect(run(withFang(), "placeThing", place({})).levels[0].zones[0].things[0].settings).toEqual({});
+  });
+
+  it("refuses settings for an own enemy, placed or being placed", () => {
+    expect(runError(withFang(), "placeThing", place({ speed: 2 }))).toBe(message);
+    const placed = run(withFang(), "placeThing", place());
+    expect(runError(placed, "setThingSettings", { levelId: "L1", zoneId: "z1", thingId: "t1", settings: { health: 9 } })).toBe(message);
+  });
+
+  it("refuses settings for the kid's boss", () => {
+    let project = run(baseProject(), "placeThing", { levelId: "L1", zoneId: "boss", thingId: "b1", type: "boss", x: 10, y: 12 });
+    project = run(project, "createBoss", { name: "Volt Viper" });
+    project = run(project, "useBoss", { boss: "yours" });
+    expect(runError(project, "setThingSettings", { levelId: "L1", zoneId: "boss", thingId: "b1", settings: { attacks: "rain" } })).toBe(
+      "Volt Viper's settings come from its design. The user can change it on the Characters screen.",
+    );
+  });
+});

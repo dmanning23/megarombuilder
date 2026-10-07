@@ -3,7 +3,9 @@ import { clearableGap } from "@/checker/reasons";
 import { heroPhysics, type Abilities } from "@/model/hero";
 import type { ContentPack, PieceDef, TileBehaviour } from "@/model/contentPack";
 import { tileIndex, zoneSize, type Opening } from "@/model/geometry";
-import type { Level, Project, Zone } from "@/model/schema";
+import { FIGHT_HEALTH, TUNING_USED, type BossAttack, type EnemyBehaviour, type EnemyDesign } from "@/model/designs";
+import { OWN_BOSS, ownType } from "@/model/gamePack";
+import { tidyName, type Level, type Project, type Zone } from "@/model/schema";
 
 // How Claude sees a level: plain text, small enough to send only the zones it asks for.
 
@@ -65,7 +67,8 @@ export function describeZone(level: Level, zone: Zone, pack: ContentPack): strin
   for (const thing of zone.things) {
     const def = pack.things.find((d) => d.type === thing.type);
     const settings = Object.keys(thing.settings).length > 0 ? `, settings ${JSON.stringify(thing.settings)}` : "";
-    lines.push(`- ${thing.id}: ${def?.name ?? thing.type} (${thing.type}) at (${thing.x}, ${thing.y})${settings}`);
+    const name = def ? (def.own ? `${tidyName(def.name)}, yours` : def.name) : thing.type;
+    lines.push(`- ${thing.id}: ${name} (${thing.type}) at (${thing.x}, ${thing.y})${settings}`);
   }
   const checkpoints = level.checkpoints.filter((c) => c.zoneId === zone.id);
   lines.push(
@@ -155,7 +158,67 @@ export function describeCatalogue(project: Project, pack: ContentPack): string {
       return `- ${d.type}: ${d.name}, ${d.category}. ${d.description}${settings}`;
     }),
     "",
+    describeDesigns(project, pack),
+    "",
     "Pieces (use the id in insert_piece; each is a full-height slice of 15 rows, so place it at y 0 in a sideways zone):",
     ...pack.pieces.map(pieceLine),
   ].join("\n");
+}
+
+const BEHAVIOUR_WORDS: Record<EnemyBehaviour, string> = {
+  walker: "a walker that patrols back and forth",
+  flyer: "a flyer that swoops toward the hero",
+  turret: "a turret that fires at the hero",
+  jumper: "a hopper that hops toward the hero",
+  shielded: "a shield guard that blocks shots until it opens up",
+  dropper: "a dropper that drops when the hero passes underneath",
+};
+
+const ATTACK_WORDS: Record<BossAttack, string> = {
+  jump: "a jump at the hero",
+  dash: "a dash along the floor",
+  spread: "three spreading shots",
+  aimed: "a quick shot aimed at the hero",
+  rain: "shots falling from above",
+  big: "a big slow shot at chest height",
+};
+
+function tuningWords(enemy: EnemyDesign): string {
+  const t = enemy.tuning;
+  const used = TUNING_USED[enemy.behaviour];
+  return [
+    used.includes("speed") ? t.speed : null,
+    `${t.health} hit${t.health === 1 ? "" : "s"}`,
+    `${t.damage} damage`,
+    used.includes("shoots") ? `shoots ${t.shoots}` : null,
+  ]
+    .filter((part): part is string => part !== null)
+    .join(", ");
+}
+
+// The kid's own enemies and boss, as the assistant needs them: what to place, and what it does.
+export function describeDesigns(project: Project, pack: ContentPack): string {
+  const { enemies, boss } = project;
+  if (enemies.length === 0 && !boss) return "They haven't made any enemies or a boss of their own yet.";
+  const lines: string[] = [];
+  if (enemies.length > 0) {
+    lines.push("Their own enemies (place them with place_thing using the type; their settings come from their designs):");
+    for (const enemy of enemies) {
+      lines.push(`- ${ownType(enemy.id)}: ${tidyName(enemy.name)}, ${BEHAVIOUR_WORDS[enemy.behaviour]}: ${tuningWords(enemy)}.`);
+    }
+  } else {
+    lines.push("They haven't made any enemies of their own yet.");
+  }
+  if (boss) {
+    const placed = project.levels.some((l) => l.zones.some((z) => z.things.some((t) => t.type === OWN_BOSS)));
+    const other = pack.things.find((d) => d.behaviour === "boss" && !d.own)?.name ?? "content pack's boss";
+    lines.push(
+      `Their own boss: ${tidyName(boss.name)}, a ${boss.fight} fight (${FIGHT_HEALTH[boss.fight]} health). ` +
+        `Attacks in order: ${boss.attacks.map((a) => ATTACK_WORDS[a]).join(", ")}. ` +
+        (placed ? "It is in the boss room." : `The ${other} is in the boss room instead; the user can swap theirs in on the Boss tab.`),
+    );
+  } else {
+    lines.push("They haven't made a boss of their own yet.");
+  }
+  return lines.join("\n");
 }

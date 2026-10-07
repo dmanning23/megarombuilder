@@ -27,4 +27,12 @@ describe("SYSTEM_PROMPT", () => {
     expect(SYSTEM_PROMPT).toContain("You can't draw or recolour the hero");
     expect(SYSTEM_PROMPT).toMatch(/charge shot/);
   });
+
+  it("tells the assistant to build around the kid's own enemies and boss, and leave them alone", () => {
+    expect(SYSTEM_PROMPT).toContain("make it the star of the level");
+    expect(SYSTEM_PROMPT).toContain("Build the boss room for the boss's attacks");
+    expect(SYSTEM_PROMPT).toContain("Never change, rename or delete their enemies or boss");
+    expect(SYSTEM_PROMPT).toContain("Characters screen");
+    expect(SYSTEM_PROMPT).not.toContain("Hero button");
+  });
 });

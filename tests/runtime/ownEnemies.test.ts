@@ -37,6 +37,20 @@ describe("the kid's own enemies in the game", () => {
     expect(fang.settings).toMatchObject({ speed: 0.75, damage: 4 });
   });
 
+  it("ignore settings an older game stored on a placed copy, so the design always wins", () => {
+    const project = withFang("own-e1", { speed: "fast", health: 5 });
+    const zone = project.levels[0].zones[0];
+    const stale: Project = {
+      ...project,
+      levels: [{ ...project.levels[0], zones: [{ ...zone, things: [{ ...zone.things[0], settings: { speed: 9, health: 99 } }] }, ...project.levels[0].zones.slice(1)] }],
+    };
+    const sim = createSim(stale, "L1", pack);
+    step(sim, NO_INPUT);
+    const fang = sim.slots[0].entity!;
+    expect(fang.health).toBe(5);
+    expect(fang.settings).toMatchObject({ speed: 0.75 });
+  });
+
   it("are checked like any enemy, by name", () => {
     const check = checkZone(withFang("own-e1", {}, 1), "L1", "z1", pack);
     expect(check.warnings).toContain("The Frost Fang at (1, 12) is right where the player arrives.");

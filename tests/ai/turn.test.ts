@@ -5,7 +5,7 @@ import type { Command } from "@/commands/types";
 import { SPIKE } from "@/content/snow/pack";
 import type { ChatMessage } from "@/model/schema";
 import { scriptedModel, say, useTools, waitForAbort, type Step } from "./fakeModel";
-import { counter, game, pack } from "./helpers";
+import { counter, game, pack, run } from "./helpers";
 
 const spikes = ["fill_rect", { zone: "Zone 1", x: 3, y: 13, w: 2, h: 1, tile: SPIKE }] as [string, unknown];
 const checkZone1 = ["check_zone", { zone: "Zone 1" }] as [string, unknown];
@@ -233,4 +233,45 @@ describe("the assistant and the hero", () => {
     const forced = requests[2][requests[2].length - 1].content as string;
     for (const name of ['"Zone 1"', '"Boss Corridor"', '"Boss Room"']) expect(forced).toContain(name);
   });
+});
+
+describe("the assistant and the kid's own enemies", () => {
+  function withFang() {
+    return run(game(), "addEnemy", { enemyId: "e1", name: "Frost Fang", behaviour: "walker" });
+  }
+
+  it("sees them in the message, and places one by its type", async () => {
+    const { turn, requests, commands } = setup(
+      [
+        useTools(["place_thing", { zone: "Zone 1", type: "own-e1", x: 8, y: 12 }]),
+        useTools(["check_zone", { zone: "Zone 1" }]),
+        say("Frost Fang now guards Zone 1."),
+      ],
+      { project: withFang(), text: "Build a level for my Frost Fang" },
+    );
+    expect(await turn()).toMatchObject({ ok: true, reply: "Frost Fang now guards Zone 1." });
+    const context = (requests[0][0].content as Anthropic.TextBlockParam[])[1].text;
+    expect(context).toContain("- own-e1: Frost Fang, a walker");
+    expect(commands).toEqual([
+      expect.objectContaining({ name: "placeThing", args: expect.objectContaining({ type: "own-e1", x: 8, y: 12 }) }),
+    ]);
+  });
+
+  it("gets an error back, and changes nothing, when it tries to change an own enemy's settings", async () => {
+    let project = withFang();
+    project = run(project, "placeThing", { levelId: "L1", zoneId: "z1", thingId: "t1", type: "own-e1", x: 8, y: 12 });
+    const { turn, requests, commands } = setup(
+      [
+        useTools(["set_thing_settings", { zone: "Zone 1", thingId: "t1", settings: { speed: 3 } }]),
+        say("Frost Fang's speed is set on the Characters screen."),
+      ],
+      { project },
+    );
+    expect(await turn()).toMatchObject({ ok: true });
+    const result = toolResults(lastUser(requests[1]))[0];
+    expect(result.is_error).toBe(true);
+    expect(result.content).toContain("settings come from its design");
+    expect(commands).toEqual([]);
+  });
+
 });

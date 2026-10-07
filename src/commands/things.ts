@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { inBounds, zoneSize } from "@/model/geometry";
-import { thingSettingsSchema, type Thing, type Zone } from "@/model/schema";
+import type { ThingDef } from "@/model/contentPack";
+import { thingSettingsSchema, tidyName, type Thing, type Zone } from "@/model/schema";
 import { editZone } from "./helpers";
 import { coordArg, defineCommand, idArg } from "./types";
 
@@ -9,6 +10,11 @@ function outsideProblem(zone: Zone, x: number, y: number): string | null {
   if (inBounds(size, x, y)) return null;
   return `(${x}, ${y}) is outside "${zone.name}", which is ${size.width} tiles wide and ${size.height} tiles high.`;
 }
+
+// The kid's own enemies and boss take their settings from their designs, so placed copies always
+// follow the Characters screen.
+const ownSettingsProblem = (def: ThingDef) =>
+  `${tidyName(def.name)}'s settings come from its design. The user can change it on the Characters screen.`;
 
 // Replaces one thing in a zone, or returns an error string if it is not there.
 function editThing(zone: Zone, thingId: string, fn: (thing: Thing) => Thing): Zone | string {
@@ -38,6 +44,7 @@ const placeThingCommand = defineCommand({
         const known = ctx.pack.things.map((d) => d.type).join(", ");
         return `There is no thing called "${args.type}". Choose one of: ${known}.`;
       }
+      if (def.own && Object.keys(args.settings).length > 0) return ownSettingsProblem(def);
       const outside = outsideProblem(zone, args.x, args.y);
       if (outside) return outside;
       if (zone.things.some((t) => t.id === args.thingId)) {
@@ -48,8 +55,8 @@ const placeThingCommand = defineCommand({
         type: args.type,
         x: args.x,
         y: args.y,
-        // An own enemy's tuning comes from its design at play time, so placed copies follow changes.
-        settings: def.own ? args.settings : { ...def.defaults, ...args.settings },
+        // An own enemy's or boss's settings come from its design at play time.
+        settings: def.own ? {} : { ...def.defaults, ...args.settings },
       };
       return { ...zone, things: [...zone.things, thing] };
     });
@@ -87,10 +94,13 @@ const setThingSettingsCommand = defineCommand({
   name: "setThingSettings",
   description: "Change some of a thing's settings. Settings not mentioned are kept.",
   args: z.strictObject({ levelId: idArg, zoneId: idArg, thingId: idArg, settings: thingSettingsSchema }),
-  apply(project, args) {
-    return editZone(project, args.levelId, args.zoneId, (zone) =>
-      editThing(zone, args.thingId, (t) => ({ ...t, settings: { ...t.settings, ...args.settings } })),
-    );
+  apply(project, args, ctx) {
+    return editZone(project, args.levelId, args.zoneId, (zone) => {
+      const thing = zone.things.find((t) => t.id === args.thingId);
+      const def = thing && ctx.pack.things.find((d) => d.type === thing.type);
+      if (def?.own) return ownSettingsProblem(def);
+      return editThing(zone, args.thingId, (t) => ({ ...t, settings: { ...t.settings, ...args.settings } }));
+    });
   },
 });
 

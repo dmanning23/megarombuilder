@@ -54,7 +54,8 @@ const HINTS: Record<string, string> = {
   fill_rect: " Use tile 0 to empty an area, or clear_rect.",
   set_tiles: " Use it for small, scattered changes; use fill_rect for blocks.",
   place_thing:
-    " x and y are the tile the thing stands in: an enemy on a floor whose top row is 13 goes at y 12. Flying enemies float in their tile, droppers hang from the top of theirs, and moving platforms ride along the top of theirs.",
+    " x and y are the tile the thing stands in: an enemy on a floor whose top row is 13 goes at y 12. Flying enemies float in their tile, droppers hang from the top of theirs, and moving platforms ride along the top of theirs. The user's own enemies have types starting with \"own-\"; place them without settings.",
+  set_thing_settings: " Not for the user's own enemies or boss: their settings come from their designs.",
   add_checkpoint: " x and y are the tile the player respawns standing in.",
 };
 
