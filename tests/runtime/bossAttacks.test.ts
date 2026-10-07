@@ -6,9 +6,9 @@ import type { Sim } from "@/runtime/sim/state";
 import { flatArt, thing } from "./helpers";
 import { entity, makeSim, run } from "./simHelpers";
 
-function arena(attacks?: string, x = 12) {
+function arena(attacks?: string, x = 12, art = flatArt()) {
   const settings: Record<string, string> = attacks === undefined ? {} : { attacks };
-  const sim = makeSim([{ art: flatArt(), things: [thing("boss", x, 12, settings)] }]);
+  const sim = makeSim([{ art, things: [thing("boss", x, 12, settings)] }]);
   const boss = entity(sim, "boss");
   if (!boss) throw new Error("no boss");
   sim.player.invuln = 1_000_000;
@@ -43,6 +43,14 @@ describe("boss attack lists", () => {
     expect(order(sim, boss, 4)).toEqual(["rain", "big", "rain", "big"]);
   });
 
+  it("leave the Blizzard Bot (no attack list) pausing as before when hurt", () => {
+    const { sim, boss } = arena();
+    boss.health = 5;
+    until(sim, boss, "jump");
+    for (let i = 0; i < 400 && boss.mode !== "idle"; i++) run(sim, {}, 1);
+    expect(boss.timer).toBe(BOSS_IDLE_STEPS);
+  });
+
   it("pause for less time between attacks below half health", () => {
     const { sim, boss } = arena("aimed,aimed");
     until(sim, boss, "aimed");
@@ -73,6 +81,15 @@ describe("the new attacks", () => {
     for (let i = 1; i < xs.length; i++) expect(xs[i] - xs[i - 1] - 6).toBeGreaterThan(32);
     expect(xs.length).toBeGreaterThan(0);
     expect(xs.length).toBeLessThanOrEqual(4);
+  });
+
+  it("rain: falls from under a ceiling, not inside it", () => {
+    const ceiling = flatArt({ 0: "#".repeat(16), 1: "#".repeat(16) });
+    const { sim, boss } = arena("rain,rain", 12, ceiling);
+    until(sim, boss, "rain");
+    run(sim, {}, 1);
+    expect(sim.enemyShots.length).toBeGreaterThan(0);
+    expect(sim.enemyShots.every((s) => s.y >= 32)).toBe(true);
   });
 
   it("rain: the pattern moves every other rain, even between other attacks", () => {

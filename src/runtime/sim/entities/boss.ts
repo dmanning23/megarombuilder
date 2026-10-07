@@ -1,4 +1,5 @@
 import { BOSS_ATTACKS, type BossAttack } from "@/model/designs";
+import { TILE_SIZE } from "@/model/geometry";
 import { moveX } from "../body";
 import {
   AIMED_SHOT_SPEED,
@@ -11,8 +12,10 @@ import {
   ENEMY_SHOT_SIZE,
   RAIN_SPACING,
   RAIN_SPEED,
+  SCREEN_H,
 } from "../constants";
 import type { Sim } from "../state";
+import { firstTile, isSolid } from "../tilemap";
 import { cameraFor } from "../view";
 import { fall, fireAt, towardPlayer } from "./motion";
 import { num, type Entity } from "./types";
@@ -31,9 +34,20 @@ export function attacksOf(e: Entity): BossAttack[] {
   return attacks.length > 0 ? attacks : DEFAULT_ATTACKS;
 }
 
+// The first open tile at or below `top` in the column at `cx`, so rain falls from under a ceiling
+// rather than vanishing inside it; null when the column is solid all the way down the screen.
+function belowCeiling(sim: Sim, cx: number, top: number): number | null {
+  const tx = firstTile(cx);
+  for (let ty = firstTile(top); ty * TILE_SIZE < top + SCREEN_H; ty++) {
+    if (!isSolid(sim.map.behaviourAt(tx, ty))) return Math.max(top, ty * TILE_SIZE);
+  }
+  return null;
+}
+
 function toIdle(e: Entity): void {
   e.mode = "idle";
-  const hurt = e.health < num(e.settings, "health", 28) / 2;
+  // Only a boss with its own attack list hurries when hurt, so the Blizzard Bot fights as it always has.
+  const hurt = typeof e.settings.attacks === "string" && e.health < num(e.settings, "health", 28) / 2;
   e.timer = hurt ? BOSS_HURRIED_IDLE_STEPS : BOSS_IDLE_STEPS;
   e.vx = 0;
 }
@@ -75,7 +89,9 @@ function startAttack(sim: Sim, e: Entity): void {
     const shift = rainsBefore % 2 === 0 ? 0 : -RAIN_SPACING / 2;
     const centre = p.x + p.w / 2 - ENEMY_SHOT_SIZE / 2 + shift;
     for (const k of [-2, -1, 0, 1]) {
-      sim.enemyShots.push({ x: centre + k * RAIN_SPACING, y: top, vx: 0, vy: RAIN_SPEED, damage });
+      const x = centre + k * RAIN_SPACING;
+      const y = belowCeiling(sim, x + ENEMY_SHOT_SIZE / 2, top);
+      if (y !== null) sim.enemyShots.push({ x, y, vx: 0, vy: RAIN_SPEED, damage });
     }
     e.timer = 40;
   } else {
