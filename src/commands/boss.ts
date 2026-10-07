@@ -83,15 +83,22 @@ const useBossCommand = defineCommand({
     const snow = ctx.pack.things.find((d) => d.behaviour === "boss" && !d.own);
     if (args.boss === "snow" && !snow) return fail("This content pack has no boss.");
     const isBoss = (type: string) => ctx.pack.things.find((d) => d.type === type)?.behaviour === "boss";
+    const target = args.boss === "yours" ? OWN_BOSS : snow!.type;
+    let found = 0;
     let swapped = 0;
     const levels = project.levels.map((level) => ({
       ...level,
       zones: level.zones.map((zone) => {
-        if (!zone.things.some((t) => isBoss(t.type))) return zone;
+        if (!zone.things.some((t) => isBoss(t.type) && t.type !== target)) {
+          found += zone.things.filter((t) => isBoss(t.type)).length;
+          return zone;
+        }
         return {
           ...zone,
           things: zone.things.map((t) => {
             if (!isBoss(t.type)) return t;
+            found++;
+            if (t.type === target) return t; // already the chosen boss: keep its settings
             swapped++;
             return args.boss === "yours"
               ? { ...t, type: OWN_BOSS, settings: {} }
@@ -100,8 +107,8 @@ const useBossCommand = defineCommand({
         };
       }),
     }));
-    if (swapped === 0) return fail("There is no boss in a boss room to swap. Put one there first.");
-    return ok({ ...project, levels });
+    if (found === 0) return fail("There is no boss in a boss room to swap. Put one there first.");
+    return ok(swapped === 0 ? project : { ...project, levels });
   },
 });
 

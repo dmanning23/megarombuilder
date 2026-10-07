@@ -49,6 +49,14 @@ describe("using the kid's boss in the boss room", () => {
     expect(bossThing(project)).toMatchObject({ id: "b1", type: "boss", x: 10, y: 12 });
   });
 
+  it("leaves a boss that is already the chosen one alone, settings and all", () => {
+    let project = run(withSnowBoss(), "setThingSettings", { levelId: "L1", zoneId: "boss", thingId: "b1", settings: { health: 40 } });
+    project = run(project, "createBoss", { name: "Volt Viper" });
+    expect(run(project, "useBoss", { boss: "snow" })).toBe(project);
+    const yours = run(project, "useBoss", { boss: "yours" });
+    expect(run(yours, "useBoss", { boss: "yours" })).toBe(yours);
+  });
+
   it("is one undo step", () => {
     const start = run(withSnowBoss(), "createBoss", { name: "Volt Viper" });
     const history = createHistory(start);
