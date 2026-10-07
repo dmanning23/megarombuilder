@@ -28,6 +28,12 @@ const HEALTH: Record<ThingBehaviour, number> = {
   boss: 28,
 };
 
+// How big each kind of thing's body is, in pixels.
+export function bodySize(behaviour: ThingBehaviour): { w: number; h: number } {
+  const [w, h] = SIZES[behaviour];
+  return { w, h };
+}
+
 // Where a thing appears. Most stand on the bottom of their tile, centred across it.
 export function spawnBox(thing: Thing, behaviour: ThingBehaviour): Box {
   const [w, h] = SIZES[behaviour];

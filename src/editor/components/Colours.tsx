@@ -14,7 +14,7 @@ type Props = {
 const WHITE = 27; // a new colour starts white
 
 // The hero's colours, and the 8-bit palette to change the chosen one.
-export function HeroColours({ colours, slot, onSlot, onColours }: Props) {
+export function Colours({ colours, slot, onSlot, onColours }: Props) {
   return (
     <section className={styles.colours} aria-label="Colours">
       <h3 className={styles.heroHeading}>Colours</h3>

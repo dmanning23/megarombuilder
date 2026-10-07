@@ -36,14 +36,22 @@ export function backgroundOf(image: RawImage): Rgb | null {
   return [corners[0][0], corners[0][1], corners[0][2]];
 }
 
-export function importPicture(image: RawImage, picture: HeroPicture, colours: number[], removeBackground: boolean): Imported {
-  const { w, h } = PICTURE_SIZES[picture];
+// Where an imported picture goes: one of the hero's pictures, or a frame of a size that stands on
+// the feet line (or is centred).
+export type ImportTarget = HeroPicture | { w: number; h: number; stand: boolean };
+
+function frameOf(target: ImportTarget): { w: number; h: number; stand: boolean } {
+  if (typeof target !== "string") return target;
+  return { ...PICTURE_SIZES[target], stand: target !== "shot" && target !== "chargedShot" };
+}
+
+export function importPicture(image: RawImage, target: ImportTarget, colours: number[], removeBackground: boolean): Imported {
+  const { w, h, stand } = frameOf(target);
   const scale = Math.min(w / image.width, h / image.height);
   const tw = Math.max(1, Math.min(w, Math.round(image.width * scale)));
   const th = Math.max(1, Math.min(h, Math.round(image.height * scale)));
   const left = Math.floor((w - tw) / 2);
-  const shot = picture === "shot" || picture === "chargedShot";
-  const top = shot ? Math.floor((h - th) / 2) : h - th; // poses stand on the feet line
+  const top = stand ? h - th : Math.floor((h - th) / 2); // poses stand on the feet line
   const key = removeBackground ? backgroundOf(image) : null;
 
   // Each frame pixel takes the palette colour most of its block of source pixels snaps to.
