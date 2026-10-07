@@ -62,6 +62,7 @@ room. 915 tests and 12 browser tests pass; typecheck, lint and build are clean. 
 | `plans/2026-10-07-m3-plan-2-enemies-tab.md` | Milestone 3 plan 2 of 5, implemented, reviewed and merged |
 | `plans/2026-10-07-m3-plan-3-boss-data-and-attacks.md` | Milestone 3 plan 3 of 5, implemented, reviewed and merged |
 | `plans/2026-10-07-m3-plan-4-boss-tab.md` | Milestone 3 plan 4 of 5, implemented, reviewed and merged |
+| `plans/2026-10-07-m3-plan-5-assistant.md` | Milestone 3 plan 5 of 5, written, waiting for approval |
 
 Milestone 1 is now eight plans (the editor became two):
 
