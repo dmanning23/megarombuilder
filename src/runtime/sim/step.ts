@@ -30,6 +30,7 @@ export function step(sim: Sim, input: Input): void {
 function playStep(sim: Sim, input: Input): void {
   updatePlatforms(sim);
   updatePlayer(sim, input);
+  sim.player.airSteps = sim.player.onGround || sim.player.onLadder ? 0 : sim.player.airSteps + 1;
   if (input.shoot && !sim.prev.shoot) shoot(sim);
   chargeShot(sim, input);
   updateShots(sim);

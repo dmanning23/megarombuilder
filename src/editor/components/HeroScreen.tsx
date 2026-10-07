@@ -73,6 +73,15 @@ export function HeroScreen({
   const spriteOf = (p: HeroPicture) =>
     p === "shot" ? sprites.shot : p === "chargedShot" ? sprites.chargedShot : sprites.poses[p];
 
+  // Until the screen can show "Run and shoot" (milestone 4, plan 4), it is kept the same as Run.
+  const save = (next: string[]) => {
+    const slot = heroPictureSlot(look, picture);
+    onCommand({ name: "setFrame", args: { target: "hero", ...slot, rows: next } });
+    if (slot.animation === "run" && look.animations.runShoot.frames.length > slot.frame) {
+      onCommand({ name: "setFrame", args: { target: "hero", animation: "runShoot", frame: slot.frame, rows: next } });
+    }
+  };
+
   return (
     <fieldset className={styles.heroScreen} disabled={locked} aria-label="Your hero">
       {error && (
@@ -122,12 +131,12 @@ export function HeroScreen({
         importTarget={picture}
         readPicture={readPicture}
         locked={locked}
-        onRows={(next) => onCommand({ name: "setFrame", args: { target: "hero", ...heroPictureSlot(look, picture), rows: next } })}
+        onRows={save}
         onImport={(result) => {
           if (result.colours.length !== look.colours.length) {
             onCommand({ name: "setLookColours", args: { target: "hero", colours: result.colours } });
           }
-          onCommand({ name: "setFrame", args: { target: "hero", ...heroPictureSlot(look, picture), rows: result.rows } });
+          save(result.rows);
         }}
         onBegin={onBegin}
         onCommit={onCommit}

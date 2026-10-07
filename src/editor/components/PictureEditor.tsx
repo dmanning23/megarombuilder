@@ -69,6 +69,13 @@ export function PictureEditor({
   const ink = tool === "eraser" ? "." : slotChar(colour);
   const stroke = useRef<{ rows: string[]; last: Pixel } | null>(null);
 
+  // A one-press change (fill, copy, flip, clear) is one undo step, however many commands saving it takes.
+  const once = (label: string, next: string[]) => {
+    onBegin(label);
+    onRows(next);
+    onCommit();
+  };
+
   const press = (p: Pixel) => {
     if (locked) return;
     if (tool === "pick") {
@@ -77,7 +84,7 @@ export function PictureEditor({
       return;
     }
     if (tool === "fill") {
-      onRows(floodFill(rows, p, ink));
+      once("Fill", floodFill(rows, p, ink));
       return;
     }
     onBegin(tool === "eraser" ? "Erase" : "Draw");
@@ -183,7 +190,7 @@ export function PictureEditor({
               value=""
               onChange={(e) => {
                 const from = partners.find((p) => p.id === e.target.value);
-                if (from) onRows(from.rows);
+                if (from) once("Copy picture", from.rows);
               }}
             >
               <option value="">Choose a picture…</option>
@@ -195,10 +202,10 @@ export function PictureEditor({
             </select>
           </label>
         )}
-        <button type="button" className={styles.swatch} onClick={() => onRows(flipRows(rows))}>
+        <button type="button" className={styles.swatch} onClick={() => once("Flip", flipRows(rows))}>
           Flip
         </button>
-        <button type="button" className={styles.swatch} onClick={() => onRows(blankRows(size.w, size.h))}>
+        <button type="button" className={styles.swatch} onClick={() => once("Clear", blankRows(size.w, size.h))}>
           Clear
         </button>
         <button ref={importButton} type="button" className={styles.swatch} onClick={() => fileInput.current?.click()}>

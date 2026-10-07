@@ -72,6 +72,7 @@ export function createEntity(thing: Thing, def: ThingDef, playerCentreX: number)
     dx: 0,
     dy: 0,
     flash: 0,
+    modeSteps: 0,
     settings,
   };
 }

@@ -7,9 +7,10 @@ import { num, type Box, type Entity } from "@/runtime/sim/entities/types";
 import type { Camera, Sim } from "@/runtime/sim/state";
 import { firstTile, lastTile } from "@/runtime/sim/tilemap";
 import { viewFor } from "@/runtime/sim/view";
-import { playerPose, thingFrame, type ArtSet, type Sprite } from "./art";
+import { entityShown, heroShown, pickFrame } from "./animate";
+import { thingFrame, type ArtSet, type Sprite } from "./art";
 import type { HeroArt } from "./heroArt";
-import type { OwnSkin } from "./lookArt";
+import { timingsOf, type OwnSkin } from "./lookArt";
 
 export type Ctx2D = Pick<
   CanvasRenderingContext2D,
@@ -125,11 +126,17 @@ export function drawZone(
 function drawEntity(ctx: Ctx2D, sim: Sim, e: Entity, skin: Skin | undefined, ox: number, oy: number) {
   const flashing = e.flash > 0 && e.flash % 4 < 2;
   const own = skin?.own?.[e.type];
-  const frames = own ? own.art.frames : skin?.set.things[e.type];
+  if (skin && own) {
+    if (flashing) return; // blink
+    const shown = entityShown(e, sim.steps, timingsOf(own.animations));
+    const frames = own.animations[shown.animation]?.frames ?? own.art.frames;
+    onBox(ctx, own.image, frames[Math.min(shown.frame, frames.length - 1)], shown.flip, e, ox, oy);
+    return;
+  }
+  const frames = skin?.set.things[e.type]; // the content pack's own things keep their art set
   if (skin && frames && frames.length > 0) {
     if (flashing) return; // blink
-    const frame = frames[thingFrame(e, sim.steps, frames.length)];
-    onBox(ctx, own ? own.image : skin.image, frame, e.facing < 0, e, ox, oy);
+    onBox(ctx, skin.image, frames[thingFrame(e, sim.steps, frames.length)], e.facing < 0, e, ox, oy);
     return;
   }
   rect(
@@ -164,10 +171,10 @@ export function draw(ctx: Ctx2D, sim: Sim, skin?: Skin): void {
   const blinkedOut = p.invuln > 0 && Math.floor(p.invuln / 4) % 2 === 1;
   if (sim.phase !== "dead" && !blinkedOut) {
     if (skin?.hero) {
-      const { pose, flip } = playerPose(p, sim.steps);
+      const shown = heroShown(p, sim.steps, timingsOf(skin.hero.art.animations));
       const blink = p.charge >= CHARGE_STEPS && Math.floor(sim.steps / 4) % 2 === 0;
       const image = blink && skin.hero.flashImage ? skin.hero.flashImage : skin.hero.image;
-      onBox(ctx, image, skin.hero.art.poses[pose], flip, p, originX, originY);
+      onBox(ctx, image, skin.hero.art.animations[shown.animation].frames[shown.frame], shown.flip, p, originX, originY);
     } else {
       const px = Math.round(p.x) + originX;
       const py = Math.round(p.y) + originY;
@@ -180,7 +187,8 @@ export function draw(ctx: Ctx2D, sim: Sim, skin?: Skin): void {
     const x = Math.round(shot.x) + originX;
     const y = Math.round(shot.y) + originY;
     if (skin?.hero) {
-      const picture = shot.charged ? skin.hero.art.chargedShot : skin.hero.art.shot;
+      const anim = skin.hero.art.animations[shot.charged ? "chargedShot" : "shot"];
+      const picture = anim.frames[pickFrame({ frames: anim.frames.length, speed: anim.speed }, 8, sim.steps, true)];
       ctx.drawImage(skin.hero.image(picture, shot.vx < 0), x, y);
     } else {
       const { w, h } = shotSize(shot);
