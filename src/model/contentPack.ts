@@ -1,3 +1,4 @@
+import type { EnemyBehaviour, EnemyDesign } from "./designs";
 import type { HeroLook } from "./hero";
 import type { ThingSettings } from "./schema";
 
@@ -25,6 +26,7 @@ export type ThingDef = {
   behaviour: ThingBehaviour;
   description: string;
   defaults: ThingSettings;
+  own?: boolean; // one of the kid's own designs (added by gamePack)
 };
 
 // Piece settings are whole numbers so they can be described to the AI as plain ranges.
@@ -67,4 +69,5 @@ export type ContentPack = {
   things: ThingDef[];
   pieces: PieceDef[];
   hero: HeroLook; // the hero a new game starts with
+  enemyLooks: Record<EnemyBehaviour, EnemyDesign["look"]>; // the drawings a new enemy starts from
 };

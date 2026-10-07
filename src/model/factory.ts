@@ -92,5 +92,7 @@ export function createProject(opts: { id: string; name: string }, pack: ContentP
     hero: { abilities: { ...DEFAULT_ABILITIES }, look: pack.hero },
     levels: [],
     chat: [],
+    enemies: [],
+    boss: null,
   };
 }

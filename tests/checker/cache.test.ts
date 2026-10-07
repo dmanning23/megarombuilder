@@ -71,4 +71,12 @@ describe("createCheckCache", () => {
   it("says when the level does not exist", () => {
     expect(() => createCheckCache().level(game(), "nope", pack)).toThrow(/no level/);
   });
+
+  it("checks again when the kid's enemies change", () => {
+    const cache = createCheckCache();
+    const project = run(game(), { name: "addEnemy", args: { enemyId: "e1", name: "Fang", behaviour: "walker" } });
+    const first = cache.zone(project, "L1", "z1", pack);
+    const tuned = run(project, { name: "setEnemyTuning", args: { enemyId: "e1", speed: "fast" } });
+    expect(cache.zone(tuned, "L1", "z1", pack)).not.toBe(first);
+  });
 });

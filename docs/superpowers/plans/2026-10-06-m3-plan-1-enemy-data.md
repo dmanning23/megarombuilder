@@ -1017,7 +1017,7 @@ git commit -m "feat: add commands to make, tune, draw and remove the kid's own e
 ```ts
 import { describe, expect, it } from "vitest";
 import { checkZone } from "@/checker/check";
-import { defaultTuning, type EnemyTuning } from "@/model/designs";
+import type { EnemyTuning } from "@/model/designs";
 import type { Project } from "@/model/schema";
 import { createSim } from "@/runtime/sim/state";
 import { step } from "@/runtime/sim/step";
@@ -1163,7 +1163,7 @@ describe("lookArt", () => {
   });
 
   it("makes a skin for each of the kid's enemies, keyed by thing type", () => {
-    const skins = ownSkins(fangGame(), () => fake);
+    const skins = ownSkins(fangGame().enemies, () => fake);
     expect(Object.keys(skins)).toEqual(["own-e1"]);
     expect(skins["own-e1"].art.frames).toHaveLength(2);
   });
@@ -1174,7 +1174,7 @@ describe("drawing the kid's enemies", () => {
     const project = fangGame();
     const sim = createSim(project, "L1", pack);
     step(sim, NO_INPUT);
-    const own = ownSkins(project, () => fake);
+    const own = ownSkins(project.enemies, () => fake);
     const ctx = recorder();
     draw(ctx, sim, { set: snowArt, image: fake, own });
     expect(ctx.images.some((i) => own["own-e1"].art.frames.includes(i.sprite))).toBe(true);
@@ -1182,7 +1182,7 @@ describe("drawing the kid's enemies", () => {
 
   it("draws them on the zone canvas from their first frame", () => {
     const project = fangGame();
-    const own = ownSkins(project, () => fake);
+    const own = ownSkins(project.enemies, () => fake);
     const ctx = recorder();
     const zone = project.levels[0].zones[0];
     drawZoneView(ctx, zone, { ...pack, things: [{ ...pack.things[0], type: "own-e1", own: true }, ...pack.things] }, { set: snowArt, image: fake, own }, []);

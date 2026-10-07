@@ -46,10 +46,11 @@ export function drawZoneView(
     const def = pack.things.find((d) => d.type === thing.type);
     if (!def) continue;
     const box = spawnBox(thing, def.behaviour);
-    const frame = skin?.set.things[thing.type]?.[0];
+    const own = skin?.own?.[thing.type];
+    const frame = own ? own.art.frames[0] : skin?.set.things[thing.type]?.[0];
     if (skin && frame) {
       ctx.drawImage(
-        skin.image(frame, false),
+        (own ? own.image : skin.image)(frame, false),
         Math.round(box.x + box.w / 2 - frame.w / 2),
         Math.round(box.y + box.h - frame.h),
       );

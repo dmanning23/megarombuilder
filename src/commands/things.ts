@@ -48,7 +48,8 @@ const placeThingCommand = defineCommand({
         type: args.type,
         x: args.x,
         y: args.y,
-        settings: { ...def.defaults, ...args.settings },
+        // An own enemy's tuning comes from its design at play time, so placed copies follow changes.
+        settings: def.own ? args.settings : { ...def.defaults, ...args.settings },
       };
       return { ...zone, things: [...zone.things, thing] };
     });

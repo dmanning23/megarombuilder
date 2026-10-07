@@ -38,3 +38,8 @@ export function nameTaken(level: Level, name: string, exceptZoneId?: string): bo
   const key = tidyName(name).toLowerCase();
   return level.zones.some((z) => z.id !== exceptZoneId && tidyName(z.name).toLowerCase() === key);
 }
+
+// "Stand", "Stand and Run 1", "Stand, Run 1 and Jump".
+export function listNames(names: string[]): string {
+  return names.length <= 1 ? names.join("") : `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
+}

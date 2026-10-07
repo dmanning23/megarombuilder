@@ -8,6 +8,7 @@ import type { ArtSet } from "./art";
 import { draw, type Skin } from "./draw";
 import { createKeyboard } from "./keyboard";
 import { heroArt } from "./heroArt";
+import { ownSkins } from "./lookArt";
 import { stepsFor } from "./loop";
 import { browserCanvas, createSpriteCache } from "./sprites";
 
@@ -38,6 +39,7 @@ export function PlayCanvas({ project, levelId, pack, art, startZoneId, scale = 3
             image: createSpriteCache(hero.palette, browserCanvas),
             flashImage: createSpriteCache(hero.flashPalette, browserCanvas),
           },
+          own: ownSkins(project.enemies, (palette) => createSpriteCache(palette, browserCanvas)),
         }
       : undefined;
     const keyboard = createKeyboard(window);

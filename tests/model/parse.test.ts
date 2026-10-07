@@ -38,7 +38,7 @@ describe("parseProject", () => {
   });
 
   it("refuses a project from a newer version", () => {
-    expect(errorOf({ ...project(), formatVersion: 3 })).toMatch(/newer version/);
+    expect(errorOf({ ...project(), formatVersion: 4 })).toMatch(/newer version/);
   });
 
   it("explains which field is wrong when the shape is bad", () => {

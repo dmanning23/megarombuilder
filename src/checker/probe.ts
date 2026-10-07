@@ -55,6 +55,8 @@ export function createProbe(zone: Zone, pack: ContentPack, settings: PlayerSetti
     hero: { abilities: { ...DEFAULT_ABILITIES }, look: pack.hero },
     levels: [level],
     chat: [],
+    enemies: [],
+    boss: null,
   };
   const sim = createSim(project, "check", pack, {
     settings: { ...settings, runSpeed: settings.runSpeed * FAIR_RUN_SPEED },

@@ -1,3 +1,4 @@
+import { gamePack } from "@/model/gamePack";
 import { heroPhysics } from "@/model/hero";
 import type { ContentPack } from "@/model/contentPack";
 import { TILE_SIZE } from "@/model/geometry";
@@ -54,6 +55,7 @@ function warningsFor(project: Project, level: Level, zone: Zone, pack: ContentPa
 }
 
 export function checkZone(project: Project, levelId: string, zoneId: string, pack: ContentPack): ZoneCheck {
+  pack = gamePack(project, pack); // the kid's own enemies are thing types like any other
   const level = findLevel(project, levelId);
   const zone = level.zones.find((z) => z.id === zoneId);
   if (!zone) throw new Error(`There is no zone with id "${zoneId}" in level "${level.name}".`);
@@ -121,6 +123,7 @@ function bossProblems(level: Level, pack: ContentPack): string[] {
 
 // Problems with the level as a whole: zones that don't connect, and the boss rules.
 export function levelProblems(project: Project, levelId: string, pack: ContentPack): string[] {
+  pack = gamePack(project, pack);
   const level = findLevel(project, levelId);
   return [...chainProblems(level), ...bossProblems(level, pack)];
 }

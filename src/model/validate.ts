@@ -1,3 +1,5 @@
+import { BOSS_FRAME, ENEMY_FRAME, framesProblems } from "./designs";
+import { gamePack } from "./gamePack";
 import { lookProblems } from "./hero";
 import type { ContentPack } from "./contentPack";
 import {
@@ -142,6 +144,7 @@ export function levelProblems(level: Level, pack: ContentPack): string[] {
 
 export function structureProblems(project: Project, pack: ContentPack): string[] {
   const problems: string[] = [];
+  const full = gamePack(project, pack); // the kid's own enemies are thing types like any other
   if (project.contentPackId !== pack.id) {
     problems.push(`This project uses the content pack "${project.contentPackId}", not "${pack.id}".`);
   }
@@ -149,9 +152,21 @@ export function structureProblems(project: Project, pack: ContentPack): string[]
   for (const level of project.levels) {
     if (ids.has(level.id)) problems.push(`Two levels share the id "${level.id}".`);
     ids.add(level.id);
-    problems.push(...levelProblems(level, pack));
+    problems.push(...levelProblems(level, full));
   }
   problems.push(...lookProblems(project.hero.look).map((p) => `The hero: ${p}`));
+  const enemyIds = new Set<string>();
+  const enemyNames = new Map<string, string>(); // tidied, lower case → the first spelling
+  for (const enemy of project.enemies) {
+    if (enemyIds.has(enemy.id)) problems.push(`Two enemies share the id "${enemy.id}".`);
+    enemyIds.add(enemy.id);
+    const key = tidyName(enemy.name).toLowerCase();
+    const first = enemyNames.get(key);
+    if (first) problems.push(`Two enemies are called "${first}".`);
+    else enemyNames.set(key, tidyName(enemy.name));
+    problems.push(...framesProblems(tidyName(enemy.name), enemy.look, ENEMY_FRAME));
+  }
+  if (project.boss) problems.push(...framesProblems(tidyName(project.boss.name), project.boss.look, BOSS_FRAME));
   return problems;
 }
 

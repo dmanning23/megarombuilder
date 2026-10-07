@@ -12,6 +12,8 @@ import { PlayCanvas } from "@/runtime/render/PlayCanvas";
 import { browserCanvas, createSpriteCache } from "@/runtime/render/sprites";
 import { ChatPanel } from "./components/ChatPanel";
 import { HeroScreen } from "./components/HeroScreen";
+import { gamePack } from "@/model/gamePack";
+import { ownSkins } from "@/runtime/render/lookArt";
 import type { RawImage } from "./hero/importPicture";
 import { CheckPanel } from "./components/CheckPanel";
 import { Palette } from "./components/Palette";
@@ -69,12 +71,18 @@ export function Editor({
   const [saveState, setSaveState] = useState<"saved" | "saving" | "error">("saved");
   const [screen, setScreen] = useState<"level" | "hero">("level");
 
+  const project = state.history.project;
+  // The zone canvas and its tools see the kid's own enemies as thing types like any other.
+  const fullPack = useMemo(() => gamePack(project, pack), [project, pack]);
+  const enemies = project.enemies;
   const skin = useMemo<Skin | undefined>(() => {
     if (!art || typeof document === "undefined") return undefined;
-    return { set: art, image: createSpriteCache(art.palette, browserCanvas) };
-  }, [art]);
-
-  const project = state.history.project;
+    return {
+      set: art,
+      image: createSpriteCache(art.palette, browserCanvas),
+      own: ownSkins(enemies, (palette) => createSpriteCache(palette, browserCanvas)),
+    };
+  }, [art, enemies]); // rebuilt when the kid's enemies change, not on every edit
   const level = currentLevel(state);
   const zone = currentZone(state);
   const strokeOpen = state.history.open !== null;
@@ -272,23 +280,23 @@ export function Editor({
     if (needs === "slide" && !project.hero.abilities.slide) return; // the hero can't use this piece
     if (tool.kind === "tile" || tool.kind === "erase") {
       dispatch({ type: "begin", label: tool.kind === "erase" ? "Erase" : "Paint" });
-      run(paintCommand(tool, level.id, zone, pack, spot));
+      run(paintCommand(tool, level.id, zone, fullPack, spot));
       drag.current = { kind: "stroke" };
       return;
     }
     if (tool.kind === "thing") {
-      const hit = thingAt(zone, pack, spot.point);
+      const hit = thingAt(zone, fullPack, spot.point);
       if (hit) {
         drag.current = { kind: "move", thingId: hit.id, from: spot.tile, dx: hit.x - spot.tile.x, dy: hit.y - spot.tile.y };
         return;
       }
     }
-    run(placeCommand(tool, level.id, zone, spot, makeId, pack));
+    run(placeCommand(tool, level.id, zone, spot, makeId, fullPack));
   };
   const dragTo = (spot: Spot) => {
     const tool = state.tool;
     if (drag.current?.kind === "stroke" && (tool.kind === "tile" || tool.kind === "erase")) {
-      run(paintCommand(tool, level.id, zone, pack, spot));
+      run(paintCommand(tool, level.id, zone, fullPack, spot));
     }
   };
   const release = (spot: Spot | null) => {
@@ -411,7 +419,7 @@ export function Editor({
             )}
             <ZoneCanvas
               zone={zone}
-              pack={pack}
+              pack={fullPack}
               skin={skin}
               checkpoints={level.checkpoints}
               zoom={zoom}
