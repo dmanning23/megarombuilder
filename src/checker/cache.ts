@@ -12,8 +12,7 @@ export type CheckCache = {
 };
 
 // A zone's check depends only on the zone itself, the hero's abilities, the kid's enemies, the
-// level's checkpoints
-// and the pack. Unchanged zones keep the same object through edits, so only zones that actually
+// level's checkpoints and the pack. Unchanged zones keep the same object through edits, so only zones that actually
 // changed are checked again. That keeps checking quick on levels with many long zones.
 export function createCheckCache(): CheckCache {
   const cache = new WeakMap<Zone, Cached>();

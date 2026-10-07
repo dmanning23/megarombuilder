@@ -9,6 +9,7 @@ import { firstTile, lastTile } from "@/runtime/sim/tilemap";
 import { viewFor } from "@/runtime/sim/view";
 import { playerPose, thingFrame, type ArtSet, type Sprite } from "./art";
 import type { HeroArt } from "./heroArt";
+import type { OwnSkin } from "./lookArt";
 
 export type Ctx2D = Pick<
   CanvasRenderingContext2D,
@@ -22,7 +23,12 @@ export type HeroSkin = {
   image: (s: Sprite, flip: boolean) => CanvasImageSource;
   flashImage?: (s: Sprite, flip: boolean) => CanvasImageSource; // the white silhouette, for a full charge
 };
-export type Skin = { set: ArtSet; image: (s: Sprite, flip: boolean) => CanvasImageSource; hero?: HeroSkin };
+export type Skin = {
+  set: ArtSet;
+  image: (s: Sprite, flip: boolean) => CanvasImageSource;
+  hero?: HeroSkin;
+  own?: Record<string, OwnSkin>; // the kid's own enemies, by thing type
+};
 
 // Colours for anything drawn without art.
 export const BACKGROUNDS: Record<string, string> = { outdoor: "#9bd4ff", cave: "#1c2740" };
@@ -118,11 +124,12 @@ export function drawZone(
 
 function drawEntity(ctx: Ctx2D, sim: Sim, e: Entity, skin: Skin | undefined, ox: number, oy: number) {
   const flashing = e.flash > 0 && e.flash % 4 < 2;
-  const frames = skin?.set.things[e.type];
+  const own = skin?.own?.[e.type];
+  const frames = own ? own.art.frames : skin?.set.things[e.type];
   if (skin && frames && frames.length > 0) {
     if (flashing) return; // blink
     const frame = frames[thingFrame(e, sim.steps, frames.length)];
-    onBox(ctx, skin.image, frame, e.facing < 0, e, ox, oy);
+    onBox(ctx, own ? own.image : skin.image, frame, e.facing < 0, e, ox, oy);
     return;
   }
   rect(

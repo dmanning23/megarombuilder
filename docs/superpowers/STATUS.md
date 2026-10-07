@@ -30,7 +30,7 @@ picture (or import a picture and touch it up), pick its colours from the 8-bit p
 (including slide and charge shot), watch the live preview, and see at once
 which zones it can't finish. The assistant knows the hero: it builds levels
 that use its abilities (crawl spaces only for a hero that can slide) and
-changes its abilities when asked. 824 tests and 10 browser tests pass; typecheck, lint and build are clean. Browser tests: `npm run e2e`
+changes its abilities when asked. 860 tests and 10 browser tests pass; typecheck, lint and build are clean. Browser tests: `npm run e2e`
 (builds and serves on port 3100).
 
 | Document | State |
@@ -51,7 +51,7 @@ changes its abilities when asked. 824 tests and 10 browser tests pass; typecheck
 | `plans/2026-10-06-m2-plan-4-picture-import.md` | Milestone 2 plan 4 of 5, implemented, reviewed and merged |
 | `plans/2026-10-06-m2-plan-5-assistant-and-hero.md` | Milestone 2 plan 5 of 5, implemented, reviewed and merged |
 | `specs/2026-10-06-milestone-3-your-own-enemies-and-boss-design.md` | Milestone 3 spec (your own enemies and boss), approved |
-| `plans/2026-10-06-m3-plan-1-enemy-data.md` | Milestone 3 plan 1 of 5, written, waiting for approval |
+| `plans/2026-10-06-m3-plan-1-enemy-data.md` | Milestone 3 plan 1 of 5, implemented, reviewed and merged |
 
 Milestone 1 is now eight plans (the editor became two):
 
