@@ -1,6 +1,6 @@
 # Project status
 
-Last updated: 2026-10-06
+Last updated: 2026-10-07
 
 ## What this project is
 
@@ -10,8 +10,9 @@ zone. Next.js and React, one AI proxy route, projects stored in the browser.
 
 ## Where things stand
 
-Milestone 1 (plans 1 to 8) and milestone 2 (your own hero, plans 1 to 5) are
-implemented, reviewed and merged to `main`.
+Milestone 1 (plans 1 to 8), milestone 2 (your own hero, plans 1 to 5) and
+milestone 3 (your own enemies and boss, plans 1 to 5) are implemented, reviewed
+and merged to `main`.
 
 Run `npm run dev` and open `/play` for the demo stage: running, jumping, ice,
 spikes, ladders, zone transitions, six enemy types, health pickups, a moving
@@ -25,7 +26,7 @@ The chat beside the level builds and changes levels: ask for a change and the
 assistant looks at the level, builds with pieces and small edits, checks every
 zone it changed, and replies in a few sentences; one undo removes a whole turn,
 and Stop puts the level back. It needs `ANTHROPIC_API_KEY` in `.env.local` (see
-the README). The Characters button opens Hero and Enemies tabs. The Hero tab: draw the hero picture by
+the README). The Characters button opens Hero, Enemies and Boss tabs. The Hero tab: draw the hero picture by
 picture (or import a picture and touch it up), pick its colours from the 8-bit palette, choose its abilities
 (including slide and charge shot), watch the live preview, and see at once
 which zones it can't finish. The assistant knows the hero: it builds levels
@@ -37,7 +38,10 @@ marked "Yours". On the Boss tab, kids make their own boss from the
 Blizzard Bot, name it, pick its fight length and 2 or 3 of six attacks in order
 (jump, dash, spread, aimed shot, rain and big shot; quicker when hurt), draw or
 import its three frames, watch it fight in a preview, and put it in the boss
-room. 915 tests and 12 browser tests pass; typecheck, lint and build are clean. Browser tests: `npm run e2e`
+room. The assistant knows the kid's own enemies and boss: asked for "a level
+for my Frost Fang", it makes that enemy the star, builds the boss room for the
+boss's attacks, and never changes the designs (their settings come from the
+Characters screen alone). 928 tests and 12 browser tests pass; typecheck, lint and build are clean. Browser tests: `npm run e2e`
 (builds and serves on port 3100).
 
 | Document | State |
@@ -62,7 +66,7 @@ room. 915 tests and 12 browser tests pass; typecheck, lint and build are clean. 
 | `plans/2026-10-07-m3-plan-2-enemies-tab.md` | Milestone 3 plan 2 of 5, implemented, reviewed and merged |
 | `plans/2026-10-07-m3-plan-3-boss-data-and-attacks.md` | Milestone 3 plan 3 of 5, implemented, reviewed and merged |
 | `plans/2026-10-07-m3-plan-4-boss-tab.md` | Milestone 3 plan 4 of 5, implemented, reviewed and merged |
-| `plans/2026-10-07-m3-plan-5-assistant.md` | Milestone 3 plan 5 of 5, written, waiting for approval |
+| `plans/2026-10-07-m3-plan-5-assistant.md` | Milestone 3 plan 5 of 5, implemented, reviewed and merged |
 
 Milestone 1 is now eight plans (the editor became two):
 
@@ -83,13 +87,29 @@ Milestone 2, your own hero, was five plans:
 4. Picture import (done)
 5. The assistant and the hero (done)
 
+Milestone 3, your own enemies and boss, was five plans:
+
+1. Enemy data, the game pack, and drawing own enemies (done)
+2. The Characters screen and the Enemies tab (done)
+3. Boss data and the new boss attacks (done)
+4. The Boss tab (done)
+5. The assistant and the kid's designs (done)
+
 ## Open items
 
 1. A person needs to play `/play` through the boss fight and say whether the
    movement, enemies and boss feel right.
 2. Try the assistant with a real API key using `docs/superpowers/ai-prompts.md`
-   (prompts 1–13), and play what it builds.
-3. Review findings deferred from plans 2 and 3, to decide on:
+   (prompts 1–17), and play what it builds.
+3. Review findings deferred in each plan's final review, to decide on:
+   - M3 plan 5: the assistant's boss line can name a boss that isn't there
+     (the Blizzard Bot erased, or the kid's boss placed outside the boss room).
+   - M3 plan 5: enemy lines say a bare "normal" or "slow" for speed; "normal
+     speed" would read better.
+   - M3 plan 5: the designs text says "Boss tab" where the prompt says
+     "Characters screen".
+   - M3 plan 5: no turn-level test of place_thing with settings on an own
+     enemy; the odd-spacing test is tidied by addEnemy before describe sees it.
    - M3 plan 4: no test for undo after Delete boss (it works when traced).
    - M3 plan 4: the boss preview test checks the hero only at the end; a
      death mid-run would respawn and pass (an exhaustive check found none).
@@ -102,8 +122,6 @@ Milestone 2, your own hero, was five plans:
    - M3 plan 4: Palette.tsx imports gamePack above React.
    - M3 plan 3: useBoss swaps bosses in any zone, though its refusal speaks
      of the boss room.
-   - M3 plan 3: setThingSettings can override an own boss's attacks and
-     health past the design's rules (decide with the M3 plan 1 item below).
    - M3 plan 3: the Blizzard Bot's attacks are an in-code default, not in its
      pack settings as the spec's section 3 says.
    - M3 plan 3: setBossFrame renumbers its error by string replacement, so a
@@ -115,9 +133,6 @@ Milestone 2, your own hero, was five plans:
      unstyled.
    - M3 plan 2: the open import dialog on the Enemies tab recomputes on any
      re-render (its target is a new object each time).
-   - M3 plan 1: settings stored on a placed own enemy (including by the
-     assistant's set_thing_settings) override its design's tuning. Decide in M3
-     plan 5 whether to refuse them.
    - M3 plan 1: once a game has its own enemies, the zone canvas redraws after
      every edit (the editor's game pack is memoised on the whole project).
    - M3 plan 1: a file with a placed own enemy but no design says "unknown thing
