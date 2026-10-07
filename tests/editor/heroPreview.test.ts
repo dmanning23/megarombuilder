@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { snowHero } from "@/content/snow/hero";
 import { snowPack } from "@/content/snow/pack";
-import { previewInputs, previewSim } from "@/editor/hero/preview";
+import { enemyPreviewSim, IDLE_INPUTS, previewInputs, previewSim } from "@/editor/hero/preview";
+import { defaultTuning, ENEMY_BEHAVIOURS, type EnemyDesign } from "@/model/designs";
 import { DEFAULT_ABILITIES, type Abilities } from "@/model/hero";
 import { SLIDE_H } from "@/runtime/sim/constants";
 import { step } from "@/runtime/sim/step";
@@ -45,5 +46,36 @@ describe("the hero preview", () => {
     const show = play({ ...DEFAULT_ABILITIES, speed: "veryFast", jump: "veryHigh", slide: true, chargeShot: true });
     expect(show.furthest).toBeLessThan(256 - 14);
     expect(show.sim.player.x - show.start).toBeLessThan(16);
+  });
+});
+
+describe("the enemy preview", () => {
+  const enemy = (behaviour: (typeof ENEMY_BEHAVIOURS)[number]): EnemyDesign => ({
+    id: "e1",
+    name: "Frost Fang",
+    behaviour,
+    tuning: defaultTuning(behaviour),
+    look: snowPack.enemyLooks[behaviour],
+  });
+  const hero = { abilities: DEFAULT_ABILITIES, look: snowHero };
+
+  it("shows every behaviour doing its thing on one screen, with the hero standing still", () => {
+    for (const behaviour of ENEMY_BEHAVIOURS) {
+      const sim = enemyPreviewSim(enemy(behaviour), hero, snowPack);
+      let moved = false;
+      let shot = false;
+      for (const input of IDLE_INPUTS.slice(0, 180)) {
+        step(sim, input);
+        const e = sim.slots[0].entity;
+        if (e && (e.x !== e.homeX || e.y !== e.homeY)) moved = true;
+        if (sim.enemyShots.length > 0) shot = true;
+      }
+      expect(sim.zoneIndex, behaviour).toBe(0);
+      expect(moved || shot, behaviour).toBe(true); // (a shot may knock the idle hero back)
+    }
+  });
+
+  it("is idle for six seconds", () => {
+    expect(IDLE_INPUTS).toHaveLength(360);
   });
 });

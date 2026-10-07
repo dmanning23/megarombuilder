@@ -1,22 +1,26 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import type { LevelCheck } from "@/checker/check";
 import type { Command } from "@/commands/types";
 import type { ContentPack } from "@/model/contentPack";
 import { HERO_PICTURES, PICTURE_NAMES, PICTURE_SIZES, pictureRows, type HeroPicture } from "@/model/hero";
+import type { EnemyDesign } from "@/model/designs";
 import type { Level, Project } from "@/model/schema";
 import type { ArtSet } from "@/runtime/render/art";
 import { heroArt } from "@/runtime/render/heroArt";
 import styles from "../editor.module.css";
 import type { RawImage } from "../hero/importPicture";
 import { bodyBox } from "../hero/pixels";
+import { previewInputs, previewSim } from "../hero/preview";
 import { readPicture as readPictureFile } from "../hero/readPicture";
 import { HeroAbilities } from "./HeroAbilities";
 import { Colours } from "./Colours";
-import { HeroPreview } from "./HeroPreview";
+import { GamePreview } from "./GamePreview";
 import { SpriteSwatch } from "./Palette";
 import { PictureEditor, type DrawTool } from "./PictureEditor";
+
+const NO_ENEMIES: EnemyDesign[] = [];
 
 type Props = {
   project: Project;
@@ -54,6 +58,8 @@ export function HeroScreen({
 }: Props) {
   const { look, abilities } = project.hero;
   const sprites = useMemo(() => heroArt(look), [look]);
+  const startPreview = useCallback(() => previewSim(look, abilities, pack), [look, abilities, pack]);
+  const previewShow = useMemo(() => previewInputs(abilities), [abilities]);
   const [picture, setPicture] = useState<HeroPicture>("stand");
   const [tool, setTool] = useState<DrawTool>("pencil");
   const [slot, setSlot] = useState(1);
@@ -133,7 +139,14 @@ export function HeroScreen({
           onSlot={setSlot}
           onColours={(colours) => onCommand({ name: "setHeroColours", args: { colours } })}
         />
-        <HeroPreview look={look} abilities={abilities} pack={pack} art={art} />
+        <GamePreview
+          label="Your hero in action"
+          start={startPreview}
+          inputs={previewShow}
+          heroLook={look}
+          enemies={NO_ENEMIES}
+          art={art}
+        />
       </div>
       <HeroAbilities
         abilities={abilities}
