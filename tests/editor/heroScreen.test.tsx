@@ -14,6 +14,20 @@ import type { Project } from "@/model/schema";
 afterEach(cleanup);
 
 describe("the hero screen", () => {
+  it("keeps Run and shoot in step with Run, in one undo step", async () => {
+    const { open, choose, press, saved } = setupHero();
+    await open();
+    await choose(/^Run 2/);
+    press(0, 0);
+    await userEvent.click(screen.getByRole("button", { name: "Undo" }));
+    await choose(/^Run 1/);
+    press(1, 0);
+    const look = saved().hero.look;
+    expect(look.animations.runShoot.frames).toEqual(look.animations.run.frames);
+    expect(look.animations.run.frames[0][0][1]).toBe("1");
+    expect(look.animations.run.frames[1][0][0]).toBe("."); // the undone stroke, gone from both
+  });
+
   it("swaps in for the level, and back", async () => {
     const { open } = setupHero();
     await open();
