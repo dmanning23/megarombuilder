@@ -1,4 +1,4 @@
-import type { DesignLook, EnemyBehaviour } from "./designs";
+import type { EnemyBehaviour, EnemyDesign } from "./designs";
 import type { HeroLook } from "./hero";
 import type { ThingSettings } from "./schema";
 
@@ -69,5 +69,5 @@ export type ContentPack = {
   things: ThingDef[];
   pieces: PieceDef[];
   hero: HeroLook; // the hero a new game starts with
-  enemyLooks: Record<EnemyBehaviour, DesignLook>; // the drawings a new enemy starts from
+  enemyLooks: Record<EnemyBehaviour, EnemyDesign["look"]>; // the drawings a new enemy starts from
 };

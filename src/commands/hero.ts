@@ -11,14 +11,10 @@ import {
 } from "@/model/hero";
 import { PALETTE_8BIT } from "@/model/palette";
 import type { Project } from "@/model/schema";
+import { listNames } from "./helpers";
 import { defineCommand, fail, ok, type CommandResult } from "./types";
 
 const withLook = (project: Project, look: HeroLook): Project => ({ ...project, hero: { ...project.hero, look } });
-
-// "Stand", "Stand and Run 1", "Stand, Run 1 and Jump".
-function listNames(names: string[]): string {
-  return names.length <= 1 ? names.join("") : `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
-}
 
 const setHeroAbilitiesCommand = defineCommand({
   name: "setHeroAbilities",

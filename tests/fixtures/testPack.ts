@@ -1,5 +1,5 @@
 import { KEEP_TILE, type ContentPack } from "@/model/contentPack";
-import { ENEMY_BEHAVIOURS, type DesignLook, type EnemyBehaviour } from "@/model/designs";
+import { ENEMY_BEHAVIOURS, type EnemyBehaviour, type EnemyDesign } from "@/model/designs";
 import { HERO_PICTURES, PICTURE_SIZES, type HeroLook, type HeroPicture } from "@/model/hero";
 
 const solid = (picture: HeroPicture) =>
@@ -8,7 +8,7 @@ const solid = (picture: HeroPicture) =>
 const enemyFrame = Array.from({ length: 16 }, () => "1".repeat(16));
 export const testEnemyLooks = Object.fromEntries(
   ENEMY_BEHAVIOURS.map((b) => [b, { colours: [13], frames: [enemyFrame, enemyFrame] }]),
-) as Record<EnemyBehaviour, DesignLook>;
+) as Record<EnemyBehaviour, EnemyDesign["look"]>;
 
 // A plain black hero: every picture filled with its one colour.
 export const testHero: HeroLook = {
