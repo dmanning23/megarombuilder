@@ -7,6 +7,7 @@ import { parseProject } from "@/model/parse";
 import type { Project } from "@/model/schema";
 import { structureProblems } from "@/model/validate";
 import { testPack } from "../fixtures/testPack";
+import { baseProject, run } from "../commands/helpers";
 
 const solid = (ch = "1") => Array.from({ length: 16 }, () => ch.repeat(16));
 const fang: EnemyDesign = {
@@ -42,6 +43,7 @@ describe("gamePack", () => {
       description: "Yours",
       defaults: { health: 1, damage: 2, speed: 0.75 },
       own: true,
+      body: { w: 14, h: 14 },
     });
     expect(pack.things.slice(1)).toEqual(testPack.things);
     expect(ownType("e1")).toBe("own-e1");
@@ -116,6 +118,21 @@ describe("the kid's boss in the game pack", () => {
       description: "Yours",
       defaults: { health: 40, attacks: "rain,big" },
       own: true,
+      body: { w: 24, h: 28 },
+      shotY: 11,
     });
+  });
+});
+
+describe("the kid's types carry their hitbox and shot point", () => {
+  it("from their looks", () => {
+    let project = run(baseProject(), "addEnemy", { enemyId: "e1", name: "Ice Eye", behaviour: "turret" });
+    project = run(project, "resizeCanvas", { target: { enemy: "e1" }, canvas: "main", w: 24, h: 24 });
+    project = run(project, "setBody", { target: { enemy: "e1" }, body: { x: 2, y: 4, w: 20, h: 20 } });
+    project = run(project, "setShotY", { target: { enemy: "e1" }, y: 14 });
+    const def = gamePack(project, testPack).things.find((d) => d.type === "own-e1")!;
+    expect(def.body).toEqual({ w: 20, h: 20 });
+    expect(def.shotY).toBe(14);
+    expect(testPack.things.find((d) => d.type === "turret")!.body).toBeUndefined();
   });
 });

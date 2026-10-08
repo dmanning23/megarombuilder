@@ -58,6 +58,7 @@ export const ENEMY_SHOT_H = 6;
 export const HERO_BODY_MAX_H = 30; // fits through the level pieces' 2-tile openings
 export const SLIDE_BODY_MAX_H = 14; // fits under the crawl space's 1-tile gap
 export const BODY_MIN = 4;
+export const HERO_BODY_MAX_W = 16; // centred on a ladder's tile, beside the ladder pieces' wall
 
 export const KINDS: Record<LookKind, KindRule> = {
   hero: {
@@ -192,6 +193,9 @@ export function lookProblems(kind: LookKind, look: Look, name: string): string[]
     if (kind === "hero" && look.body.h > HERO_BODY_MAX_H) {
       problems.push(`${possessive} hitbox is ${look.body.h} tall; at most ${HERO_BODY_MAX_H}, so it fits through 2-tile gaps.`);
     }
+    if (kind === "hero" && look.body.w > HERO_BODY_MAX_W) {
+      problems.push(`${possessive} hitbox is ${look.body.w} wide; at most ${HERO_BODY_MAX_W}, so it fits on a ladder beside a wall.`);
+    }
   }
   if (kind === "hero") {
     const slide = look.canvases.slide;
@@ -201,6 +205,9 @@ export function lookProblems(kind: LookKind, look: Look, name: string): string[]
       if (!inside(look.slideBody, slide)) problems.push(`${possessive} sliding hitbox doesn't fit inside its slide canvas.`);
       if (look.slideBody.h > SLIDE_BODY_MAX_H) {
         problems.push(`${possessive} sliding hitbox is ${look.slideBody.h} tall; at most ${SLIDE_BODY_MAX_H}, so it fits under 1-tile gaps.`);
+      }
+      if (look.slideBody.w > HERO_BODY_MAX_W) {
+        problems.push(`${possessive} sliding hitbox is ${look.slideBody.w} wide; at most ${HERO_BODY_MAX_W}, so it fits on a ladder beside a wall.`);
       }
     }
   } else if (look.slideBody) {

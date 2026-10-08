@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { fitBody, KINDS, lookProblems, lookSchema, slotChar, slotOf, type Look } from "@/model/look";
+import { heroLookFrom } from "@/model/lookUpgrade";
+import { testOldHero } from "../fixtures/testPack";
 
 const fill = (w: number, h: number, ch = "1") => Array.from({ length: h }, () => ch.repeat(w));
 const walker = (): Look => ({
@@ -76,5 +78,25 @@ describe("fitBody", () => {
 
   it("takes the whole canvas when nothing is drawn", () => {
     expect(fitBody(fill(8, 8, "."), { w: 8, h: 8 }, 6)).toEqual({ x: 0, y: 2, w: 8, h: 6 });
+  });
+});
+
+describe("the hero's width", () => {
+  it("is at most one tile, standing and sliding", () => {
+    const hero = heroLookFrom(testOldHero);
+    expect(lookProblems("hero", { ...hero, body: { x: 0, y: 2, w: 16, h: 22 } }, "The hero")).toEqual([]);
+    const widened = (rows: string[]) => rows.map((row) => `${row}..`);
+    const wide = {
+      ...hero,
+      canvases: { ...hero.canvases, main: { w: 18, h: 24 } },
+      animations: Object.fromEntries(
+        Object.entries(hero.animations).map(([name, a]) => [name, KINDS.hero.animations[name] === "main" ? { ...a, frames: a.frames.map(widened) } : a]),
+      ),
+      body: { x: 0, y: 2, w: 18, h: 22 },
+    };
+    expect(lookProblems("hero", wide, "The hero")).toContain("The hero's hitbox is 18 wide; at most 16, so it fits on a ladder beside a wall.");
+    expect(lookProblems("hero", { ...hero, slideBody: { x: 3, y: 2, w: 18, h: 14 } }, "The hero")).toContain(
+      "The hero's sliding hitbox is 18 wide; at most 16, so it fits on a ladder beside a wall.",
+    );
   });
 });

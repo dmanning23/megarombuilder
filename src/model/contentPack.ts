@@ -27,6 +27,8 @@ export type ThingDef = {
   description: string;
   defaults: ThingSettings;
   own?: boolean; // one of the kid's own designs (added by gamePack)
+  body?: { w: number; h: number }; // the kid's own types: the hitbox from their look (others use the behaviour's size)
+  shotY?: number; // the kid's own types: where shots come out, below the hitbox's top
 };
 
 // Piece settings are whole numbers so they can be described to the AI as plain ranges.
