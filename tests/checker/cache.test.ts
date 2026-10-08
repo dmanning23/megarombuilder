@@ -79,4 +79,12 @@ describe("createCheckCache", () => {
     const tuned = run(project, { name: "setEnemyTuning", args: { enemyId: "e1", speed: "fast" } });
     expect(cache.zone(tuned, "L1", "z1", pack)).not.toBe(first);
   });
+
+  it("checks a zone again after the hero's look changes", () => {
+    const cache = createCheckCache();
+    const project = game();
+    const first = cache.zone(project, "L1", "z1", pack);
+    const narrow = run(project, { name: "setBody", args: { target: "hero", body: { x: 2, y: 2, w: 12, h: 22 } } });
+    expect(cache.zone(narrow, "L1", "z1", pack)).not.toBe(first);
+  });
 });

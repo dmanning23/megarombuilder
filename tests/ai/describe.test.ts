@@ -129,13 +129,13 @@ describe("describeHero", () => {
 
   it("says what a new hero can do", () => {
     expect(describeHero(game())).toBe(
-      "Your hero runs at normal speed, jumps onto ledges up to 2 tiles high, has 28 health and can have 3 shots on screen. It can't slide. It has no charge shot.",
+      "Your hero runs at normal speed, jumps onto ledges up to 2 tiles high, has 28 health and can have 3 shots on screen. Your hero is 22 pixels tall and 14 wide, so it fits through 2-tile gaps. It can't slide. It has no charge shot.",
     );
   });
 
   it("says what a hero with every move can do", () => {
     expect(describeHero(withAbilities({ speed: "veryFast", jump: "veryHigh", health: "tough", shots: 1, slide: true, chargeShot: true }))).toBe(
-      "Your hero runs very fast, jumps onto ledges up to 4 tiles high, has 40 health and can have 1 shot on screen. It can slide under gaps one tile high. It has a charge shot.",
+      "Your hero runs very fast, jumps onto ledges up to 4 tiles high, has 40 health and can have 1 shot on screen. Your hero is 22 pixels tall and 14 wide, so it fits through 2-tile gaps. It can slide under gaps one tile high. It has a charge shot.",
     );
   });
 
@@ -152,6 +152,10 @@ describe("describeHero", () => {
 
   it("opens the catalogue", () => {
     expect(describeCatalogue(game(), pack)).toMatch(/^Your hero runs at normal speed/);
+  });
+
+  it("says how big the hero is", () => {
+    expect(describeHero(game())).toContain("Your hero is 22 pixels tall and 14 wide, so it fits through 2-tile gaps.");
   });
 });
 

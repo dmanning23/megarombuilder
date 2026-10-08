@@ -446,6 +446,7 @@ Add to `tests/checker/pieces.test.ts` (importing `applyCommand` from `@/commands
       }
     }
   }, 120_000);
+```
 
 And this one, which fails while the probe uses the pack's hero:
 

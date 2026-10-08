@@ -2,7 +2,9 @@ import { describe, expect, it } from "vitest";
 import { checkZone } from "@/checker/check";
 import { snowPack } from "@/content/snow/pack";
 import { snowPieces } from "@/content/snow/pieces";
-import { JUMPS, SPEEDS } from "@/model/hero";
+import { createProbe } from "@/checker/probe";
+import { applyCommand } from "@/commands";
+import { heroPhysics, JUMPS, SPEEDS } from "@/model/hero";
 import { settingCombos, zoneWithPiece } from "./pieceHarness";
 
 const EXPECTED = [
@@ -113,5 +115,40 @@ describe("snow pieces", () => {
       expect(at(x, 0), `ceiling top at ${x}`).not.toBe(0);
     }
     for (let x = 0; x < 7; x++) expect(at(x, 13)).not.toBe(0);
+  });
+
+  it("can all be crossed by a tall hero (30 high), and the crawl space by it sliding", () => {
+    for (const piece of snowPieces) {
+      for (const settings of settingCombos(piece)) {
+        let project = zoneWithPiece(piece, settings);
+        for (const [name, args] of [
+          ["resizeCanvas", { target: "hero", canvas: "main", w: 16, h: 32 }],
+          ["setBody", { target: "hero", body: { x: 1, y: 2, w: 14, h: 30 } }],
+        ] as const) {
+          const result = applyCommand(project, { name, args }, { pack: snowPack });
+          if (!result.ok) throw new Error(result.error);
+          project = result.project;
+        }
+        const result = checkZone(project, "L", "z", snowPack);
+        expect(result.passable, `${piece.id} ${JSON.stringify(settings)}: ${result.reason}`).toBe(true);
+      }
+    }
+  }, 120_000);
+
+  it("are checked with the kid's hero, not the pack's", () => {
+    const flat = snowPieces.find((p) => p.id === "flat-run")!;
+    let project = zoneWithPiece(flat, { width: 6 });
+    const commands: [string, unknown][] = [
+      ["resizeCanvas", { target: "hero", canvas: "main", w: 16, h: 32 }],
+      ["setBody", { target: "hero", body: { x: 1, y: 2, w: 14, h: 30 } }],
+    ];
+    for (const [name, args] of commands) {
+      const result = applyCommand(project, { name, args }, { pack: snowPack });
+      if (!result.ok) throw new Error(result.error);
+      project = result.project;
+    }
+    const zone = project.levels[0].zones[0];
+    expect(createProbe(zone, snowPack, heroPhysics(project.hero.abilities), project.hero.look).sim.player.h).toBe(30);
+    expect(createProbe(zone, snowPack, heroPhysics(project.hero.abilities)).sim.player.h).toBe(22);
   });
 });

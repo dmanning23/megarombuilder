@@ -6,6 +6,7 @@ import { step } from "@/runtime/sim/step";
 import { touchingLadder } from "@/runtime/sim/tilemap";
 import { MOVES, type Script } from "./moves";
 import { createProbe, leftZone, reset, type Probe } from "./probe";
+import type { Look } from "@/model/look";
 
 const SCRIPT_STEPS = 1300; // the longest a move's script may run (long ladders)
 const SETTLE_STEPS = 400; // after the script, how long to wait for the player to come to rest (a long drop)
@@ -88,8 +89,8 @@ function route(node: Node, last: Input[]): { route: Input[]; moves: string[]; ju
   };
 }
 
-export function findPassage(zone: Zone, pack: ContentPack, settings: PlayerSettings): Passage {
-  const probe = createProbe(zone, pack, settings);
+export function findPassage(zone: Zone, pack: ContentPack, settings: PlayerSettings, look: Look = pack.hero): Passage {
+  const probe = createProbe(zone, pack, settings, look);
   const fresh = { ...probe.sim.player };
   const exit = probe.zone.exit;
   // Progress is closeness to the middle of the exit opening.

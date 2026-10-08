@@ -61,8 +61,8 @@ export function checkZone(project: Project, levelId: string, zoneId: string, pac
   if (!zone) throw new Error(`There is no zone with id "${zoneId}" in level "${level.name}".`);
 
   const settings = heroPhysics(project.hero.abilities);
-  const found = findPassage(zone, pack, settings);
-  const probe = createProbe(zone, pack, settings);
+  const found = findPassage(zone, pack, settings, project.hero.look);
+  const probe = createProbe(zone, pack, settings, project.hero.look);
   const p = probe.sim.player;
   const arrival = { x: p.x + p.w / 2, y: p.y + p.h / 2 };
 
