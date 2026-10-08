@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { fitBody, KINDS, lookProblems, lookSchema, slotChar, slotOf, type Look } from "@/model/look";
+import { cutsDrawing, fitBody, KINDS, lookProblems, lookSchema, reframeRows, slotChar, slotOf, type Look } from "@/model/look";
 import { heroLookFrom } from "@/model/lookUpgrade";
 import { testOldHero } from "../fixtures/testPack";
 
@@ -96,5 +96,24 @@ describe("the hero's width", () => {
     };
     expect(lookProblems("hero", wide, "The hero")).toContain("The hero's hitbox is 18 wide; at most 16, so it fits on a ladder beside a wall.");
     expect(lookProblems("hero", { ...hero, slideBody: { x: 1, y: 2, w: 22, h: 14 } }, "The hero")).toEqual([]);
+  });
+});
+
+describe("resizing pictures", () => {
+  it("pads evenly at the sides and on top, keeping the feet row", () => {
+    expect(reframeRows(["11", "22"], 4, 3)).toEqual(["....", ".11.", ".22."]);
+    expect(reframeRows(["1234", "5678"], 2, 1)).toEqual(["67"]);
+  });
+
+  it("knows when shrinking would cut off drawn pixels", () => {
+    const look: Look = {
+      colours: [13],
+      canvases: { main: { w: 16, h: 16 } },
+      animations: { walk: { frames: [Array.from({ length: 16 }, (_, y) => (y < 2 ? "................" : "....11111111....")), Array.from({ length: 16 }, () => "................")], speed: "normal" } },
+      body: { x: 4, y: 2, w: 8, h: 14 },
+    };
+    expect(cutsDrawing(look, "walker", "main", 8, 14)).toBe(false); // only empty columns and rows go
+    expect(cutsDrawing(look, "walker", "main", 6, 14)).toBe(true);
+    expect(cutsDrawing(look, "walker", "main", 16, 12)).toBe(true);
   });
 });

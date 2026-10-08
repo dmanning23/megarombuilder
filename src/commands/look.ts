@@ -9,6 +9,7 @@ import {
   HERO_BODY_MAX_W,
   KINDS,
   lookProblems,
+  reframeRows,
   MAX_FRAMES,
   MAX_LOOK_COLOURS,
   SLIDE_BODY_MAX_H,
@@ -169,19 +170,6 @@ const setAnimationSpeed = defineCommand({
   },
 });
 
-// Pads or trims a frame: evenly at the left and right (the odd pixel on the right), and at the
-// top only, so the bottom row (the feet) stays the bottom row.
-function reframe(rows: string[], w: number, h: number): string[] {
-  const oldW = rows[0].length;
-  const left = Math.floor((w - oldW) / 2);
-  const widened = rows.map((row) => {
-    if (left >= 0) return ".".repeat(left) + row + ".".repeat(w - oldW - left);
-    return row.slice(-left, -left + w);
-  });
-  const dy = h - widened.length;
-  return dy >= 0 ? [...Array.from({ length: dy }, () => ".".repeat(w)), ...widened] : widened.slice(-dy);
-}
-
 const bodyFor = (found: Found, look: Look, which: "main" | "slide") => {
   const animation = which === "slide" ? "slide" : firstStanding(found.kind);
   const maxH = found.kind !== "hero" ? null : which === "slide" ? SLIDE_BODY_MAX_H : HERO_BODY_MAX_H;
@@ -207,7 +195,7 @@ const resizeCanvas = defineCommand({
       const animations = Object.fromEntries(
         Object.entries(found.look.animations).map(([name, anim]) => [
           name,
-          KINDS[found.kind].animations[name] === args.canvas ? { ...anim, frames: anim.frames.map((f) => reframe(f, args.w, args.h)) } : anim,
+          KINDS[found.kind].animations[name] === args.canvas ? { ...anim, frames: anim.frames.map((f) => reframeRows(f, args.w, args.h)) } : anim,
         ]),
       );
       let look: Look = { ...found.look, canvases: { ...found.look.canvases, [args.canvas]: { w: args.w, h: args.h } }, animations };

@@ -77,6 +77,8 @@ export type PixelCtx = Pick<CanvasRenderingContext2D, "fillStyle" | "fillRect" |
 
 // How strongly the onion skin (the frame before) shows under the drawing.
 export const ONION_ALPHA = 1 / 3;
+// The line shots come out of, drawn across the picture.
+export const SHOT_LINE = "#ffd400";
 
 const BACKGROUND = "#e9eef5";
 const GRID = "#c9d3e0";
@@ -92,8 +94,9 @@ export function drawPixels(
   size: { w: number; h: number },
   body: Box | null,
   feet: boolean,
-  under?: string[],
+  extras: { under?: string[]; shot?: { y: number; h: number } } = {},
 ): void {
+  const { under, shot } = extras;
   const { w, h } = size;
   ctx.fillStyle = BACKGROUND;
   ctx.fillRect(0, 0, w * ZOOM, h * ZOOM);
@@ -121,6 +124,11 @@ export function drawPixels(
   for (let x = 1; x < w; x++) ctx.fillRect(x * ZOOM, 0, 1, h * ZOOM);
   for (let y = 1; y < h; y++) ctx.fillRect(0, y * ZOOM, w * ZOOM, 1);
 
+  if (shot) {
+    ctx.fillStyle = SHOT_LINE;
+    ctx.fillRect(0, shot.y * ZOOM, w * ZOOM, 2);
+    ctx.fillRect(0, (shot.y + shot.h) * ZOOM - 2, w * ZOOM, 2);
+  }
   if (!body) {
     if (feet) {
       ctx.fillStyle = FEET;
