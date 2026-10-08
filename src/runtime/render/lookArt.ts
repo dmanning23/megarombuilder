@@ -1,6 +1,6 @@
 import { designLook, designSlot, type BossDesign, type DesignLook, type EnemyDesign } from "@/model/designs";
 import { OWN_BOSS, ownType } from "@/model/gamePack";
-import { slotChar, type AnimationSpeed, type Look } from "@/model/look";
+import { slotChar, type AnimationSpeed, type Look, type LookBox } from "@/model/look";
 import { PALETTE_8BIT } from "@/model/palette";
 import type { Timing } from "./animate";
 import { sprite, type Sprite } from "./art";
@@ -31,6 +31,8 @@ export const timingsOf = (animations: Record<string, AnimSprites>): Record<strin
 export type OwnSkin = {
   art: LookArt;
   animations: Record<string, AnimSprites>;
+  body: LookBox; // the hitbox, in the picture
+  canvas: { w: number; h: number };
   image: (s: Sprite, flip: boolean) => CanvasImageSource;
 };
 
@@ -48,7 +50,7 @@ export function ownSkins(
       return animations[animation].frames[frame];
     });
     const art = { palette: lookArt({ colours: look.colours, frames: [] }).palette, frames };
-    return { art, animations, image: imageFor(art.palette) };
+    return { art, animations, body: look.body, canvas: look.canvases.main, image: imageFor(art.palette) };
   };
   const skins: Record<string, OwnSkin> = Object.fromEntries(enemies.map((enemy) => [ownType(enemy.id), skin(enemy.behaviour, enemy.look)]));
   if (boss) skins[OWN_BOSS] = skin("boss", boss.look);

@@ -1,5 +1,5 @@
 import { heroPictureSlot, HERO_POSES, type HeroLook, type HeroPicture, type HeroPose } from "@/model/hero";
-import { slotChar } from "@/model/look";
+import { slotChar, type LookBox } from "@/model/look";
 import { PALETTE_8BIT } from "@/model/palette";
 import type { Sprite } from "./art";
 import { lookSprites, type AnimSprites } from "./lookArt";
@@ -14,6 +14,9 @@ export type HeroArt = {
   shot: Sprite;
   chargedShot: Sprite;
   animations: Record<string, AnimSprites>;
+  body: LookBox; // the standing hitbox, in the main picture
+  slideBody: LookBox; // the sliding hitbox, in the slide picture
+  canvases: Record<string, { w: number; h: number }>;
 };
 
 // A fully charged hero blinks as a white silhouette.
@@ -32,5 +35,8 @@ export function heroArt(look: HeroLook): HeroArt {
     shot: picture("shot"),
     chargedShot: picture("chargedShot"),
     animations,
+    body: look.body,
+    slideBody: look.slideBody ?? look.body,
+    canvases: look.canvases,
   };
 }
