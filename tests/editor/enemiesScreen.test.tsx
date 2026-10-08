@@ -225,4 +225,17 @@ describe("the Enemies tab", () => {
     await make("Ice Eye", "Turret");
     expect(screen.getByRole("button", { name: "Shot point" })).toBeTruthy();
   });
+
+  it("holds the list, name, behaviour, tuning and Delete in the About bar, and the preview beside the drawing", async () => {
+    const { open } = setup();
+    await open();
+    const about = () => screen.getByRole("region", { name: "About your enemies" });
+    expect(within(about()).getByRole("button", { name: "New enemy" })).toBeTruthy();
+    await make("Frost Fang", "Walker");
+    expect(within(about()).getByRole("textbox", { name: "Name" })).toBeTruthy();
+    expect(within(about()).getByRole("group", { name: "Behaviour" })).toBeTruthy();
+    expect(within(about()).getByRole("group", { name: "Speed" })).toBeTruthy();
+    expect(within(about()).getByRole("button", { name: "Delete enemy" })).toBeTruthy();
+    expect(within(screen.getByRole("region", { name: "Look" })).getByRole("img", { name: "Frost Fang in action" })).toBeTruthy();
+  });
 });

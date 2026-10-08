@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { LookTarget } from "@/commands/look";
 import type { Command } from "@/commands/types";
 import {
@@ -52,6 +52,7 @@ type Props = {
   onCommit(): void;
   readPicture(file: File): Promise<RawImage>;
   confirm(message: string): boolean;
+  preview?: ReactNode; // the live game preview, shown beside the drawing
 };
 
 // Loops an animation's frames in a small box at its speed, while playing.
@@ -117,6 +118,7 @@ export function AnimationEditor({
   onCommit,
   readPicture,
   confirm,
+  preview,
 }: Props) {
   const rule = KINDS[kind];
   const names = Object.keys(rule.animations);
@@ -282,7 +284,7 @@ export function AnimationEditor({
   };
 
   return (
-    <div className={styles.animationEditor}>
+    <section className={styles.animationEditor} aria-label="Look">
       <ul className={styles.poses} role="group" aria-label="Animations">
         {names.map((name) => {
           const count = look.animations[name].frames.length;
@@ -546,7 +548,13 @@ export function AnimationEditor({
           onSlot={setSlot}
           onColours={(colours) => send("setLookColours", { colours })}
         />
+        {preview && (
+          <div className={styles.panel}>
+            <h3 className={styles.panelHeading}>Preview</h3>
+            {preview}
+          </div>
+        )}
       </div>
-    </div>
+    </section>
   );
 }

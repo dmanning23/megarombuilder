@@ -60,7 +60,7 @@ export function HeroScreen({
 
   return (
     <fieldset
-      className={styles.heroScreen}
+      className={styles.characterScreen}
       disabled={locked}
       aria-label="Your hero"
     >
@@ -72,6 +72,26 @@ export function HeroScreen({
           </button>
         </p>
       )}
+      <section className={styles.aboutBar} aria-label="About your hero">
+        <HeroAbilities
+          abilities={abilities}
+          level={level}
+          check={check}
+          onAbilities={(changes) =>
+            onCommand({ name: "setHeroAbilities", args: changes })
+          }
+          onGoToZone={onGoToZone}
+          onReset={() => {
+            if (
+              confirm(
+                "Start again from the snow hero's look? You can undo this.",
+              )
+            ) {
+              onCommand({ name: "resetHeroLook", args: {} });
+            }
+          }}
+        />
+      </section>
       <AnimationEditor
         kind="hero"
         look={look}
@@ -89,32 +109,16 @@ export function HeroScreen({
         onCommit={onCommit}
         readPicture={readPicture}
         confirm={confirm}
-      />
-      <div className={styles.heroSide}>
-        <GamePreview
-          label="Your hero in action"
-          start={startPreview}
-          inputs={previewShow}
-          heroLook={look}
-          enemies={NO_ENEMIES}
-          art={art}
-        />
-      </div>
-      <HeroAbilities
-        abilities={abilities}
-        level={level}
-        check={check}
-        onAbilities={(changes) =>
-          onCommand({ name: "setHeroAbilities", args: changes })
+        preview={
+          <GamePreview
+            label="Your hero in action"
+            start={startPreview}
+            inputs={previewShow}
+            heroLook={look}
+            enemies={NO_ENEMIES}
+            art={art}
+          />
         }
-        onGoToZone={onGoToZone}
-        onReset={() => {
-          if (
-            confirm("Start again from the snow hero's look? You can undo this.")
-          ) {
-            onCommand({ name: "resetHeroLook", args: {} });
-          }
-        }}
       />
     </fieldset>
   );

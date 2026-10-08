@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, screen } from "@testing-library/react";
+import { cleanup, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it } from "vitest";
 import { setupHero } from "./heroHelpers";
@@ -61,5 +61,16 @@ describe("the Characters screen", () => {
     await userEvent.click(screen.getByRole("button", { name: "Stop playing" }));
     expect(screen.getByRole("tab", { name: "Hero" })).toBeTruthy();
     expect(screen.queryByRole("navigation", { name: "Zones" })).toBeNull();
+  });
+
+  it("puts the hero's abilities in its About bar, and its preview beside the drawing", async () => {
+    const { open } = setupHero();
+    await open();
+    const about = screen.getByRole("region", { name: "About your hero" });
+    expect(within(about).getByRole("group", { name: "Jump" })).toBeTruthy();
+    expect(within(about).getByRole("button", { name: /Start from/ })).toBeTruthy();
+    const look = screen.getByRole("region", { name: "Look" });
+    expect(within(look).getByRole("img", { name: "Your hero in action" })).toBeTruthy();
+    expect(within(look).getByRole("img", { name: "Stand frame 1, 16 by 24 pixels" })).toBeTruthy();
   });
 });

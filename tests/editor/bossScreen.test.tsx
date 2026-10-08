@@ -148,4 +148,17 @@ describe("the Boss tab", () => {
     expect(attack).toHaveLength(2);
     expect(attack[1][0][0]).toBe("1");
   });
+
+  it("holds the boss's settings in the About bar, with Make your own boss there before there is one", async () => {
+    const { open, make } = setup();
+    await open();
+    const about = () => screen.getByRole("region", { name: "About your boss" });
+    expect(within(about()).getByRole("button", { name: "Make your own boss" })).toBeTruthy();
+    expect(screen.queryByRole("region", { name: "Look" })).toBeNull();
+    await make();
+    for (const name of ["Fight", "Use in the boss room"]) expect(within(about()).getByRole("group", { name })).toBeTruthy();
+    expect(within(about()).getByRole("combobox", { name: "Attack 1" })).toBeTruthy();
+    expect(within(about()).getByRole("button", { name: "Delete boss" })).toBeTruthy();
+    expect(within(screen.getByRole("region", { name: "Look" })).getByRole("img", { name: "My Boss fighting" })).toBeTruthy();
+  });
 });

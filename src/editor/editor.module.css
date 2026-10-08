@@ -511,22 +511,52 @@
 .fullWidth {
   grid-column: 1 / -1;
 }
-.heroScreen {
+/* A character tab: its About bar, then its look. */
+.characterScreen {
   display: grid;
-  grid-template-columns: 10rem auto minmax(16rem, 1fr);
   gap: 1rem;
-  align-items: start;
+  align-content: start;
   border: 0;
   margin: 0;
   padding: 0;
   min-width: 0;
 }
-/* The Boss tab has no list column: its drawing and its side panel. */
-.bossScreen {
-  grid-template-columns: auto minmax(16rem, 1fr);
+.characterScreen > .alert {
+  margin: 0;
 }
-.heroScreen > .alert {
-  grid-column: 1 / -1;
+/* The character's settings, in one card that wraps. */
+.aboutBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 1rem 2rem;
+  padding: 1rem 1.25rem;
+  border-radius: 14px;
+  background: #ffffff;
+  border: 2px solid #d5deea;
+  min-width: 0;
+}
+.aboutGroup {
+  display: grid;
+  gap: 0.6rem;
+  align-content: start;
+  min-width: 0;
+}
+.aboutBar > .action:last-child {
+  margin-left: auto;
+}
+/* A labelled panel beside the drawing. */
+.panel {
+  display: grid;
+  gap: 0.5rem;
+  align-content: start;
+}
+.panelHeading {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--panel);
 }
 .poses {
   list-style: none;
@@ -556,23 +586,12 @@
   gap: 0.4rem;
   align-items: end;
 }
-.heroSide {
-  display: grid;
-  gap: 0.75rem;
-  min-width: 0;
-}
 .preview {
   width: 100%;
   max-width: 256px;
   height: auto;
   image-rendering: pixelated;
   border-radius: 6px;
-}
-@media (max-width: 760px) {
-  .heroScreen,
-  .bossScreen {
-    grid-template-columns: 1fr;
-  }
 }
 
 .heroHeading {
@@ -730,11 +749,6 @@
   gap: 0.75rem;
 }
 
-.enemyList {
-  display: grid;
-  gap: 0.5rem;
-  align-content: start;
-}
 .newEnemy {
   display: grid;
   gap: 0.5rem;
