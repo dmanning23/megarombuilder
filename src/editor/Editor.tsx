@@ -502,6 +502,33 @@ export function Editor({
         </main>
       ) : screen === "characters" ? (
         <main className={styles.characterWork}>
+          {/* The chat is hidden here: say when the assistant is working, and show its trouble. */}
+          {(busy || notice) && (
+            <p
+              className={styles.assistantStatus}
+              role="status"
+              aria-label="Assistant"
+            >
+              {busy ? "The assistant is changing your game…" : notice}
+              {busy ? (
+                <button
+                  type="button"
+                  className={styles.action}
+                  onClick={() => turn.current?.abort()}
+                >
+                  Stop
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className={styles.action}
+                  onClick={() => setNotice(null)}
+                >
+                  Dismiss
+                </button>
+              )}
+            </p>
+          )}
           <CharactersScreen
             project={project}
             pack={pack}

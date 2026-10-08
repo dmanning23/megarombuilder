@@ -1,10 +1,16 @@
 // @vitest-environment jsdom
-import { cleanup, screen, within } from "@testing-library/react";
+import { cleanup, render, screen, waitFor, within } from "@testing-library/react";
+import { Editor } from "@/editor/Editor";
+import { newProject } from "@/editor/newProject";
+import { scriptedModel, waitForAbort } from "../ai/fakeModel";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it } from "vitest";
 import { setupHero } from "./heroHelpers";
 
 afterEach(cleanup);
+
+let n = 0;
+const makeId = () => `c-${++n}`;
 
 describe("the Characters screen", () => {
   it("opens on the Hero tab, and switches to Enemies and back", async () => {
@@ -72,5 +78,27 @@ describe("the Characters screen", () => {
     const look = screen.getByRole("region", { name: "Look" });
     expect(within(look).getByRole("img", { name: "Your hero in action" })).toBeTruthy();
     expect(within(look).getByRole("img", { name: "Stand frame 1, 16 by 24 pixels" })).toBeTruthy();
+  });
+
+  it("says when the assistant is working, and can stop it, while the chat is hidden", async () => {
+    const { model } = scriptedModel([waitForAbort]);
+    render(<Editor initial={newProject("Busy", makeId)} store={{ save: async () => {} }} makeId={makeId} saveDelay={60_000} model={model} />);
+    await userEvent.type(screen.getByRole("textbox", { name: "Message" }), "Hello");
+    await userEvent.click(screen.getByRole("button", { name: "Send" }));
+    await userEvent.click(screen.getByRole("button", { name: "Characters" }));
+    expect(screen.getByRole("status", { name: "Assistant" }).textContent).toContain("The assistant is changing your game");
+    await userEvent.click(within(screen.getByRole("status", { name: "Assistant" })).getByRole("button", { name: "Stop" }));
+    await waitFor(() => expect(screen.getByRole("button", { name: "Pencil" }).matches(":disabled")).toBe(false));
+  });
+
+  it("shows the assistant's trouble on the Characters screen too", async () => {
+    const { model } = scriptedModel([new Error("boom")]);
+    render(<Editor initial={newProject("Trouble", makeId)} store={{ save: async () => {} }} makeId={makeId} saveDelay={60_000} model={model} />);
+    await userEvent.type(screen.getByRole("textbox", { name: "Message" }), "Hello");
+    await userEvent.click(screen.getByRole("button", { name: "Send" }));
+    await userEvent.click(screen.getByRole("button", { name: "Characters" }));
+    await waitFor(() => expect(screen.getByRole("status", { name: "Assistant" }).textContent).not.toBe(""));
+    await userEvent.click(within(screen.getByRole("status", { name: "Assistant" })).getByRole("button", { name: "Dismiss" }));
+    expect(screen.queryByRole("status", { name: "Assistant" })).toBeNull();
   });
 });

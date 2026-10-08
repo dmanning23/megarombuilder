@@ -512,6 +512,18 @@
 .fullWidth {
   grid-column: 1 / -1;
 }
+/* The assistant's state, on the Characters screen where the chat is hidden. */
+.assistantStatus {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0 0 1rem;
+  padding: 0.6rem 0.9rem;
+  border-radius: 10px;
+  background: #fff6d6;
+  border: 2px solid var(--signal);
+  font-weight: 600;
+}
 /* A character tab: its About bar, then its look. */
 .characterScreen {
   display: grid;
@@ -701,8 +713,9 @@
   color: var(--paper);
   cursor: pointer;
 }
-/* A destructive action (Delete, Clear): outlined in the warning colour. */
-.danger {
+/* A destructive action (Delete, Clear): outlined in the warning colour. (The Level screen's
+   Delete zone keeps its own .danger look in the dark side panel.) */
+.action.danger {
   background: #fff;
   color: #b3264a;
   border-color: var(--warn);
