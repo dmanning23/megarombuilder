@@ -1,7 +1,8 @@
 // @vitest-environment jsdom
-import { cleanup, screen, within } from "@testing-library/react";
+import { cleanup, fireEvent, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { ZOOM } from "@/editor/hero/pixels";
 import { setupHero } from "./heroHelpers";
 
 afterEach(cleanup);
@@ -52,5 +53,76 @@ describe("the Size control", () => {
     expect(sizeButton("Taller")).toHaveProperty("disabled", true); // a slide is 16 high at most
     await chooseAnimation("Shot");
     expect(screen.queryByRole("group", { name: "Size" })).toBeNull();
+  });
+});
+
+function canvasPress(testId: string) {
+  const el = () => {
+    const c = screen.getByTestId(testId) as HTMLCanvasElement;
+    c.getBoundingClientRect = () => ({ left: 0, top: 0, width: c.width, height: c.height, right: 0, bottom: 0, x: 0, y: 0, toJSON() {} }) as DOMRect;
+    return c;
+  };
+  const at = (x: number, y: number) => ({ clientX: x * ZOOM + ZOOM / 2, clientY: y * ZOOM + ZOOM / 2, button: 0 });
+  return {
+    drag(from: [number, number], ...path: [number, number][]) {
+      fireEvent.pointerDown(el(), at(...from));
+      for (const p of path) fireEvent.pointerMove(el(), at(...p));
+      const last = path.at(-1) ?? from;
+      fireEvent.pointerUp(el(), at(...last));
+    },
+  };
+}
+
+describe("the Hitbox tool", () => {
+  it("drags the nearest edge, saves it as one undo step, and stops at the limits", async () => {
+    const { open, choose, saved } = setupHero();
+    await open();
+    await choose("Hitbox");
+    canvasPress("hero-canvas").drag([14, 12], [13, 12], [12, 12], [11, 12]); // the right edge, in by 3
+    expect(saved().hero.look.body).toEqual({ x: 1, y: 2, w: 11, h: 22 });
+  });
+
+  it("undoes a whole drag in one step", async () => {
+    const { open, choose, saved } = setupHero();
+    await open();
+    await choose("Hitbox");
+    canvasPress("hero-canvas").drag([8, 2], [8, 3], [8, 4], [8, 5], [8, 6]); // the top edge, down by 4
+    await userEvent.click(screen.getByRole("button", { name: "Undo" }));
+    expect(saved().hero.look.body).toEqual({ x: 1, y: 2, w: 14, h: 22 });
+  });
+
+  it("moves only the slide's top edge, on the slide's own canvas", async () => {
+    const { open, choose, saved } = setupHero();
+    await open();
+    await choose("Hitbox");
+    await chooseAnimation("Slide");
+    canvasPress("hero-canvas").drag([12, 2], [12, 6]);
+    expect(saved().hero.look.slideBody).toEqual({ x: 5, y: 6, w: 14, h: 10 });
+  });
+
+  it("fits the hitbox to the drawing", async () => {
+    const { open, choose, saved } = setupHero();
+    await open();
+    await choose("Hitbox");
+    canvasPress("hero-canvas").drag([14, 12], [8, 12]);
+    await choose("Fit to drawing");
+    expect(saved().hero.look.body.w).toBeGreaterThan(8);
+  });
+});
+
+describe("the Shot point tool", () => {
+  it("moves where shots come out, inside the hitbox", async () => {
+    const { open, choose, saved } = setupHero();
+    await open();
+    await choose("Shot point");
+    canvasPress("hero-canvas").drag([8, 14], [8, 16]);
+    expect(saved().hero.look.shotY).toBe(14); // row 16, the hitbox starting at row 2
+  });
+
+  it("isn't offered on the slide or the shots", async () => {
+    const { open } = setupHero();
+    await open();
+    await chooseAnimation("Slide");
+    expect(screen.queryByRole("button", { name: "Shot point" })).toBeNull();
   });
 });

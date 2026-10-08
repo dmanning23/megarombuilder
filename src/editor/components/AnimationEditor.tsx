@@ -7,19 +7,31 @@ import {
   ANIMATION_NAMES,
   ANIMATION_SPEEDS,
   cutsDrawing,
+  HERO_BODY_MAX_H,
+  HERO_BODY_MAX_W,
   KINDS,
   MAX_FRAMES,
   type AnimationSpeed,
   type Look,
+  type LookBox,
   type LookKind,
+  SLIDE_BODY_MAX_H,
 } from "@/model/look";
 import { baseFor, frameSteps } from "@/runtime/render/animate";
 import { lookSprites, paletteOf } from "@/runtime/render/lookArt";
 import styles from "../editor.module.css";
+import {
+  moveEdge,
+  pickEdge,
+  shotYAt,
+  type Edge,
+  type HitboxLimits,
+} from "../hero/hitbox";
 import type { RawImage } from "../hero/importPicture";
+import type { Pixel } from "../hero/pixels";
 import { Colours } from "./Colours";
 import { SpriteSwatch } from "./Palette";
-import { PictureEditor, type DrawTool } from "./PictureEditor";
+import { PictureEditor, type DrawTool, type ExtraTool } from "./PictureEditor";
 
 const SPEED_NAMES: Record<AnimationSpeed, string> = {
   slow: "Slow",
@@ -139,6 +151,87 @@ export function AnimationEditor({
       return;
     send("resizeCanvas", { canvas: group, w, h });
   };
+
+  // A hitbox or shot point being dragged: shown live, saved once when the press ends. The ref holds
+  // the latest drag for the release, which may run before React re-renders.
+  type Draft = { body?: LookBox; shotY?: number; edge?: Edge };
+  const [draft, setDraftState] = useState<Draft | null>(null);
+  const draftRef = useRef<Draft | null>(null);
+  const setDraft = (next: Draft | null) => {
+    draftRef.current = next;
+    setDraftState(next);
+  };
+  const which = group === "slide" ? "slide" : "main";
+  const shotHeight = rule.shotHeight;
+  const hitboxLimits: HitboxLimits = {
+    canvas,
+    maxW: kind === "hero" && which === "main" ? HERO_BODY_MAX_W : null,
+    maxH:
+      kind === "hero"
+        ? which === "slide"
+          ? SLIDE_BODY_MAX_H
+          : HERO_BODY_MAX_H
+        : null,
+  };
+  const shotHere = shotHeight !== null && which === "main" && body !== null;
+  const extraTools: ExtraTool[] =
+    body === null
+      ? []
+      : [
+          {
+            id: "hitbox",
+            label: "Hitbox",
+            press: (p: Pixel) => {
+              const edge = which === "slide" ? "top" : pickEdge(body, p); // a slide's feet stay on the floor
+              setDraft({ edge, body: moveEdge(body, edge, p, hitboxLimits) });
+            },
+            drag: (p: Pixel) => {
+              const edge = draftRef.current?.edge;
+              if (edge)
+                setDraft({ edge, body: moveEdge(body, edge, p, hitboxLimits) });
+            },
+            release: () => {
+              const next = draftRef.current?.body;
+              setDraft(null);
+              if (
+                next &&
+                (next.x !== body.x ||
+                  next.y !== body.y ||
+                  next.w !== body.w ||
+                  next.h !== body.h)
+              ) {
+                send("setBody", { which, body: next });
+              }
+            },
+          },
+          ...(shotHere && shotHeight !== null
+            ? [
+                {
+                  id: "shot",
+                  label: "Shot point",
+                  press: (p: Pixel) =>
+                    setDraft({ shotY: shotYAt(body, p, shotHeight) }),
+                  drag: (p: Pixel) =>
+                    setDraft({ shotY: shotYAt(body, p, shotHeight) }),
+                  release: () => {
+                    const y = draftRef.current?.shotY;
+                    setDraft(null);
+                    if (y !== undefined && y !== look.shotY)
+                      send("setShotY", { y });
+                  },
+                },
+              ]
+            : []),
+        ];
+  // A tool this animation doesn't offer (the shot point on the slide) falls back to the pencil.
+  const offered = tool === "hitbox" ? body !== null : tool === "shot" ? shotHere : true;
+  const activeTool = offered ? tool : "pencil";
+  const shownBody = draft?.body ?? body;
+  const shownShotY = draft?.shotY ?? look.shotY;
+  const shot =
+    shotHere && shotHeight !== null && shownBody && shownShotY !== undefined
+      ? { y: shownBody.y + shownShotY, h: shotHeight }
+      : undefined;
   const send = (name: string, args: Record<string, unknown>) =>
     onCommand({ name, args: { target, ...args } });
   const label = ANIMATION_NAMES[animation];
@@ -383,6 +476,16 @@ export function AnimationEditor({
           </div>
         )}
 
+        {activeTool === "hitbox" && (
+          <button
+            type="button"
+            className={styles.swatch}
+            onClick={() => send("fitBody", { which })}
+          >
+            Fit to drawing
+          </button>
+        )}
+
         <PictureEditor
           key={`${animation}:${frame}`}
           name={`${label} frame ${frame + 1}`}
@@ -390,11 +493,13 @@ export function AnimationEditor({
           under={under}
           palette={palette}
           size={canvas}
-          body={body}
+          body={shownBody}
+          shot={shot}
+          extraTools={extraTools}
           feet={group === "main" || group === "slide"}
           testId={testId}
           colours={look.colours}
-          tool={tool}
+          tool={activeTool}
           onTool={setTool}
           slot={colour}
           onSlot={setSlot}
