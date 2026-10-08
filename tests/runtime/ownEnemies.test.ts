@@ -101,6 +101,7 @@ describe("the kid's enemies' own hitboxes and shot points", () => {
     sim.player.invuln = 1_000_000;
     for (let i = 0; i < 400 && sim.enemyShots.length === 0; i++) step(sim, NO_INPUT);
     const turret = sim.slots.find((s) => s.thing.type === "own-e1")!.entity!;
-    expect(sim.enemyShots[0].y).toBe(turret.y + 12);
+    const shot = sim.enemyShots[0];
+    expect(shot.y - shot.vy).toBeCloseTo(turret.y + 12); // it has moved once since it was fired
   });
 });
