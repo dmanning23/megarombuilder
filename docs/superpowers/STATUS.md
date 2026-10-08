@@ -10,9 +10,9 @@ zone. Next.js and React, one AI proxy route, projects stored in the browser.
 
 ## Where things stand
 
-Milestone 1 (plans 1 to 8), milestone 2 (your own hero, plans 1 to 5) and
-milestone 3 (your own enemies and boss, plans 1 to 5) are implemented, reviewed
-and merged to `main`.
+Milestones 1 (plans 1 to 8), 2 (your own hero), 3 (your own enemies and boss)
+and 4 (characters that fit, plans 1 to 5) are implemented, reviewed and merged
+to `main`.
 
 Run `npm run dev` and open `/play` for the demo stage: running, jumping, ice,
 spikes, ladders, zone transitions, six enemy types, health pickups, a moving
@@ -52,7 +52,10 @@ drawn by their looks' hitboxes and shot points; heroes are at most one tile
 wide; the checker checks with the kid's own hero, and the assistant knows its
 size. The Hero, Enemies and Boss tabs have an animation editor: an animation
 list, a frame strip (add, copy, delete, move, drag to reorder), play at slow,
-normal or fast, an onion skin, and sixteen colours. 992 tests and 12 browser tests pass; typecheck, lint and build are clean. Browser tests: `npm run e2e`
+normal or fast, an onion skin, and sixteen colours. Kids also resize a
+character's canvas (asked first before drawing is cut off), drag its hitbox
+(or Fit to drawing) and drag its shot point; the level canvas and the checker
+keep up. 1017 tests and 12 browser tests pass; typecheck, lint and build are clean. Browser tests: `npm run e2e`
 (builds and serves on port 3100).
 
 | Document | State |
@@ -83,7 +86,7 @@ normal or fast, an onion skin, and sixteen colours. 992 tests and 12 browser tes
 | `plans/2026-10-07-m4-plan-2-animations-in-game.md` | Milestone 4 plan 2 of 5, implemented, reviewed and merged |
 | `plans/2026-10-07-m4-plan-3-bodies-in-game.md` | Milestone 4 plan 3 of 5, implemented, reviewed and merged |
 | `plans/2026-10-07-m4-plan-4-animation-editor.md` | Milestone 4 plan 4 of 5, implemented, reviewed and merged |
-| `plans/2026-10-08-m4-plan-5-size-hitbox-shot.md` | Milestone 4 plan 5 of 5, written, waiting for approval |
+| `plans/2026-10-08-m4-plan-5-size-hitbox-shot.md` | Milestone 4 plan 5 of 5, implemented, reviewed and merged |
 
 Milestone 1 is now eight plans (the editor became two):
 
@@ -112,6 +115,14 @@ Milestone 3, your own enemies and boss, was five plans:
 4. The Boss tab (done)
 5. The assistant and the kid's designs (done)
 
+Milestone 4, characters that fit, was five plans:
+
+1. The shared look, format 4, the upgrade, the look commands (done)
+2. Animations in the game (done)
+3. Sizes, hitboxes and shot points in the game (done)
+4. The animation editor (done)
+5. Size, hitbox and shot point in the editor (done)
+
 ## Open items
 
 1. A person needs to play `/play` through the boss fight and say whether the
@@ -125,9 +136,12 @@ Milestone 3, your own enemies and boss, was five plans:
      accessible names; the list uses ul role="group".
    - M4 plan 4: the import dialog recomputes on every render and says "your
      hero" on every tab; switching enemies resets the drawing tool and colour.
-   - M4 plan 3: the editor's zone canvas places the kid's own things by
-     bottom-centring, not by their hitbox; the check cache doesn't key on the
-     kid's boss (both matter once plan 5 lets kids move hitboxes).
+   - M4 plan 5: a drag cut off by a second finger or by undo can leave a stale
+     outline until the next press (and an import then could send it); extra
+     tools don't check the locked state mid-drag.
+   - M4 plan 5: a Size step refits a hand-placed hitbox (as the spec says);
+     Fit to drawing nudges the layout when it appears; the Shot point has no
+     keyboard path; DrawTool is plain string.
    - M4 plan 3: the checker's jump overhangs assume a hero at least 13 wide, so
      a very narrow hero may be promised one tile too many.
    - M4 plan 3: a hitbox saved wider than 16 between plans 1 and 3 (dev only)
