@@ -5,9 +5,16 @@ import type { Pixel } from "./pixels";
 // which row a shot comes out of. Plain code, so it can be tested without a canvas.
 
 export type Edge = "left" | "right" | "top" | "bottom";
-export type HitboxLimits = { canvas: { w: number; h: number }; maxW: number | null; maxH: number | null };
+// minH: a character that shoots keeps its hitbox at least as tall as its shot.
+export type HitboxLimits = {
+  canvas: { w: number; h: number };
+  maxW: number | null;
+  maxH: number | null;
+  minH?: number | null;
+};
 
-const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
+const clamp = (v: number, lo: number, hi: number) =>
+  Math.max(lo, Math.min(hi, v));
 
 export function pickEdge(body: LookBox, p: Pixel): Edge {
   const right = body.x + body.w - 1;
@@ -23,24 +30,38 @@ export function pickEdge(body: LookBox, p: Pixel): Edge {
 
 // Moves one edge of the hitbox to the pixel, keeping it on the canvas, at least BODY_MIN across, and
 // within the hero's limits.
-export function moveEdge(body: LookBox, edge: Edge, p: Pixel, limits: HitboxLimits): LookBox {
+export function moveEdge(
+  body: LookBox,
+  edge: Edge,
+  p: Pixel,
+  limits: HitboxLimits,
+): LookBox {
   const right = body.x + body.w - 1;
   const bottom = body.y + body.h - 1;
   const maxW = limits.maxW ?? limits.canvas.w;
   const maxH = limits.maxH ?? limits.canvas.h;
+  const minH = Math.max(BODY_MIN, limits.minH ?? BODY_MIN);
   if (edge === "left") {
     const x = clamp(p.x, Math.max(0, right - maxW + 1), right - BODY_MIN + 1);
     return { ...body, x, w: right - x + 1 };
   }
   if (edge === "right") {
-    const r = clamp(p.x, body.x + BODY_MIN - 1, Math.min(limits.canvas.w - 1, body.x + maxW - 1));
+    const r = clamp(
+      p.x,
+      body.x + BODY_MIN - 1,
+      Math.min(limits.canvas.w - 1, body.x + maxW - 1),
+    );
     return { ...body, w: r - body.x + 1 };
   }
   if (edge === "top") {
-    const y = clamp(p.y, Math.max(0, bottom - maxH + 1), bottom - BODY_MIN + 1);
+    const y = clamp(p.y, Math.max(0, bottom - maxH + 1), bottom - minH + 1);
     return { ...body, y, h: bottom - y + 1 };
   }
-  const b = clamp(p.y, body.y + BODY_MIN - 1, Math.min(limits.canvas.h - 1, body.y + maxH - 1));
+  const b = clamp(
+    p.y,
+    body.y + minH - 1,
+    Math.min(limits.canvas.h - 1, body.y + maxH - 1),
+  );
   return { ...body, h: b - body.y + 1 };
 }
 

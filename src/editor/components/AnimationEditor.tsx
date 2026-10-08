@@ -172,6 +172,7 @@ export function AnimationEditor({
           ? SLIDE_BODY_MAX_H
           : HERO_BODY_MAX_H
         : null,
+    minH: which === "main" ? shotHeight : null,
   };
   const shotHere = shotHeight !== null && which === "main" && body !== null;
   const extraTools: ExtraTool[] =
@@ -194,14 +195,31 @@ export function AnimationEditor({
               const next = draftRef.current?.body;
               setDraft(null);
               if (
-                next &&
-                (next.x !== body.x ||
-                  next.y !== body.y ||
-                  next.w !== body.w ||
-                  next.h !== body.h)
-              ) {
-                send("setBody", { which, body: next });
-              }
+                !next ||
+                (next.x === body.x &&
+                  next.y === body.y &&
+                  next.w === body.w &&
+                  next.h === body.h)
+              )
+                return;
+              // The shot point is measured from the hitbox's top: keep it at the same row of the picture.
+              const shotY =
+                which === "main" &&
+                shotHeight !== null &&
+                look.shotY !== undefined
+                  ? Math.max(
+                      0,
+                      Math.min(
+                        look.shotY + body.y - next.y,
+                        next.h - shotHeight,
+                      ),
+                    )
+                  : undefined;
+              onBegin("Move the hitbox");
+              send("setBody", { which, body: next });
+              if (shotY !== undefined && shotY !== look.shotY)
+                send("setShotY", { y: shotY });
+              onCommit();
             },
           },
           ...(shotHere && shotHeight !== null
@@ -224,7 +242,8 @@ export function AnimationEditor({
             : []),
         ];
   // A tool this animation doesn't offer (the shot point on the slide) falls back to the pencil.
-  const offered = tool === "hitbox" ? body !== null : tool === "shot" ? shotHere : true;
+  const offered =
+    tool === "hitbox" ? body !== null : tool === "shot" ? shotHere : true;
   const activeTool = offered ? tool : "pencil";
   const shownBody = draft?.body ?? body;
   const shownShotY = draft?.shotY ?? look.shotY;

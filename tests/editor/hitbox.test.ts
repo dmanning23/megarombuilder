@@ -41,3 +41,10 @@ describe("shotYAt", () => {
     expect(shotYAt(body, { x: 0, y: 99 }, 4)).toBe(8); // 12 high, a 4-high shot: 8 at most
   });
 });
+
+describe("a hitbox for something that shoots", () => {
+  it("never gets shorter than its shot", () => {
+    const turret = { canvas: { w: 16, h: 16 }, maxW: null, maxH: null, minH: 6 };
+    expect(moveEdge({ x: 1, y: 2, w: 14, h: 14 }, "top", { x: 0, y: 15 }, turret)).toEqual({ x: 1, y: 10, w: 14, h: 6 });
+  });
+});

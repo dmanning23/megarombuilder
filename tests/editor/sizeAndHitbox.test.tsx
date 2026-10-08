@@ -125,4 +125,24 @@ describe("the Shot point tool", () => {
     await chooseAnimation("Slide");
     expect(screen.queryByRole("button", { name: "Shot point" })).toBeNull();
   });
+
+  it("stays at the same place in the picture when the hitbox's top edge moves, in one undo step", async () => {
+    const { open, choose, saved } = setupHero();
+    await open();
+    await choose("Hitbox");
+    canvasPress("hero-canvas").drag([8, 2], [8, 4], [8, 6]); // the top edge down by 4
+    const look = saved().hero.look;
+    expect(look.body.y).toBe(6);
+    expect(look.body.y + look.shotY!).toBe(2 + 8); // still row 10 of the picture
+  });
+
+  it("undoes the hitbox and the shot point together", async () => {
+    const { open, choose, saved } = setupHero();
+    await open();
+    await choose("Hitbox");
+    canvasPress("hero-canvas").drag([8, 2], [8, 6]);
+    await userEvent.click(screen.getByRole("button", { name: "Undo" }));
+    const look = saved().hero.look;
+    expect([look.body.y, look.shotY]).toEqual([2, 8]);
+  });
 });

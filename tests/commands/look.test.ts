@@ -122,3 +122,14 @@ describe("fitting the hero's hitboxes to wide drawings", () => {
     expect(fitted.hero.look.body).toEqual({ x: 4, y: 0, w: 16, h: 24 });
   });
 });
+
+describe("fitting a short shooter", () => {
+  it("keeps its hitbox at least as tall as its shot", () => {
+    let project = run(baseProject(), "addEnemy", { enemyId: "e1", name: "Ice Eye", behaviour: "turret" });
+    const target = { enemy: "e1" };
+    const flat = Array.from({ length: 16 }, (_, y) => (y >= 13 ? "1".repeat(16) : ".".repeat(16))); // 3 rows drawn
+    project = run(project, "setFrame", { target, animation: "idle", frame: 0, rows: flat });
+    project = run(project, "fitBody", { target });
+    expect(project.enemies[0].look.body.h).toBeGreaterThanOrEqual(6);
+  });
+});
