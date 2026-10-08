@@ -55,7 +55,10 @@ list, a frame strip (add, copy, delete, move, drag to reorder), play at slow,
 normal or fast, an onion skin, and sixteen colours. Kids also resize a
 character's canvas (asked first before drawing is cut off), drag its hitbox
 (or Fit to drawing) and drag its shot point; the level canvas and the checker
-keep up. 1017 tests and 12 browser tests pass; typecheck, lint and build are clean. Browser tests: `npm run e2e`
+keep up. The Characters screen now uses the whole window (the zone panel and the
+chat step aside; a status line shows the assistant's work there), each tab opens
+with an About bar of the character's settings, the preview sits beside the
+drawing, and its buttons share one look. 1025 tests and 15 browser tests pass; typecheck, lint and build are clean. Browser tests: `npm run e2e`
 (builds and serves on port 3100).
 
 | Document | State |
@@ -88,7 +91,7 @@ keep up. 1017 tests and 12 browser tests pass; typecheck, lint and build are cle
 | `plans/2026-10-07-m4-plan-4-animation-editor.md` | Milestone 4 plan 4 of 5, implemented, reviewed and merged |
 | `plans/2026-10-08-m4-plan-5-size-hitbox-shot.md` | Milestone 4 plan 5 of 5, implemented, reviewed and merged |
 | `specs/2026-10-08-character-editor-cleanup-design.md` | Character editor tidy-up spec, approved |
-| `plans/2026-10-08-tidy-plan-1-screen-frame.md` | Tidy-up plan 1 of 2, written, waiting for approval |
+| `plans/2026-10-08-tidy-plan-1-screen-frame.md` | Tidy-up plan 1 of 2, implemented, reviewed and merged |
 
 Milestone 1 is now eight plans (the editor became two):
 
@@ -138,6 +141,10 @@ Milestone 4, characters that fit, was five plans:
      accessible names; the list uses ul role="group".
    - M4 plan 4: the import dialog recomputes on every render and says "your
      hero" on every tab; switching enemies resets the drawing tool and colour.
+   - Tidy plan 1: headings jump from h1 to h3 on the Characters screen; disabled
+     .step and .choice fade differently; a few dead or duplicate CSS rules.
+   - Tidy plan 1: the wide-screen screenshots don't show the bottom of the
+     scrolling panel (plan 2 should screenshot the panel itself).
    - M4 plan 5: a drag cut off by a second finger or by undo can leave a stale
      outline until the next press (and an import then could send it); extra
      tools don't check the locked state mid-drag.
