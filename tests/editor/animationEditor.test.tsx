@@ -99,4 +99,22 @@ describe("the animation editor", () => {
     await userEvent.selectOptions(screen.getByRole("combobox", { name: "Copy from" }), "Stand frame 1");
     expect(saved().hero.look.animations.hurt.frames[0]).toEqual(snowHero.animations.stand.frames[0]);
   });
+
+  it("labels the animation's speed on screen, apart from the hero's own speed", async () => {
+    const { open } = setupHero();
+    await open();
+    const group = screen.getByRole("group", { name: "Animation speed" });
+    expect(within(group).getByText("Animation speed")).toBeTruthy();
+  });
+
+  it("ignores a drop that didn't start from a frame, and a drag that ended elsewhere", async () => {
+    const { open, saved } = setupHero();
+    await open();
+    await chooseAnimation("Run");
+    fireEvent.dragStart(frameButton(2));
+    fireEvent.dragEnd(frameButton(2)); // dropped outside the strip
+    fireEvent.dragOver(frameButton(1));
+    fireEvent.drop(frameButton(1)); // a file dragged in from outside, say
+    expect(saved().hero.look.animations.run.frames).toEqual(snowHero.animations.run.frames);
+  });
 });

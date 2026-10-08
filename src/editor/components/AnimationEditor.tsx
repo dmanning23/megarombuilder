@@ -203,11 +203,18 @@ export function AnimationEditor({
                 aria-label={`Frame ${i + 1}`}
                 aria-pressed={i === frame}
                 onClick={() => setChosen(i)}
-                onDragStart={() => setDragged(i)}
-                onDragOver={(e) => e.preventDefault()}
+                onDragStart={(e) => {
+                  e.dataTransfer?.setData("text/plain", String(i)); // some browsers only drag with data
+                  setDragged(i);
+                }}
+                onDragEnd={() => setDragged(null)}
+                onDragOver={(e) => {
+                  if (dragged !== null) e.preventDefault(); // only a frame from this strip can be dropped
+                }}
                 onDrop={(e) => {
+                  if (dragged === null) return;
                   e.preventDefault();
-                  if (dragged !== null) move(dragged, i);
+                  move(dragged, i);
                   setDragged(null);
                 }}
               >
@@ -301,6 +308,7 @@ export function AnimationEditor({
             aria-label="Animation speed"
             className={styles.steps}
           >
+            <span className={styles.abilityLabel}>Animation speed</span>
             {ANIMATION_SPEEDS.map((speed) => (
               <button
                 key={speed}
@@ -355,12 +363,14 @@ export function AnimationEditor({
           onCommit={onCommit}
         />
       </div>
-      <Colours
-        colours={look.colours}
-        slot={colour}
-        onSlot={setSlot}
-        onColours={(colours) => send("setLookColours", { colours })}
-      />
+      <div className={styles.animationColours}>
+        <Colours
+          colours={look.colours}
+          slot={colour}
+          onSlot={setSlot}
+          onColours={(colours) => send("setLookColours", { colours })}
+        />
+      </div>
     </div>
   );
 }
