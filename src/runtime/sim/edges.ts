@@ -1,5 +1,5 @@
 import { TILE_SIZE } from "@/model/geometry";
-import { PLAYER_H, TRANSITION_STEPS } from "./constants";
+import { TRANSITION_STEPS } from "./constants";
 import { loadZoneThings } from "./entities/slots";
 import { kill } from "./hazards";
 import { entryPosition, type Sim, type Transition } from "./state";
@@ -12,12 +12,12 @@ function leave(sim: Sim, direction: Transition["direction"], carry: number): voi
   if (next >= sim.level.zones.length) return;
   const p = sim.player;
   // A slide ends at the edge of a zone: the player arrives standing.
-  p.h = PLAYER_H;
+  p.h = p.standH;
   p.slide = 0;
   sim.transition = { fromIndex: sim.zoneIndex, fromCamera: cameraFor(sim), direction };
   sim.zoneIndex = next;
   sim.map = createTileMap(sim.level.zones[next], sim.pack);
-  const position = entryPosition(sim.map, carry);
+  const position = entryPosition(sim.map, carry, p);
   p.x = position.x;
   p.y = position.y;
   p.vy = 0;

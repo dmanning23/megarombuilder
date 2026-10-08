@@ -60,7 +60,7 @@ function slideStep(sim: Sim, dir: number, jumpPressed: boolean): void {
   const { map, player: p, settings } = sim;
   if (p.slide > 0) p.slide--;
   const ending = p.slide === 0 || !p.onGround || jumpPressed;
-  if (ending && roomToStand(map, p)) {
+  if (ending && roomToStand(map, p, p.standH)) {
     standUp(p);
     p.vx = dir * settings.runSpeed;
     if (jumpPressed && p.onGround) p.vy = -settings.jumpVelocity;
@@ -76,7 +76,7 @@ export function updatePlayer(sim: Sim, input: Input): void {
   const { map, player: p, settings, prev } = sim;
 
   if (p.hurt > 0) {
-    if (sliding(p) && roomToStand(map, p)) standUp(p);
+    if (sliding(p) && roomToStand(map, p, p.standH)) standUp(p);
     // Knocked back: no control, but still falling.
     p.hurt--;
     p.vx = p.knockback * KNOCKBACK_SPEED;

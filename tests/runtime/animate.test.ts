@@ -5,7 +5,7 @@ import type { Player } from "@/runtime/sim/state";
 
 const player = (o: Partial<Player> = {}): Player => ({
   x: 0, y: 0, vx: 0, vy: 0, w: 14, h: 22, facing: 1, onGround: true, onIce: false, onLadder: false,
-  health: 28, hurt: 0, invuln: 0, knockback: 1, ridingId: null, shotTimer: 0, slide: 0, charge: 0, airSteps: 0,
+  health: 28, hurt: 0, invuln: 0, knockback: 1, ridingId: null, shotTimer: 0, slide: 0, charge: 0, airSteps: 0, standH: 22, slideH: 14, shotY: 8,
   ...o,
 });
 const entity = (o: Partial<Entity> = {}): Entity => ({
