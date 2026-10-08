@@ -52,11 +52,18 @@ export function HeroScreen({
   readPicture = readPictureFile,
 }: Props) {
   const { look, abilities } = project.hero;
-  const startPreview = useCallback(() => previewSim(look, abilities, pack), [look, abilities, pack]);
+  const startPreview = useCallback(
+    () => previewSim(look, abilities, pack),
+    [look, abilities, pack],
+  );
   const previewShow = useMemo(() => previewInputs(abilities), [abilities]);
 
   return (
-    <fieldset className={styles.heroScreen} disabled={locked} aria-label="Your hero">
+    <fieldset
+      className={styles.heroScreen}
+      disabled={locked}
+      aria-label="Your hero"
+    >
       {error && (
         <p className={styles.alert} role="alert">
           {error}
@@ -72,13 +79,16 @@ export function HeroScreen({
         testId="hero-canvas"
         notes={{
           ...(abilities.slide ? {} : { slide: "(needs slide)" }),
-          ...(abilities.chargeShot ? {} : { chargedShot: "(needs charge shot)" }),
+          ...(abilities.chargeShot
+            ? {}
+            : { chargedShot: "(needs charge shot)" }),
         }}
         locked={locked}
         onCommand={onCommand}
         onBegin={onBegin}
         onCommit={onCommit}
         readPicture={readPicture}
+        confirm={confirm}
       />
       <div className={styles.heroSide}>
         <GamePreview
@@ -94,10 +104,14 @@ export function HeroScreen({
         abilities={abilities}
         level={level}
         check={check}
-        onAbilities={(changes) => onCommand({ name: "setHeroAbilities", args: changes })}
+        onAbilities={(changes) =>
+          onCommand({ name: "setHeroAbilities", args: changes })
+        }
         onGoToZone={onGoToZone}
         onReset={() => {
-          if (confirm("Start again from the snow hero's look? You can undo this.")) {
+          if (
+            confirm("Start again from the snow hero's look? You can undo this.")
+          ) {
             onCommand({ name: "resetHeroLook", args: {} });
           }
         }}

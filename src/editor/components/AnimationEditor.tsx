@@ -6,6 +6,7 @@ import type { Command } from "@/commands/types";
 import {
   ANIMATION_NAMES,
   ANIMATION_SPEEDS,
+  cutsDrawing,
   KINDS,
   MAX_FRAMES,
   type AnimationSpeed,
@@ -38,6 +39,7 @@ type Props = {
   onBegin(label: string): void;
   onCommit(): void;
   readPicture(file: File): Promise<RawImage>;
+  confirm(message: string): boolean;
 };
 
 // Loops an animation's frames in a small box at its speed, while playing.
@@ -102,6 +104,7 @@ export function AnimationEditor({
   onBegin,
   onCommit,
   readPicture,
+  confirm,
 }: Props) {
   const rule = KINDS[kind];
   const names = Object.keys(rule.animations);
@@ -126,6 +129,16 @@ export function AnimationEditor({
         ? (look.slideBody ?? null)
         : null;
   const colour = Math.min(slot, look.colours.length);
+  const limits = rule.canvases[group];
+  const fixed = limits.min.w === limits.max.w && limits.min.h === limits.max.h; // the hero's shots
+  const resize = (w: number, h: number) => {
+    if (
+      cutsDrawing(look, kind, group, w, h) &&
+      !confirm("This cuts off part of your drawing. You can undo it.")
+    )
+      return;
+    send("resizeCanvas", { canvas: group, w, h });
+  };
   const send = (name: string, args: Record<string, unknown>) =>
     onCommand({ name, args: { target, ...args } });
   const label = ANIMATION_NAMES[animation];
@@ -330,6 +343,45 @@ export function AnimationEditor({
             Onion skin
           </button>
         </div>
+
+        {!fixed && (
+          <div role="group" aria-label="Size" className={styles.steps}>
+            <span className={styles.abilityLabel}>Size</span>
+            <span className={styles.note}>{`${canvas.w} × ${canvas.h}`}</span>
+            <button
+              type="button"
+              className={styles.step}
+              disabled={canvas.w - 2 < limits.min.w}
+              onClick={() => resize(canvas.w - 2, canvas.h)}
+            >
+              Narrower
+            </button>
+            <button
+              type="button"
+              className={styles.step}
+              disabled={canvas.w + 2 > limits.max.w}
+              onClick={() => resize(canvas.w + 2, canvas.h)}
+            >
+              Wider
+            </button>
+            <button
+              type="button"
+              className={styles.step}
+              disabled={canvas.h - 2 < limits.min.h}
+              onClick={() => resize(canvas.w, canvas.h - 2)}
+            >
+              Shorter
+            </button>
+            <button
+              type="button"
+              className={styles.step}
+              disabled={canvas.h + 2 > limits.max.h}
+              onClick={() => resize(canvas.w, canvas.h + 2)}
+            >
+              Taller
+            </button>
+          </div>
+        )}
 
         <PictureEditor
           key={`${animation}:${frame}`}
