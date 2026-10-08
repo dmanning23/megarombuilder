@@ -84,15 +84,15 @@ describe("hero abilities", () => {
     const view = render(
       <Editor initial={newProject("Busy", makeId)} store={{ save }} makeId={makeId} saveDelay={60_000} model={model} />,
     );
-    await userEvent.click(screen.getByRole("button", { name: "Characters" }));
+    // The chat is on the Level screen: ask there, then open the hero while the assistant works.
     await userEvent.type(screen.getByRole("textbox", { name: "Message" }), "Hello");
     await userEvent.click(screen.getByRole("button", { name: "Send" }));
+    await userEvent.click(screen.getByRole("button", { name: "Characters" }));
     // Disabled through the hero screen's fieldset, which the button's own property doesn't show.
     await waitFor(() => expect(screen.getByRole("button", { name: "Pencil" }).matches(":disabled")).toBe(true));
     expect(within(group("Jump")).getByRole("button", { name: "High" }).matches(":disabled")).toBe(true);
     await act(async () => finish());
-    await screen.findByText("Done.");
-    expect(screen.getByRole("button", { name: "Pencil" }).matches(":disabled")).toBe(false);
+    await waitFor(() => expect(screen.getByRole("button", { name: "Pencil" }).matches(":disabled")).toBe(false));
     view.unmount();
   });
 });

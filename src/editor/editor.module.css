@@ -501,10 +501,15 @@
 }
 
 /* The hero screen: pictures, the big canvas, colours and the preview */
-.heroWork {
+/* The Characters screen spans every column of the editor. */
+.characterWork {
+  grid-column: 1 / -1;
   min-height: 0;
   overflow: auto;
-  padding: 1rem;
+  padding: 1rem 1.25rem;
+}
+.fullWidth {
+  grid-column: 1 / -1;
 }
 .heroScreen {
   display: grid;

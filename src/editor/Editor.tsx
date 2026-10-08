@@ -1,6 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useReducer,
+  useRef,
+  useState,
+} from "react";
 import type { Command } from "@/commands/types";
 import { createHttpModel } from "@/ai/httpModel";
 import { FAILURE_TEXT, runTurn, type ModelFn } from "@/ai/turn";
@@ -24,7 +31,13 @@ import { ZoneList } from "./components/ZoneList";
 import { ZoneSettings } from "./components/ZoneSettings";
 import styles from "./editor.module.css";
 import { downloadProject } from "./files";
-import { currentLevel, currentZone, editorReducer, initialEditor, nextZoneName } from "./state";
+import {
+  currentLevel,
+  currentZone,
+  editorReducer,
+  initialEditor,
+  nextZoneName,
+} from "./state";
 import { paintCommand, placeCommand, thingAt } from "./tools";
 import { useLevelCheck } from "./useLevelCheck";
 import type { Spot } from "./zoneView";
@@ -44,7 +57,10 @@ const defaultModel = createHttpModel();
 const typing = (target: EventTarget | null) => {
   const el = target as HTMLElement | null;
   return (
-    el?.tagName === "INPUT" || el?.tagName === "TEXTAREA" || el?.tagName === "SELECT" || el?.isContentEditable === true
+    el?.tagName === "INPUT" ||
+    el?.tagName === "TEXTAREA" ||
+    el?.tagName === "SELECT" ||
+    el?.isContentEditable === true
   );
 };
 
@@ -52,7 +68,13 @@ const typing = (target: EventTarget | null) => {
 // grab point under the pointer, and a click that doesn't drag doesn't move it.
 type Drag =
   | { kind: "stroke" }
-  | { kind: "move"; thingId: string; from: { x: number; y: number }; dx: number; dy: number }
+  | {
+      kind: "move";
+      thingId: string;
+      from: { x: number; y: number };
+      dx: number;
+      dy: number;
+    }
   | null;
 
 export function Editor({
@@ -65,11 +87,18 @@ export function Editor({
   readPicture,
 }: Props) {
   const pack = getPack(initial.contentPackId);
-  if (!pack) throw new Error(`The content pack "${initial.contentPackId}" is not available.`);
+  if (!pack)
+    throw new Error(
+      `The content pack "${initial.contentPackId}" is not available.`,
+    );
   const art = getArt(initial.contentPackId);
   const reducer = useMemo(() => editorReducer({ pack }), [pack]);
-  const [state, dispatch] = useReducer(reducer, undefined, () => initialEditor(initial, pack.groundTileId));
-  const [saveState, setSaveState] = useState<"saved" | "saving" | "error">("saved");
+  const [state, dispatch] = useReducer(reducer, undefined, () =>
+    initialEditor(initial, pack.groundTileId),
+  );
+  const [saveState, setSaveState] = useState<"saved" | "saving" | "error">(
+    "saved",
+  );
   const [screen, setScreen] = useState<"level" | "characters">("level");
 
   const project = state.history.project;
@@ -77,13 +106,26 @@ export function Editor({
   const fullPack = useMemo(() => gamePack(project, pack), [project, pack]);
   const enemies = project.enemies;
   const boss = project.boss;
-  const ownArt = useMemo(() => Object.fromEntries(enemies.map((e) => [ownType(e.id), lookArt(designLook(e.behaviour, e.look))])), [enemies]);
+  const ownArt = useMemo(
+    () =>
+      Object.fromEntries(
+        enemies.map((e) => [
+          ownType(e.id),
+          lookArt(designLook(e.behaviour, e.look)),
+        ]),
+      ),
+    [enemies],
+  );
   const skin = useMemo<Skin | undefined>(() => {
     if (!art || typeof document === "undefined") return undefined;
     return {
       set: art,
       image: createSpriteCache(art.palette, browserCanvas),
-      own: ownSkins(enemies, (palette) => createSpriteCache(palette, browserCanvas), boss),
+      own: ownSkins(
+        enemies,
+        (palette) => createSpriteCache(palette, browserCanvas),
+        boss,
+      ),
     };
   }, [art, enemies, boss]); // rebuilt when the kid's enemies or boss change, not on every edit
   const level = currentLevel(state);
@@ -116,7 +158,13 @@ export function Editor({
     dispatch({ type: "begin", label: "Assistant" });
     // Anything unexpected inside the turn counts as a failed turn, so the level is never left locked.
     const result = await runTurn(
-      { project, levelId: level.id, zoneId: zone.id, history: project.chat, text },
+      {
+        project,
+        levelId: level.id,
+        zoneId: zone.id,
+        history: project.chat,
+        text,
+      },
       {
         model,
         pack,
@@ -127,18 +175,29 @@ export function Editor({
         onCommand: (command) => {
           dispatch({ type: "run", command });
           const zoneId = (command.args as { zoneId?: unknown }).zoneId;
-          if (typeof zoneId === "string") dispatch({ type: "selectZone", zoneId });
+          if (typeof zoneId === "string")
+            dispatch({ type: "selectZone", zoneId });
         },
       },
     ).catch((error: unknown) => {
       console.error("The chat turn failed:", error);
-      return { ok: false as const, reason: "failed" as const, message: FAILURE_TEXT.failed };
+      return {
+        ok: false as const,
+        reason: "failed" as const,
+        message: FAILURE_TEXT.failed,
+      };
     });
     turn.current = null;
     if (result.ok) {
       dispatch({ type: "commit" });
       const at = new Date().toISOString();
-      dispatch({ type: "chat", messages: [{ role: "user", text, at }, { role: "assistant", text: result.reply, at }] });
+      dispatch({
+        type: "chat",
+        messages: [
+          { role: "user", text, at },
+          { role: "assistant", text: result.reply, at },
+        ],
+      });
     } else {
       dispatch({ type: "rollback" });
       setNotice(result.message);
@@ -231,7 +290,8 @@ export function Editor({
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (state.playing) {
-        if (e.key === "Escape" && !typing(e.target)) dispatch({ type: "stopPlaying" });
+        if (e.key === "Escape" && !typing(e.target))
+          dispatch({ type: "stopPlaying" });
         return;
       }
       if (typing(e.target)) return;
@@ -256,7 +316,12 @@ export function Editor({
   const [stageHeight, setStageHeight] = useState<number | null>(null);
   useEffect(() => {
     const el = stageRef.current;
-    if (!el || typeof ResizeObserver === "undefined" || typeof window.matchMedia !== "function") return;
+    if (
+      !el ||
+      typeof ResizeObserver === "undefined" ||
+      typeof window.matchMedia !== "function"
+    )
+      return;
     const wide = window.matchMedia("(min-width: 761px)");
     const observer = new ResizeObserver(([entry]) =>
       setStageHeight(wide.matches ? entry.contentRect.height : null),
@@ -265,7 +330,9 @@ export function Editor({
     return () => observer.disconnect();
   }, [playing, screen]);
   const zoom =
-    zone.scroll === "horizontal" && stageHeight ? Math.min(2, Math.max(1, (stageHeight - 8) / 240)) : 2;
+    zone.scroll === "horizontal" && stageHeight
+      ? Math.min(2, Math.max(1, (stageHeight - 8) / 240))
+      : 2;
 
   // The checker, rerun once editing pauses.
   const check = useLevelCheck(project, level.id, pack, strokeOpen || playing);
@@ -279,10 +346,16 @@ export function Editor({
   const press = (spot: Spot) => {
     if (busy) return; // the assistant is changing the level
     const tool = state.tool;
-    const needs = tool.kind === "piece" ? pack.pieces.find((p) => p.id === tool.pieceId)?.needs : undefined;
+    const needs =
+      tool.kind === "piece"
+        ? pack.pieces.find((p) => p.id === tool.pieceId)?.needs
+        : undefined;
     if (needs === "slide" && !project.hero.abilities.slide) return; // the hero can't use this piece
     if (tool.kind === "tile" || tool.kind === "erase") {
-      dispatch({ type: "begin", label: tool.kind === "erase" ? "Erase" : "Paint" });
+      dispatch({
+        type: "begin",
+        label: tool.kind === "erase" ? "Erase" : "Paint",
+      });
       run(paintCommand(tool, level.id, zone, fullPack, spot));
       drag.current = { kind: "stroke" };
       return;
@@ -290,7 +363,13 @@ export function Editor({
     if (tool.kind === "thing") {
       const hit = thingAt(zone, fullPack, spot.point);
       if (hit) {
-        drag.current = { kind: "move", thingId: hit.id, from: spot.tile, dx: hit.x - spot.tile.x, dy: hit.y - spot.tile.y };
+        drag.current = {
+          kind: "move",
+          thingId: hit.id,
+          from: spot.tile,
+          dx: hit.x - spot.tile.x,
+          dy: hit.y - spot.tile.y,
+        };
         return;
       }
     }
@@ -298,7 +377,10 @@ export function Editor({
   };
   const dragTo = (spot: Spot) => {
     const tool = state.tool;
-    if (drag.current?.kind === "stroke" && (tool.kind === "tile" || tool.kind === "erase")) {
+    if (
+      drag.current?.kind === "stroke" &&
+      (tool.kind === "tile" || tool.kind === "erase")
+    ) {
       run(paintCommand(tool, level.id, zone, fullPack, spot));
     }
   };
@@ -306,7 +388,11 @@ export function Editor({
     const ended = drag.current;
     drag.current = null;
     if (ended?.kind === "stroke") dispatch({ type: "commit" });
-    else if (ended?.kind === "move" && spot && (spot.tile.x !== ended.from.x || spot.tile.y !== ended.from.y)) {
+    else if (
+      ended?.kind === "move" &&
+      spot &&
+      (spot.tile.x !== ended.from.x || spot.tile.y !== ended.from.y)
+    ) {
       run({
         name: "moveThing",
         args: {
@@ -323,7 +409,13 @@ export function Editor({
   const addZone = (climb: boolean) => {
     const zoneId = makeId();
     const args = climb
-      ? { levelId: level.id, zoneId, name: nextZoneName(level), scroll: "vertical", screens: 2 }
+      ? {
+          levelId: level.id,
+          zoneId,
+          name: nextZoneName(level),
+          scroll: "vertical",
+          screens: 2,
+        }
       : { levelId: level.id, zoneId, name: nextZoneName(level) };
     run({ name: "addZone", args });
     dispatch({ type: "selectZone", zoneId });
@@ -333,6 +425,10 @@ export function Editor({
     if (!confirm(`Delete "${zone.name}"? You can undo this.`)) return;
     run({ name: "removeZone", args: { levelId: level.id, zoneId: zone.id } });
   };
+
+  // The Characters screen (and a game played from it) uses the whole window: the zone panel and the
+  // chat are about the level. Their state lives here, so hiding them loses nothing.
+  const sidePanels = screen !== "characters";
 
   return (
     <div className={styles.app}>
@@ -351,25 +447,44 @@ export function Editor({
         onPlayFromZone={() => dispatch({ type: "play", fromZoneId: zone.id })}
         onExport={() => downloadProject(project)}
       />
-      <aside className={styles.side}>
-        <ZoneList
-          level={level}
-          selectedId={zone.id}
-          checks={check?.zones}
-          disabled={playing || busy}
-          onSelect={(zoneId) => dispatch({ type: "selectZone", zoneId })}
-          onRename={(zoneId, name) => run({ name: "renameZone", args: { levelId: level.id, zoneId, name } })}
-          onAdd={() => addZone(false)}
-          onAddClimb={() => addZone(true)}
-        />
-        {!playing && (
-          <fieldset className={styles.lock} disabled={busy}>
-            <ZoneSettings level={level} zone={zone} pack={pack} onCommand={run} onDelete={deleteZone} />
-          </fieldset>
-        )}
-      </aside>
+      {sidePanels && (
+        <aside className={styles.side}>
+          <ZoneList
+            level={level}
+            selectedId={zone.id}
+            checks={check?.zones}
+            disabled={playing || busy}
+            onSelect={(zoneId) => dispatch({ type: "selectZone", zoneId })}
+            onRename={(zoneId, name) =>
+              run({
+                name: "renameZone",
+                args: { levelId: level.id, zoneId, name },
+              })
+            }
+            onAdd={() => addZone(false)}
+            onAddClimb={() => addZone(true)}
+          />
+          {!playing && (
+            <fieldset className={styles.lock} disabled={busy}>
+              <ZoneSettings
+                level={level}
+                zone={zone}
+                pack={pack}
+                onCommand={run}
+                onDelete={deleteZone}
+              />
+            </fieldset>
+          )}
+        </aside>
+      )}
       {state.playing ? (
-        <main className={styles.playing}>
+        <main
+          className={
+            sidePanels
+              ? styles.playing
+              : `${styles.playing} ${styles.fullWidth}`
+          }
+        >
           <PlayCanvas
             project={project}
             levelId={level.id}
@@ -377,12 +492,16 @@ export function Editor({
             art={art}
             startZoneId={state.playing.fromZoneId ?? undefined}
           />
-          <button type="button" className={styles.primary} onClick={() => dispatch({ type: "stopPlaying" })}>
+          <button
+            type="button"
+            className={styles.primary}
+            onClick={() => dispatch({ type: "stopPlaying" })}
+          >
             Stop playing
           </button>
         </main>
       ) : screen === "characters" ? (
-        <main className={styles.heroWork}>
+        <main className={styles.characterWork}>
           <CharactersScreen
             project={project}
             pack={pack}
@@ -409,14 +528,17 @@ export function Editor({
           <div className={styles.stage} ref={stageRef}>
             {openElsewhere && (
               <p className={styles.alert} role="alert">
-                This game is open in another tab, so changes here aren&apos;t saved. Keep building in the
-                other tab.
+                This game is open in another tab, so changes here aren&apos;t
+                saved. Keep building in the other tab.
               </p>
             )}
             {state.error && (
               <p className={styles.alert} role="alert">
                 {state.error}
-                <button type="button" onClick={() => dispatch({ type: "dismissError" })}>
+                <button
+                  type="button"
+                  onClick={() => dispatch({ type: "dismissError" })}
+                >
                   Dismiss
                 </button>
               </p>
@@ -444,19 +566,21 @@ export function Editor({
           />
         </main>
       )}
-      <ChatPanel
-        messages={project.chat}
-        asking={asking}
-        draft={draft}
-        activity={activity}
-        notice={notice}
-        busy={busy}
-        canSend={!busy && !playing && !strokeOpen}
-        text={chatText}
-        onText={setChatText}
-        onSend={sendChat}
-        onStop={() => turn.current?.abort()}
-      />
+      {sidePanels && (
+        <ChatPanel
+          messages={project.chat}
+          asking={asking}
+          draft={draft}
+          activity={activity}
+          notice={notice}
+          busy={busy}
+          canSend={!busy && !playing && !strokeOpen}
+          text={chatText}
+          onText={setChatText}
+          onSend={sendChat}
+          onStop={() => turn.current?.abort()}
+        />
+      )}
     </div>
   );
 }

@@ -34,4 +34,32 @@ describe("the Characters screen", () => {
     expect(screen.getByRole("tab", { name: "Boss" }).getAttribute("aria-selected")).toBe("true");
     expect(screen.getByRole("button", { name: "Make your own boss" })).toBeTruthy();
   });
+
+  it("uses the whole window: no zone list and no assistant", async () => {
+    const { open } = setupHero();
+    await open();
+    expect(screen.queryByRole("navigation", { name: "Zones" })).toBeNull();
+    expect(screen.queryByRole("textbox", { name: "Message" })).toBeNull();
+    await userEvent.click(screen.getByRole("button", { name: "Level" }));
+    expect(screen.getByRole("navigation", { name: "Zones" })).toBeTruthy();
+    expect(screen.getByRole("textbox", { name: "Message" })).toBeTruthy();
+  });
+
+  it("keeps what was typed in the chat while the Characters screen shows", async () => {
+    const { open } = setupHero();
+    await userEvent.type(screen.getByRole("textbox", { name: "Message" }), "add spikes");
+    await open();
+    await userEvent.click(screen.getByRole("button", { name: "Level" }));
+    expect((screen.getByRole("textbox", { name: "Message" }) as HTMLTextAreaElement).value).toBe("add spikes");
+  });
+
+  it("plays full width and comes back to the Characters screen", async () => {
+    const { open } = setupHero();
+    await open();
+    await userEvent.click(screen.getByRole("button", { name: "Play" }));
+    expect(screen.queryByRole("navigation", { name: "Zones" })).toBeNull();
+    await userEvent.click(screen.getByRole("button", { name: "Stop playing" }));
+    expect(screen.getByRole("tab", { name: "Hero" })).toBeTruthy();
+    expect(screen.queryByRole("navigation", { name: "Zones" })).toBeNull();
+  });
 });
