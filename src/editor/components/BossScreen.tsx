@@ -133,7 +133,7 @@ export function BossScreen({
 
   return (
     <fieldset
-      className={`${styles.heroScreen} ${styles.bossScreen}`}
+      className={styles.characterScreen}
       disabled={locked}
       aria-label="Your boss"
     >
@@ -145,121 +145,124 @@ export function BossScreen({
           </button>
         </p>
       )}
-      {!boss || !bossArt ? (
-        <div>
-          <p className={styles.note}>
-            Make your own boss to fight in the boss room. It starts as a copy of
-            the {packBoss?.name ?? "boss"}.
-          </p>
-          <button
-            type="button"
-            className={styles.swatch}
-            onClick={() =>
-              onCommand({ name: "createBoss", args: { name: "My Boss" } })
-            }
-          >
-            Make your own boss
-          </button>
-        </div>
-      ) : (
-        <>
-          <div className={styles.drawing}>
-            <NameField
-              key={boss.name}
-              name={tidyName(boss.name)}
-              onRename={(name) =>
-                onCommand({ name: "setBoss", args: { name } })
+      <section className={styles.aboutBar} aria-label="About your boss">
+        {!boss || !bossArt ? (
+          <div>
+            <p className={styles.note}>
+              Make your own boss to fight in the boss room. It starts as a copy
+              of the {packBoss?.name ?? "boss"}.
+            </p>
+            <button
+              type="button"
+              className={styles.action}
+              onClick={() =>
+                onCommand({ name: "createBoss", args: { name: "My Boss" } })
               }
-            />
-            <div role="group" aria-label="Fight" className={styles.ability}>
-              <span className={styles.abilityLabel}>Fight</span>
-              <div className={styles.steps}>
-                {BOSS_FIGHTS.map((fight) => (
-                  <button
-                    key={fight}
-                    type="button"
-                    className={styles.step}
-                    aria-pressed={boss.fight === fight}
-                    onClick={() =>
-                      onCommand({ name: "setBoss", args: { fight } })
-                    }
-                  >
-                    {FIGHT_NAMES[fight]}
-                  </button>
+            >
+              Make your own boss
+            </button>
+          </div>
+        ) : (
+          <>
+            <div className={styles.aboutRow}>
+              <NameField
+                key={boss.name}
+                name={tidyName(boss.name)}
+                onRename={(name) =>
+                  onCommand({ name: "setBoss", args: { name } })
+                }
+              />
+              <div role="group" aria-label="Fight" className={styles.ability}>
+                <span className={styles.abilityLabel}>Fight</span>
+                <div className={styles.steps}>
+                  {BOSS_FIGHTS.map((fight) => (
+                    <button
+                      key={fight}
+                      type="button"
+                      className={styles.step}
+                      aria-pressed={boss.fight === fight}
+                      onClick={() =>
+                        onCommand({ name: "setBoss", args: { fight } })
+                      }
+                    >
+                      {FIGHT_NAMES[fight]}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div
+                role="group"
+                aria-label="Attacks, in order"
+                className={styles.ability}
+              >
+                <span className={styles.abilityLabel}>Attacks, in order</span>
+                {[0, 1, 2].map((i) => (
+                  <div key={i} className={styles.field}>
+                    <label htmlFor={`boss-attack-${i}`}>Attack {i + 1}</label>
+                    <select
+                      id={`boss-attack-${i}`}
+                      aria-label={`Attack ${i + 1}`}
+                      value={boss.attacks[i] ?? ""}
+                      onChange={(e) => {
+                        const value = e.target.value as BossAttack | "";
+                        const next = [...boss.attacks];
+                        if (value === "") next.splice(2);
+                        else next[i] = value;
+                        setAttacks(next);
+                      }}
+                    >
+                      {i === 2 && <option value="">None</option>}
+                      {BOSS_ATTACKS.map((a) => (
+                        <option key={a} value={a}>
+                          {ATTACK_TEXT[a].name}
+                        </option>
+                      ))}
+                    </select>
+                    {boss.attacks[i] && (
+                      <span className={styles.note}>
+                        {ATTACK_TEXT[boss.attacks[i]].tip}
+                      </span>
+                    )}
+                  </div>
                 ))}
               </div>
             </div>
-            <div
-              role="group"
-              aria-label="Attacks, in order"
-              className={styles.ability}
-            >
-              <span className={styles.abilityLabel}>Attacks, in order</span>
-              {[0, 1, 2].map((i) => (
-                <div key={i} className={styles.field}>
-                  <label htmlFor={`boss-attack-${i}`}>Attack {i + 1}</label>
-                  <select
-                    id={`boss-attack-${i}`}
-                    aria-label={`Attack ${i + 1}`}
-                    value={boss.attacks[i] ?? ""}
-                    onChange={(e) => {
-                      const value = e.target.value as BossAttack | "";
-                      const next = [...boss.attacks];
-                      if (value === "") next.splice(2);
-                      else next[i] = value;
-                      setAttacks(next);
-                    }}
+            <div className={styles.aboutGroup}>
+              <div
+                role="group"
+                aria-label="Use in the boss room"
+                className={styles.ability}
+              >
+                <span className={styles.abilityLabel}>
+                  Use in the boss room
+                </span>
+                <div className={styles.steps}>
+                  <button
+                    type="button"
+                    className={styles.step}
+                    aria-pressed={inUse === "snow"}
+                    onClick={() =>
+                      onCommand({ name: "useBoss", args: { boss: "snow" } })
+                    }
                   >
-                    {i === 2 && <option value="">None</option>}
-                    {BOSS_ATTACKS.map((a) => (
-                      <option key={a} value={a}>
-                        {ATTACK_TEXT[a].name}
-                      </option>
-                    ))}
-                  </select>
-                  {boss.attacks[i] && (
-                    <span className={styles.note}>
-                      {ATTACK_TEXT[boss.attacks[i]].tip}
-                    </span>
-                  )}
+                    {packBoss?.name ?? "Pack boss"}
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.step}
+                    aria-pressed={inUse === "yours"}
+                    onClick={() =>
+                      onCommand({ name: "useBoss", args: { boss: "yours" } })
+                    }
+                  >
+                    Your boss
+                  </button>
                 </div>
-              ))}
-            </div>
-          </div>
-          <div className={styles.heroSide}>
-            <BossPreview boss={boss} project={project} pack={pack} art={art} />
-            <div
-              role="group"
-              aria-label="Use in the boss room"
-              className={styles.ability}
-            >
-              <span className={styles.abilityLabel}>Use in the boss room</span>
-              <div className={styles.steps}>
-                <button
-                  type="button"
-                  className={styles.step}
-                  aria-pressed={inUse === "snow"}
-                  onClick={() =>
-                    onCommand({ name: "useBoss", args: { boss: "snow" } })
-                  }
-                >
-                  {packBoss?.name ?? "Pack boss"}
-                </button>
-                <button
-                  type="button"
-                  className={styles.step}
-                  aria-pressed={inUse === "yours"}
-                  onClick={() =>
-                    onCommand({ name: "useBoss", args: { boss: "yours" } })
-                  }
-                >
-                  Your boss
-                </button>
               </div>
             </div>
             <button
               type="button"
-              className={styles.swatch}
+              className={`${styles.action} ${styles.danger}`}
               onClick={() => {
                 if (
                   confirm(`Delete ${tidyName(boss.name)}? You can undo this.`)
@@ -269,20 +272,25 @@ export function BossScreen({
             >
               Delete boss
             </button>
-          </div>
-          <AnimationEditor
-            kind="boss"
-            look={boss.look}
-            target="boss"
-            testId="boss-canvas"
-            locked={locked}
-            onCommand={onCommand}
-            onBegin={onBegin}
-            onCommit={onCommit}
-            readPicture={readPicture}
-            confirm={confirm}
-          />
-        </>
+          </>
+        )}
+      </section>
+      {boss && bossArt && (
+        <AnimationEditor
+          kind="boss"
+          look={boss.look}
+          target="boss"
+          testId="boss-canvas"
+          locked={locked}
+          onCommand={onCommand}
+          onBegin={onBegin}
+          onCommit={onCommit}
+          readPicture={readPicture}
+          confirm={confirm}
+          preview={
+            <BossPreview boss={boss} project={project} pack={pack} art={art} />
+          }
+        />
       )}
     </fieldset>
   );

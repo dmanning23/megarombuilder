@@ -172,7 +172,7 @@ export function EnemiesScreen({
 
   return (
     <fieldset
-      className={styles.heroScreen}
+      className={styles.characterScreen}
       disabled={locked}
       aria-label="Your enemies"
     >
@@ -184,146 +184,143 @@ export function EnemiesScreen({
           </button>
         </p>
       )}
-      <div className={styles.enemyList}>
-        <ul className={styles.poses} aria-label="Enemies">
-          {enemies.map((e) => (
-            <li key={e.id}>
-              <button
-                type="button"
-                className={styles.swatch}
-                aria-pressed={e.id === enemy?.id}
-                onClick={() => setSelectedId(e.id)}
-              >
-                <SpriteSwatch
-                  sprite={arts.get(e.id)?.frames[0]}
-                  palette={arts.get(e.id)?.palette}
-                />
-                {tidyName(e.name)}
-              </button>
-            </li>
-          ))}
-        </ul>
-        <button
-          type="button"
-          className={styles.swatch}
-          disabled={enemies.length >= MAX_ENEMIES}
-          onClick={() => setMaking((m) => !m)}
-        >
-          New enemy
-        </button>
-        {enemies.length >= MAX_ENEMIES && (
-          <p className={styles.note}>12 is the most.</p>
-        )}
-        {making && (
-          <div className={styles.newEnemy}>
-            <label className={styles.field}>
-              Enemy name
-              <input
-                value={newName}
-                maxLength={40}
-                onChange={(e) => setNewName(e.target.value)}
-              />
-            </label>
-            {newError && <p className={styles.bad}>{newError}</p>}
-            <div
-              className={styles.steps}
-              role="group"
-              aria-label="Choose how it behaves"
-            >
-              {ENEMY_BEHAVIOURS.map((b) => (
+      <section className={styles.aboutBar} aria-label="About your enemies">
+        <div className={styles.aboutGroup}>
+          <ul className={styles.poses} aria-label="Enemies">
+            {enemies.map((e) => (
+              <li key={e.id}>
                 <button
-                  key={b}
                   type="button"
-                  className={styles.step}
-                  onClick={() => create(b)}
+                  className={styles.swatch}
+                  aria-pressed={e.id === enemy?.id}
+                  onClick={() => setSelectedId(e.id)}
                 >
-                  {BEHAVIOUR_NAMES[b]}
+                  <SpriteSwatch
+                    sprite={arts.get(e.id)?.frames[0]}
+                    palette={arts.get(e.id)?.palette}
+                  />
+                  {tidyName(e.name)}
                 </button>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-
-      {!enemy ? (
-        <p className={styles.note}>
-          Make your own enemies to fight. Start with New enemy.
-        </p>
-      ) : (
-        <>
-          <div className={styles.drawing}>
-            <NameField
-              key={`${enemy.id}:${enemy.name}`}
-              name={tidyName(enemy.name)}
-              onRename={(name) =>
-                onCommand({
-                  name: "renameEnemy",
-                  args: { enemyId: enemy.id, name },
-                })
-              }
-            />
-            <div role="group" aria-label="Behaviour" className={styles.ability}>
-              <span className={styles.abilityLabel}>Behaviour</span>
-              <div className={styles.steps}>
+              </li>
+            ))}
+          </ul>
+          <button
+            type="button"
+            className={styles.action}
+            disabled={enemies.length >= MAX_ENEMIES}
+            onClick={() => setMaking((m) => !m)}
+          >
+            New enemy
+          </button>
+          {enemies.length >= MAX_ENEMIES && (
+            <p className={styles.note}>12 is the most.</p>
+          )}
+          {making && (
+            <div className={styles.newEnemy}>
+              <label className={styles.field}>
+                Enemy name
+                <input
+                  value={newName}
+                  maxLength={40}
+                  onChange={(e) => setNewName(e.target.value)}
+                />
+              </label>
+              {newError && <p className={styles.bad}>{newError}</p>}
+              <div
+                className={styles.steps}
+                role="group"
+                aria-label="Choose how it behaves"
+              >
                 {ENEMY_BEHAVIOURS.map((b) => (
                   <button
                     key={b}
                     type="button"
                     className={styles.step}
-                    aria-pressed={enemy.behaviour === b}
-                    onClick={() =>
-                      onCommand({
-                        name: "setEnemyBehaviour",
-                        args: { enemyId: enemy.id, behaviour: b },
-                      })
-                    }
+                    onClick={() => create(b)}
                   >
                     {BEHAVIOUR_NAMES[b]}
                   </button>
                 ))}
               </div>
             </div>
-            {STEP_ROWS.filter((row) =>
-              TUNING_USED[enemy.behaviour].includes(row.key),
-            ).map((row) => (
+          )}
+        </div>
+        {!enemy ? (
+          <p className={styles.note}>
+            Make your own enemies to fight. Start with New enemy.
+          </p>
+        ) : (
+          <>
+            <div className={styles.aboutRow}>
+              <NameField
+                key={`${enemy.id}:${enemy.name}`}
+                name={tidyName(enemy.name)}
+                onRename={(name) =>
+                  onCommand({
+                    name: "renameEnemy",
+                    args: { enemyId: enemy.id, name },
+                  })
+                }
+              />
               <div
-                key={row.key}
                 role="group"
-                aria-label={row.label}
+                aria-label="Behaviour"
                 className={styles.ability}
               >
-                <span className={styles.abilityLabel}>{row.label}</span>
+                <span className={styles.abilityLabel}>Behaviour</span>
                 <div className={styles.steps}>
-                  {row.steps.map((step) => (
+                  {ENEMY_BEHAVIOURS.map((b) => (
                     <button
-                      key={String(step)}
+                      key={b}
                       type="button"
                       className={styles.step}
-                      aria-pressed={enemy.tuning[row.key] === step}
+                      aria-pressed={enemy.behaviour === b}
                       onClick={() =>
                         onCommand({
-                          name: "setEnemyTuning",
-                          args: { enemyId: enemy.id, [row.key]: step },
+                          name: "setEnemyBehaviour",
+                          args: { enemyId: enemy.id, behaviour: b },
                         })
                       }
                     >
-                      {row.name(step)}
+                      {BEHAVIOUR_NAMES[b]}
                     </button>
                   ))}
                 </div>
               </div>
-            ))}
-          </div>
-          <div className={styles.heroSide}>
-            <EnemyPreview
-              enemy={enemy}
-              project={project}
-              pack={pack}
-              art={art}
-            />
+              {STEP_ROWS.filter((row) =>
+                TUNING_USED[enemy.behaviour].includes(row.key),
+              ).map((row) => (
+                <div
+                  key={row.key}
+                  role="group"
+                  aria-label={row.label}
+                  className={styles.ability}
+                >
+                  <span className={styles.abilityLabel}>{row.label}</span>
+                  <div className={styles.steps}>
+                    {row.steps.map((step) => (
+                      <button
+                        key={String(step)}
+                        type="button"
+                        className={styles.step}
+                        aria-pressed={enemy.tuning[row.key] === step}
+                        onClick={() =>
+                          onCommand({
+                            name: "setEnemyTuning",
+                            args: { enemyId: enemy.id, [row.key]: step },
+                          })
+                        }
+                      >
+                        {row.name(step)}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
             <button
               type="button"
-              className={styles.swatch}
+              className={`${styles.action} ${styles.danger}`}
               onClick={() => {
                 if (
                   confirm(`Delete ${tidyName(enemy.name)}? You can undo this.`)
@@ -337,21 +334,31 @@ export function EnemiesScreen({
             >
               Delete enemy
             </button>
-          </div>
-          <AnimationEditor
-            key={`${enemy.id}:${enemy.behaviour}`}
-            kind={enemy.behaviour}
-            look={enemy.look}
-            target={{ enemy: enemy.id }}
-            testId="enemy-canvas"
-            locked={locked}
-            onCommand={onCommand}
-            onBegin={onBegin}
-            onCommit={onCommit}
-            readPicture={readPicture}
-            confirm={confirm}
-          />
-        </>
+          </>
+        )}
+      </section>
+      {enemy && (
+        <AnimationEditor
+          key={`${enemy.id}:${enemy.behaviour}`}
+          kind={enemy.behaviour}
+          look={enemy.look}
+          target={{ enemy: enemy.id }}
+          testId="enemy-canvas"
+          locked={locked}
+          onCommand={onCommand}
+          onBegin={onBegin}
+          onCommit={onCommit}
+          readPicture={readPicture}
+          confirm={confirm}
+          preview={
+            <EnemyPreview
+              enemy={enemy}
+              project={project}
+              pack={pack}
+              art={art}
+            />
+          }
+        />
       )}
     </fieldset>
   );

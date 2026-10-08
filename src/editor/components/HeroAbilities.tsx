@@ -47,7 +47,7 @@ export function HeroAbilities({ abilities, level, check, onAbilities, onGoToZone
     : [];
   return (
     <section className={styles.abilities} aria-label="Abilities">
-      <h3 className={styles.heroHeading}>Abilities</h3>
+      <h3 className={styles.panelHeading}>Abilities</h3>
       <div className={styles.abilityRows}>
         {ROWS.map((row) => (
           <div key={row.key} role="group" aria-label={row.label} className={styles.ability}>
@@ -87,7 +87,7 @@ export function HeroAbilities({ abilities, level, check, onAbilities, onGoToZone
           </>
         )}
       </p>
-      <button type="button" className={styles.swatch} onClick={onReset}>
+      <button type="button" className={styles.action} onClick={onReset}>
         Start from the snow hero
       </button>
     </section>

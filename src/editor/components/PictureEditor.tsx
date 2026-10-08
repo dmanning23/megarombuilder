@@ -189,7 +189,7 @@ export function PictureEditor({
           <button
             key={t.id}
             type="button"
-            className={styles.swatch}
+            className={styles.choice}
             aria-pressed={tool === t.id}
             onClick={() => onTool(t.id)}
           >
@@ -217,13 +217,13 @@ export function PictureEditor({
             </select>
           </label>
         )}
-        <button type="button" className={styles.swatch} onClick={() => once("Flip", flipRows(rows))}>
+        <button type="button" className={styles.action} onClick={() => once("Flip", flipRows(rows))}>
           Flip
         </button>
-        <button type="button" className={styles.swatch} onClick={() => once("Clear", blankRows(size.w, size.h))}>
+        <button type="button" className={`${styles.action} ${styles.danger}`} onClick={() => once("Clear", blankRows(size.w, size.h))}>
           Clear
         </button>
-        <button ref={importButton} type="button" className={styles.swatch} onClick={() => fileInput.current?.click()}>
+        <button ref={importButton} type="button" className={styles.action} onClick={() => fileInput.current?.click()}>
           Import picture
         </button>
         <input

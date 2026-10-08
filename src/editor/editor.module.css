@@ -13,6 +13,7 @@
 .toolbar {
   grid-column: 1 / -1;
   display: flex;
+  flex-wrap: wrap; /* on a narrow window the buttons wrap rather than widen the page */
   align-items: center;
   gap: 0.75rem;
   padding: 0.75rem 1rem;
@@ -501,27 +502,83 @@
 }
 
 /* The hero screen: pictures, the big canvas, colours and the preview */
-.heroWork {
+/* The Characters screen spans every column of the editor. */
+.characterWork {
+  grid-column: 1 / -1;
   min-height: 0;
   overflow: auto;
-  padding: 1rem;
+  padding: 1rem 1.25rem;
 }
-.heroScreen {
+.fullWidth {
+  grid-column: 1 / -1;
+}
+/* The assistant's state, on the Characters screen where the chat is hidden. */
+.assistantStatus {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0 0 1rem;
+  padding: 0.6rem 0.9rem;
+  border-radius: 10px;
+  background: #fff6d6;
+  border: 2px solid var(--signal);
+  font-weight: 600;
+}
+/* A character tab: its About bar, then its look. */
+.characterScreen {
   display: grid;
-  grid-template-columns: 10rem auto minmax(16rem, 1fr);
   gap: 1rem;
-  align-items: start;
+  align-content: start;
   border: 0;
   margin: 0;
   padding: 0;
   min-width: 0;
 }
-/* The Boss tab has no list column: its drawing and its side panel. */
-.bossScreen {
-  grid-template-columns: auto minmax(16rem, 1fr);
+.characterScreen > .alert {
+  margin: 0;
 }
-.heroScreen > .alert {
-  grid-column: 1 / -1;
+/* The character's settings, in one card that wraps. */
+.aboutBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 1rem 2rem;
+  padding: 1rem 1.25rem;
+  border-radius: 14px;
+  background: #ffffff;
+  border: 2px solid #d5deea;
+  min-width: 0;
+}
+.aboutGroup {
+  display: grid;
+  gap: 0.6rem;
+  align-content: start;
+  min-width: 0;
+}
+/* A character's settings, side by side where there is room. */
+.aboutRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.75rem;
+  align-items: flex-start;
+  flex: 1 1 24rem;
+  min-width: 0;
+}
+.aboutBar > .action:last-child {
+  margin-left: auto;
+}
+/* A labelled panel beside the drawing. */
+.panel {
+  display: grid;
+  gap: 0.5rem;
+  align-content: start;
+}
+.panelHeading {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--panel);
 }
 .poses {
   list-style: none;
@@ -551,23 +608,12 @@
   gap: 0.4rem;
   align-items: end;
 }
-.heroSide {
-  display: grid;
-  gap: 0.75rem;
-  min-width: 0;
-}
 .preview {
   width: 100%;
   max-width: 256px;
   height: auto;
   image-rendering: pixelated;
   border-radius: 6px;
-}
-@media (max-width: 760px) {
-  .heroScreen,
-  .bossScreen {
-    grid-template-columns: 1fr;
-  }
 }
 
 .heroHeading {
@@ -617,6 +663,8 @@
 
 .abilities {
   grid-column: 1 / -1;
+  flex: 1 1 100%; /* fill the hero's About bar, so the abilities sit side by side */
+  min-width: 0;
 }
 .abilityRows {
   display: grid;
@@ -635,20 +683,69 @@
   flex-wrap: wrap;
   gap: 0.3rem;
 }
-.step {
+/* A choice that stays chosen: a pill, filled when pressed. */
+.step,
+.choice {
   font: inherit;
   font-size: 15px;
-  padding: 0.3rem 0.65rem;
+  padding: 0.3rem 0.75rem;
   border-radius: 999px;
   border: 2px solid var(--panel-2);
   background: #fff;
   color: var(--ink);
   cursor: pointer;
 }
-.step[aria-pressed="true"] {
+.step[aria-pressed="true"],
+.choice[aria-pressed="true"] {
   background: var(--signal);
   border-color: var(--signal);
   font-weight: 700;
+}
+/* An action: a solid button that does something once. */
+.action {
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  padding: 0.35rem 0.85rem;
+  border-radius: 10px;
+  border: 2px solid var(--panel);
+  background: var(--panel);
+  color: var(--paper);
+  cursor: pointer;
+}
+/* A destructive action (Delete, Clear): outlined in the warning colour. (The Level screen's
+   Delete zone keeps its own .danger look in the dark side panel.) */
+.action.danger {
+  background: #fff;
+  color: #b3264a;
+  border-color: var(--warn);
+}
+.step:disabled,
+.choice:disabled,
+.action:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.step:focus-visible,
+.choice:focus-visible,
+.action:focus-visible {
+  outline: 3px solid var(--signal);
+  outline-offset: 2px;
+}
+.field input {
+  font: inherit;
+  font-weight: 400;
+  font-size: 15px;
+  padding: 0.3rem 0.5rem;
+  border-radius: 8px;
+  border: 2px solid var(--panel-2);
+  background: #fff;
+  color: var(--ink);
+  min-width: 0;
+}
+.field input:focus-visible {
+  outline: 3px solid var(--signal);
+  outline-offset: 2px;
 }
 .step:focus-visible,
 .link:focus-visible {
@@ -725,11 +822,6 @@
   gap: 0.75rem;
 }
 
-.enemyList {
-  display: grid;
-  gap: 0.5rem;
-  align-content: start;
-}
 .newEnemy {
   display: grid;
   gap: 0.5rem;
