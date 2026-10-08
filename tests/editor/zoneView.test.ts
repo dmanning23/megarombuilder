@@ -15,6 +15,9 @@ import {
 } from "@/editor/zoneView";
 import type { Sprite } from "@/runtime/render/art";
 import { ENTITY_COLOURS, type Skin } from "@/runtime/render/draw";
+import { gamePack } from "@/model/gamePack";
+import { ownSkins } from "@/runtime/render/lookArt";
+import { game, run } from "../ai/helpers";
 
 let n = 0;
 const makeId = () => `id-${++n}`;
@@ -109,6 +112,23 @@ describe("drawZoneView", () => {
     const without = fakeContext();
     drawZoneView(without, bossRoom, snowPack, undefined, []);
     expect(without.calls.some((c) => c.colour === ENTITY_COLOURS.boss)).toBe(true);
+  });
+
+  it("draws the kid's own enemies lined up on their hitboxes, as the game does", () => {
+    // A walker of the kid's on a 24 by 24 canvas, its hitbox at the canvas's left: placed at tile (6, 12).
+    let project = run(game(), "addEnemy", { enemyId: "e1", name: "Frost Fang", behaviour: "walker" });
+    project = run(project, "resizeCanvas", { target: { enemy: "e1" }, canvas: "main", w: 24, h: 24 });
+    project = run(project, "setBody", { target: { enemy: "e1" }, body: { x: 0, y: 10, w: 14, h: 14 } });
+    project = run(project, "placeThing", { levelId: "L1", zoneId: "z1", thingId: "t1", type: "own-e1", x: 6, y: 12 });
+    const fakeImage = (s: Sprite) => ({ sprite: s }) as unknown as CanvasImageSource;
+    const own = ownSkins(project.enemies, () => fakeImage);
+    const ctx = fakeContext();
+    drawZoneView(ctx, project.levels[0].zones[0], gamePack(project, snowPack), { set: snowArt, image: fakeImage, own }, []);
+    const drawn = ctx.images.find((i) => i.sprite === own["own-e1"].art.frames[0])!;
+    // The hitbox is 14 wide centred on the 16-wide tile (left 97) and 14 high on the tile's floor (top 194):
+    // the picture's left is the hitbox's left, and its top is 10 above the hitbox's top.
+    expect(drawn.x).toBe(6 * 16 + 1);
+    expect(drawn.y).toBe(12 * 16 + 2 - 10);
   });
 });
 

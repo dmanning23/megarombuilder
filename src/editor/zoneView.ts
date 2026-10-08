@@ -1,7 +1,13 @@
 import type { ContentPack } from "@/model/contentPack";
 import { TILE_SIZE, zoneSize, type Opening } from "@/model/geometry";
 import type { Checkpoint, Zone } from "@/model/schema";
-import { drawZone, ENTITY_COLOURS, type Ctx2D, type Skin } from "@/runtime/render/draw";
+import {
+  drawZone,
+  ENTITY_COLOURS,
+  placeOn,
+  type Ctx2D,
+  type Skin,
+} from "@/runtime/render/draw";
 import { spawnBox } from "@/runtime/sim/entities/spawn";
 
 export const GRID_COLOUR = "rgba(16, 33, 58, 0.14)";
@@ -16,16 +22,30 @@ export function zonePixels(zone: Zone): { width: number; height: number } {
   return { width: size.width * TILE_SIZE, height: size.height * TILE_SIZE };
 }
 
-function rect(ctx: Ctx2D, colour: string, x: number, y: number, w: number, h: number): void {
+function rect(
+  ctx: Ctx2D,
+  colour: string,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+): void {
   ctx.fillStyle = colour;
   ctx.fillRect(x, y, w, h);
 }
 
-function markOpening(ctx: Ctx2D, opening: Opening, width: number, height: number, colour: string): void {
+function markOpening(
+  ctx: Ctx2D,
+  opening: Opening,
+  width: number,
+  height: number,
+  colour: string,
+): void {
   const start = opening.from * TILE_SIZE;
   const length = (opening.to - opening.from + 1) * TILE_SIZE;
   if (opening.edge === "left") rect(ctx, colour, 0, start, 3, length);
-  else if (opening.edge === "right") rect(ctx, colour, width - 3, start, 3, length);
+  else if (opening.edge === "right")
+    rect(ctx, colour, width - 3, start, 3, length);
   else if (opening.edge === "top") rect(ctx, colour, start, 0, length, 3);
   else rect(ctx, colour, start, height - 3, length, 3);
 }
@@ -48,9 +68,12 @@ export function drawZoneView(
     const box = spawnBox(thing, def);
     const own = skin?.own?.[thing.type];
     const frame = own ? own.art.frames[0] : skin?.set.things[thing.type]?.[0];
-    if (skin && frame) {
+    if (skin && own && frame) {
+      const at = placeOn(box, own.body, own.canvas.w, false); // lined up on its hitbox, as the game draws it
+      ctx.drawImage(own.image(frame, false), at.x, at.y);
+    } else if (skin && frame) {
       ctx.drawImage(
-        (own ? own.image : skin.image)(frame, false),
+        skin.image(frame, false),
         Math.round(box.x + box.w / 2 - frame.w / 2),
         Math.round(box.y + box.h - frame.h),
       );
@@ -60,10 +83,24 @@ export function drawZoneView(
   }
 
   for (let x = 1; x < width / TILE_SIZE; x++) {
-    rect(ctx, x % 16 === 0 ? SCREEN_LINE_COLOUR : GRID_COLOUR, x * TILE_SIZE, 0, 1, height);
+    rect(
+      ctx,
+      x % 16 === 0 ? SCREEN_LINE_COLOUR : GRID_COLOUR,
+      x * TILE_SIZE,
+      0,
+      1,
+      height,
+    );
   }
   for (let y = 1; y < height / TILE_SIZE; y++) {
-    rect(ctx, y % 15 === 0 ? SCREEN_LINE_COLOUR : GRID_COLOUR, 0, y * TILE_SIZE, width, 1);
+    rect(
+      ctx,
+      y % 15 === 0 ? SCREEN_LINE_COLOUR : GRID_COLOUR,
+      0,
+      y * TILE_SIZE,
+      width,
+      1,
+    );
   }
 
   markOpening(ctx, zone.entry, width, height, ENTRY_COLOUR);
@@ -71,7 +108,14 @@ export function drawZoneView(
 
   for (const c of checkpoints) {
     if (c.zoneId !== zone.id) continue;
-    rect(ctx, CHECKPOINT_COLOUR, c.x * TILE_SIZE + 6, c.y * TILE_SIZE + 6, 4, 10);
+    rect(
+      ctx,
+      CHECKPOINT_COLOUR,
+      c.x * TILE_SIZE + 6,
+      c.y * TILE_SIZE + 6,
+      4,
+      10,
+    );
   }
 
   if (marker) {
@@ -100,7 +144,10 @@ export function tileFromPointer(
 }
 
 // Where a pointer is in a zone: the tile, and the exact point in zone pixels.
-export type Spot = { tile: { x: number; y: number }; point: { x: number; y: number } };
+export type Spot = {
+  tile: { x: number; y: number };
+  point: { x: number; y: number };
+};
 
 export function spotFromPointer(
   clientX: number,
