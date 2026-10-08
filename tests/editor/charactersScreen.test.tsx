@@ -11,12 +11,12 @@ describe("the Characters screen", () => {
     const { open } = setupHero();
     await open();
     expect(screen.getByRole("tab", { name: "Hero" }).getAttribute("aria-selected")).toBe("true");
-    expect(screen.getByRole("img", { name: "Stand, 16 by 24 pixels" })).toBeTruthy();
+    expect(screen.getByRole("img", { name: "Stand frame 1, 16 by 24 pixels" })).toBeTruthy();
     await userEvent.click(screen.getByRole("tab", { name: "Enemies" }));
     expect(screen.getByRole("tab", { name: "Enemies" }).getAttribute("aria-selected")).toBe("true");
-    expect(screen.queryByRole("img", { name: "Stand, 16 by 24 pixels" })).toBeNull();
+    expect(screen.queryByRole("img", { name: "Stand frame 1, 16 by 24 pixels" })).toBeNull();
     await userEvent.click(screen.getByRole("tab", { name: "Hero" }));
-    expect(screen.getByRole("img", { name: "Stand, 16 by 24 pixels" })).toBeTruthy();
+    expect(screen.getByRole("img", { name: "Stand frame 1, 16 by 24 pixels" })).toBeTruthy();
   });
 
   it("goes back to the level with the Level button", async () => {

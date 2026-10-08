@@ -14,36 +14,10 @@ import type { Project } from "@/model/schema";
 afterEach(cleanup);
 
 describe("the hero screen", () => {
-  it("keeps Run and shoot in step with Run through a fill and its undo", async () => {
-    const { open, choose, press, saved } = setupHero();
-    await open();
-    await choose(/^Run 1/);
-    await choose("Fill");
-    press(0, 0);
-    await userEvent.click(screen.getByRole("button", { name: "Undo" }));
-    const look = saved().hero.look;
-    expect(look.animations.runShoot.frames).toEqual(look.animations.run.frames);
-    expect(look.animations.run.frames[0][0][0]).toBe(".");
-  });
-
-  it("keeps Run and shoot in step with Run, in one undo step", async () => {
-    const { open, choose, press, saved } = setupHero();
-    await open();
-    await choose(/^Run 2/);
-    press(0, 0);
-    await userEvent.click(screen.getByRole("button", { name: "Undo" }));
-    await choose(/^Run 1/);
-    press(1, 0);
-    const look = saved().hero.look;
-    expect(look.animations.runShoot.frames).toEqual(look.animations.run.frames);
-    expect(look.animations.run.frames[0][0][1]).toBe("1");
-    expect(look.animations.run.frames[1][0][0]).toBe("."); // the undone stroke, gone from both
-  });
-
   it("swaps in for the level, and back", async () => {
     const { open } = setupHero();
     await open();
-    expect(screen.getByRole("img", { name: "Stand, 16 by 24 pixels" })).toBeTruthy();
+    expect(screen.getByRole("img", { name: "Stand frame 1, 16 by 24 pixels" })).toBeTruthy();
     expect(screen.queryByTestId("zone-canvas")).toBeNull();
     expect(screen.getByRole("img", { name: "Your hero in action" })).toBeTruthy();
     await userEvent.click(screen.getByRole("button", { name: "Level" }));
@@ -104,10 +78,10 @@ describe("the hero screen", () => {
     const { open, choose, press, saved } = setupHero();
     await open();
     await choose(/^Slide/);
-    expect(screen.getByRole("img", { name: "Slide, 24 by 16 pixels" })).toBeTruthy();
+    expect(screen.getByRole("img", { name: "Slide frame 1, 24 by 16 pixels" })).toBeTruthy();
     press(22, 15);
-    await choose("Charged shot");
-    expect(screen.getByRole("img", { name: "Charged shot, 12 by 10 pixels" })).toBeTruthy();
+    await choose(/^Charged shot,/);
+    expect(screen.getByRole("img", { name: "Charged shot frame 1, 12 by 10 pixels" })).toBeTruthy();
     const look = saved().hero.look;
     expect(pictureRows(look, "slide")[15][22]).toBe("1");
   });
@@ -115,8 +89,8 @@ describe("the hero screen", () => {
   it("copies, flips and clears a picture", async () => {
     const { open, choose, saved } = setupHero();
     await open();
-    await choose("Run 1");
-    await userEvent.selectOptions(screen.getByRole("combobox", { name: "Copy from" }), "stand");
+    await choose(/^Run,/);
+    await userEvent.selectOptions(screen.getByRole("combobox", { name: "Copy from" }), "Stand frame 1");
     await choose("Flip");
     expect(screen.getByRole("combobox", { name: "Copy from" })).toHaveProperty("value", "");
     const flipped = pictureRows(saved().hero.look, "run1");
@@ -130,12 +104,12 @@ describe("the hero screen", () => {
     expect(pictureRows(saved().hero.look, "stand").every((row) => /^\.+$/.test(row))).toBe(true);
   });
 
-  it("only offers to copy pictures of the same size", async () => {
+  it("only offers to copy frames on the same canvas", async () => {
     const { open, choose } = setupHero();
     await open();
     const options = () =>
       [...(screen.getByRole("combobox", { name: "Copy from" }) as HTMLSelectElement).options].map((o) => o.value);
-    expect(options()).toEqual(["", "standShoot", "run1", "run2", "jump", "jumpShoot", "climb", "hurt"]);
+    expect(options()).toEqual(["", "standShoot:0", "run:0", "run:1", "runShoot:0", "runShoot:1", "jump:0", "jumpShoot:0", "climb:0", "hurt:0"]);
     await choose(/^Slide/);
     expect(screen.queryByRole("combobox", { name: "Copy from" })).toBeNull();
   });
@@ -192,7 +166,7 @@ describe("strokes in awkward places", () => {
     await open();
     const el = canvas();
     fireEvent.pointerDown(el, at(3, 0));
-    fireEvent.click(screen.getByRole("button", { name: "Run 1" }));
+    fireEvent.click(screen.getByRole("button", { name: /^Run,/ }));
     fireEvent.pointerMove(canvas(), at(4, 0));
     fireEvent.pointerUp(canvas(), at(4, 0));
     expect(screen.getByRole("button", { name: "Undo" })).toHaveProperty("disabled", false);
@@ -225,11 +199,11 @@ describe("looks the old screen can't make", () => {
     return project;
   };
 
-  it("draws on Run 2 when the run has only one frame", async () => {
+  it("draws on a run that has only one frame", async () => {
     const project = withCommands(newProject("One frame", counter()), ["removeFrame", { target: "hero", animation: "run", frame: 1 }]);
     const { open, choose, press, saved } = setupHero(project);
     await open();
-    await choose(/^Run 2/);
+    await choose(/^Run, 1 frame/);
     press(0, 0);
     expect(screen.queryByRole("alert")).toBeNull();
     expect(saved().hero.look.animations.run.frames[0][0][0]).toBe("1");

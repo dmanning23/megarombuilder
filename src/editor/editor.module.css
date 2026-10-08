@@ -737,3 +737,68 @@
   border: 2px dashed var(--panel-2);
   border-radius: 10px;
 }
+
+/* The animation editor: its animations, then the frames, play row and drawing, then the colours. */
+.animationEditor {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 11rem auto minmax(14rem, 1fr);
+  gap: 1rem;
+  align-items: start;
+  min-width: 0;
+}
+.animationMiddle {
+  display: grid;
+  gap: 0.6rem;
+  justify-items: start;
+  min-width: 0;
+}
+.frameStrip {
+  display: grid;
+  gap: 0.4rem;
+}
+.frames {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+.frameButton {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  padding: 0.25rem 0.45rem 0.25rem 0.25rem;
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background: var(--paper);
+  color: var(--ink);
+  cursor: grab;
+}
+.frameButton[aria-pressed="true"] {
+  border-color: var(--signal);
+}
+.frameButton:focus-visible {
+  outline: 3px solid var(--signal);
+  outline-offset: 2px;
+}
+.playRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+}
+.playBox {
+  width: 64px;
+  height: auto;
+  image-rendering: pixelated;
+  border: 2px solid var(--panel-2);
+  border-radius: 6px;
+  background: #e9eef5;
+}
+@media (max-width: 760px) {
+  .animationEditor {
+    grid-template-columns: 1fr;
+  }
+}

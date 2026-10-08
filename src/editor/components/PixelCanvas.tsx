@@ -8,8 +8,9 @@ type Props = {
   rows: string[];
   palette: Record<string, string>;
   size: { w: number; h: number };
-  body: Box;
+  body: Box | null;
   feet: boolean;
+  under?: string[]; // the onion skin: another frame, shown faintly underneath
   name: string; // "Stand", "Frame 1"
   testId: string;
   onPress(p: Pixel): void;
@@ -19,7 +20,7 @@ type Props = {
 
 // One picture, big, to draw on with mouse, pen or finger. Only the pointer that started a
 // stroke draws; leaving the canvas paints to its edge, and coming back starts a fresh line.
-export function PixelCanvas({ rows, palette, size, body, feet, name, testId, onPress, onDrag, onRelease }: Props) {
+export function PixelCanvas({ rows, palette, size, body, feet, under, name, testId, onPress, onDrag, onRelease }: Props) {
   const ref = useRef<HTMLCanvasElement>(null);
   const pressed = useRef(false);
   const last = useRef<string | null>(null);
@@ -29,8 +30,8 @@ export function PixelCanvas({ rows, palette, size, body, feet, name, testId, onP
 
   useEffect(() => {
     const ctx = ref.current?.getContext("2d");
-    if (ctx) drawPixels(ctx, rows, palette, size, body, feet);
-  }, [rows, palette, size, body, feet]);
+    if (ctx) drawPixels(ctx, rows, palette, size, body, feet, under);
+  }, [rows, palette, size, body, feet, under]);
 
   const pixelAt = (clientX: number, clientY: number) =>
     ref.current ? pixelFromPointer(clientX, clientY, ref.current.getBoundingClientRect(), w, h) : null;

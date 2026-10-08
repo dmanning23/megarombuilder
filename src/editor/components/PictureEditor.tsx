@@ -23,8 +23,9 @@ type Props = {
   rows: string[];
   palette: Record<string, string>;
   size: { w: number; h: number };
-  body: Box;
+  body: Box | null;
   feet: boolean;
+  under?: string[]; // the onion skin
   testId: string;
   colours: number[];
   tool: DrawTool;
@@ -50,6 +51,7 @@ export function PictureEditor({
   size,
   body,
   feet,
+  under,
   testId,
   colours,
   tool,
@@ -163,6 +165,7 @@ export function PictureEditor({
         size={size}
         body={body}
         feet={feet}
+        under={under}
         name={name}
         testId={testId}
         onPress={press}
