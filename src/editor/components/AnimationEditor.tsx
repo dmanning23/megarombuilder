@@ -6,19 +6,32 @@ import type { Command } from "@/commands/types";
 import {
   ANIMATION_NAMES,
   ANIMATION_SPEEDS,
+  cutsDrawing,
+  HERO_BODY_MAX_H,
+  HERO_BODY_MAX_W,
   KINDS,
   MAX_FRAMES,
   type AnimationSpeed,
   type Look,
+  type LookBox,
   type LookKind,
+  SLIDE_BODY_MAX_H,
 } from "@/model/look";
 import { baseFor, frameSteps } from "@/runtime/render/animate";
 import { lookSprites, paletteOf } from "@/runtime/render/lookArt";
 import styles from "../editor.module.css";
+import {
+  moveEdge,
+  pickEdge,
+  shotYAt,
+  type Edge,
+  type HitboxLimits,
+} from "../hero/hitbox";
 import type { RawImage } from "../hero/importPicture";
+import type { Pixel } from "../hero/pixels";
 import { Colours } from "./Colours";
 import { SpriteSwatch } from "./Palette";
-import { PictureEditor, type DrawTool } from "./PictureEditor";
+import { PictureEditor, type DrawTool, type ExtraTool } from "./PictureEditor";
 
 const SPEED_NAMES: Record<AnimationSpeed, string> = {
   slow: "Slow",
@@ -38,6 +51,7 @@ type Props = {
   onBegin(label: string): void;
   onCommit(): void;
   readPicture(file: File): Promise<RawImage>;
+  confirm(message: string): boolean;
 };
 
 // Loops an animation's frames in a small box at its speed, while playing.
@@ -102,6 +116,7 @@ export function AnimationEditor({
   onBegin,
   onCommit,
   readPicture,
+  confirm,
 }: Props) {
   const rule = KINDS[kind];
   const names = Object.keys(rule.animations);
@@ -126,6 +141,116 @@ export function AnimationEditor({
         ? (look.slideBody ?? null)
         : null;
   const colour = Math.min(slot, look.colours.length);
+  const limits = rule.canvases[group];
+  const fixed = limits.min.w === limits.max.w && limits.min.h === limits.max.h; // the hero's shots
+  const resize = (w: number, h: number) => {
+    if (
+      cutsDrawing(look, kind, group, w, h) &&
+      !confirm("This cuts off part of your drawing. You can undo it.")
+    )
+      return;
+    send("resizeCanvas", { canvas: group, w, h });
+  };
+
+  // A hitbox or shot point being dragged: shown live, saved once when the press ends. The ref holds
+  // the latest drag for the release, which may run before React re-renders.
+  type Draft = { body?: LookBox; shotY?: number; edge?: Edge };
+  const [draft, setDraftState] = useState<Draft | null>(null);
+  const draftRef = useRef<Draft | null>(null);
+  const setDraft = (next: Draft | null) => {
+    draftRef.current = next;
+    setDraftState(next);
+  };
+  const which = group === "slide" ? "slide" : "main";
+  const shotHeight = rule.shotHeight;
+  const hitboxLimits: HitboxLimits = {
+    canvas,
+    maxW: kind === "hero" && which === "main" ? HERO_BODY_MAX_W : null,
+    maxH:
+      kind === "hero"
+        ? which === "slide"
+          ? SLIDE_BODY_MAX_H
+          : HERO_BODY_MAX_H
+        : null,
+    minH: which === "main" ? shotHeight : null,
+  };
+  const shotHere = shotHeight !== null && which === "main" && body !== null;
+  const extraTools: ExtraTool[] =
+    body === null
+      ? []
+      : [
+          {
+            id: "hitbox",
+            label: "Hitbox",
+            press: (p: Pixel) => {
+              const edge = which === "slide" ? "top" : pickEdge(body, p); // a slide's feet stay on the floor
+              setDraft({ edge, body: moveEdge(body, edge, p, hitboxLimits) });
+            },
+            drag: (p: Pixel) => {
+              const edge = draftRef.current?.edge;
+              if (edge)
+                setDraft({ edge, body: moveEdge(body, edge, p, hitboxLimits) });
+            },
+            release: () => {
+              const next = draftRef.current?.body;
+              setDraft(null);
+              if (
+                !next ||
+                (next.x === body.x &&
+                  next.y === body.y &&
+                  next.w === body.w &&
+                  next.h === body.h)
+              )
+                return;
+              // The shot point is measured from the hitbox's top: keep it at the same row of the picture.
+              const shotY =
+                which === "main" &&
+                shotHeight !== null &&
+                look.shotY !== undefined
+                  ? Math.max(
+                      0,
+                      Math.min(
+                        look.shotY + body.y - next.y,
+                        next.h - shotHeight,
+                      ),
+                    )
+                  : undefined;
+              onBegin("Move the hitbox");
+              send("setBody", { which, body: next });
+              if (shotY !== undefined && shotY !== look.shotY)
+                send("setShotY", { y: shotY });
+              onCommit();
+            },
+          },
+          ...(shotHere && shotHeight !== null
+            ? [
+                {
+                  id: "shot",
+                  label: "Shot point",
+                  press: (p: Pixel) =>
+                    setDraft({ shotY: shotYAt(body, p, shotHeight) }),
+                  drag: (p: Pixel) =>
+                    setDraft({ shotY: shotYAt(body, p, shotHeight) }),
+                  release: () => {
+                    const y = draftRef.current?.shotY;
+                    setDraft(null);
+                    if (y !== undefined && y !== look.shotY)
+                      send("setShotY", { y });
+                  },
+                },
+              ]
+            : []),
+        ];
+  // A tool this animation doesn't offer (the shot point on the slide) falls back to the pencil.
+  const offered =
+    tool === "hitbox" ? body !== null : tool === "shot" ? shotHere : true;
+  const activeTool = offered ? tool : "pencil";
+  const shownBody = draft?.body ?? body;
+  const shownShotY = draft?.shotY ?? look.shotY;
+  const shot =
+    shotHere && shotHeight !== null && shownBody && shownShotY !== undefined
+      ? { y: shownBody.y + shownShotY, h: shotHeight }
+      : undefined;
   const send = (name: string, args: Record<string, unknown>) =>
     onCommand({ name, args: { target, ...args } });
   const label = ANIMATION_NAMES[animation];
@@ -331,6 +456,55 @@ export function AnimationEditor({
           </button>
         </div>
 
+        {!fixed && (
+          <div role="group" aria-label="Size" className={styles.steps}>
+            <span className={styles.abilityLabel}>Size</span>
+            <span className={styles.note}>{`${canvas.w} × ${canvas.h}`}</span>
+            <button
+              type="button"
+              className={styles.step}
+              disabled={canvas.w - 2 < limits.min.w}
+              onClick={() => resize(canvas.w - 2, canvas.h)}
+            >
+              Narrower
+            </button>
+            <button
+              type="button"
+              className={styles.step}
+              disabled={canvas.w + 2 > limits.max.w}
+              onClick={() => resize(canvas.w + 2, canvas.h)}
+            >
+              Wider
+            </button>
+            <button
+              type="button"
+              className={styles.step}
+              disabled={canvas.h - 2 < limits.min.h}
+              onClick={() => resize(canvas.w, canvas.h - 2)}
+            >
+              Shorter
+            </button>
+            <button
+              type="button"
+              className={styles.step}
+              disabled={canvas.h + 2 > limits.max.h}
+              onClick={() => resize(canvas.w, canvas.h + 2)}
+            >
+              Taller
+            </button>
+          </div>
+        )}
+
+        {activeTool === "hitbox" && (
+          <button
+            type="button"
+            className={styles.swatch}
+            onClick={() => send("fitBody", { which })}
+          >
+            Fit to drawing
+          </button>
+        )}
+
         <PictureEditor
           key={`${animation}:${frame}`}
           name={`${label} frame ${frame + 1}`}
@@ -338,11 +512,13 @@ export function AnimationEditor({
           under={under}
           palette={palette}
           size={canvas}
-          body={body}
+          body={shownBody}
+          shot={shot}
+          extraTools={extraTools}
           feet={group === "main" || group === "slide"}
           testId={testId}
           colours={look.colours}
-          tool={tool}
+          tool={activeTool}
           onTool={setTool}
           slot={colour}
           onSlot={setSlot}

@@ -39,11 +39,36 @@ export const BEHAVIOUR_NAMES: Record<EnemyBehaviour, string> = {
 
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
-const STEP_ROWS: { key: keyof EnemyTuning; label: string; steps: readonly (string | number)[]; name(step: string | number): string }[] = [
-  { key: "health", label: "Health", steps: HEALTH_STEPS, name: (s) => (s === 1 ? "1 hit" : `${s} hits`) },
-  { key: "damage", label: "Damage", steps: DAMAGE_STEPS, name: (s) => cap(String(s)) },
-  { key: "speed", label: "Speed", steps: SPEED_STEPS, name: (s) => cap(String(s)) },
-  { key: "shoots", label: "Shoots", steps: SHOOT_STEPS, name: (s) => cap(String(s)) },
+const STEP_ROWS: {
+  key: keyof EnemyTuning;
+  label: string;
+  steps: readonly (string | number)[];
+  name(step: string | number): string;
+}[] = [
+  {
+    key: "health",
+    label: "Health",
+    steps: HEALTH_STEPS,
+    name: (s) => (s === 1 ? "1 hit" : `${s} hits`),
+  },
+  {
+    key: "damage",
+    label: "Damage",
+    steps: DAMAGE_STEPS,
+    name: (s) => cap(String(s)),
+  },
+  {
+    key: "speed",
+    label: "Speed",
+    steps: SPEED_STEPS,
+    name: (s) => cap(String(s)),
+  },
+  {
+    key: "shoots",
+    label: "Shoots",
+    steps: SHOOT_STEPS,
+    name: (s) => cap(String(s)),
+  },
 ];
 
 // "Enemy N" with the smallest N no enemy is called.
@@ -53,9 +78,22 @@ function nextName(enemies: EnemyDesign[]): string {
 }
 
 // The enemy doing its thing on one screen, with the hero standing still.
-function EnemyPreview({ enemy, project, pack, art }: { enemy: EnemyDesign; project: Project; pack: ContentPack; art?: ArtSet }) {
+function EnemyPreview({
+  enemy,
+  project,
+  pack,
+  art,
+}: {
+  enemy: EnemyDesign;
+  project: Project;
+  pack: ContentPack;
+  art?: ArtSet;
+}) {
   const hero = project.hero;
-  const start = useCallback(() => enemyPreviewSim(enemy, hero, pack), [enemy, hero, pack]);
+  const start = useCallback(
+    () => enemyPreviewSim(enemy, hero, pack),
+    [enemy, hero, pack],
+  );
   const enemies = useMemo(() => [enemy], [enemy]);
   return (
     <GamePreview
@@ -103,15 +141,25 @@ export function EnemiesScreen({
   const enemy = enemies.find((e) => e.id === selectedId) ?? enemies[0] ?? null;
   const [making, setMaking] = useState(false);
   const [newName, setNewName] = useState("");
-  const arts = useMemo(() => new Map(enemies.map((e) => [e.id, lookArt(designLook(e.behaviour, e.look))])), [enemies]);
+  const arts = useMemo(
+    () =>
+      new Map(
+        enemies.map((e) => [e.id, lookArt(designLook(e.behaviour, e.look))]),
+      ),
+    [enemies],
+  );
 
   const [newError, setNewError] = useState<string | null>(null);
   const create = (behaviour: EnemyBehaviour) => {
     // Check the name here, so a taken name keeps the form (and the selection) as they are.
     const name = tidyName(newName) || nextName(enemies);
-    const taken = enemies.find((e) => tidyName(e.name).toLowerCase() === name.toLowerCase());
+    const taken = enemies.find(
+      (e) => tidyName(e.name).toLowerCase() === name.toLowerCase(),
+    );
     if (taken) {
-      setNewError(`There is already an enemy called "${tidyName(taken.name)}".`);
+      setNewError(
+        `There is already an enemy called "${tidyName(taken.name)}".`,
+      );
       return;
     }
     setNewError(null);
@@ -123,7 +171,11 @@ export function EnemiesScreen({
   };
 
   return (
-    <fieldset className={styles.heroScreen} disabled={locked} aria-label="Your enemies">
+    <fieldset
+      className={styles.heroScreen}
+      disabled={locked}
+      aria-label="Your enemies"
+    >
       {error && (
         <p className={styles.alert} role="alert">
           {error}
@@ -142,7 +194,10 @@ export function EnemiesScreen({
                 aria-pressed={e.id === enemy?.id}
                 onClick={() => setSelectedId(e.id)}
               >
-                <SpriteSwatch sprite={arts.get(e.id)?.frames[0]} palette={arts.get(e.id)?.palette} />
+                <SpriteSwatch
+                  sprite={arts.get(e.id)?.frames[0]}
+                  palette={arts.get(e.id)?.palette}
+                />
                 {tidyName(e.name)}
               </button>
             </li>
@@ -156,17 +211,32 @@ export function EnemiesScreen({
         >
           New enemy
         </button>
-        {enemies.length >= MAX_ENEMIES && <p className={styles.note}>12 is the most.</p>}
+        {enemies.length >= MAX_ENEMIES && (
+          <p className={styles.note}>12 is the most.</p>
+        )}
         {making && (
           <div className={styles.newEnemy}>
             <label className={styles.field}>
               Enemy name
-              <input value={newName} maxLength={40} onChange={(e) => setNewName(e.target.value)} />
+              <input
+                value={newName}
+                maxLength={40}
+                onChange={(e) => setNewName(e.target.value)}
+              />
             </label>
             {newError && <p className={styles.bad}>{newError}</p>}
-            <div className={styles.steps} role="group" aria-label="Choose how it behaves">
+            <div
+              className={styles.steps}
+              role="group"
+              aria-label="Choose how it behaves"
+            >
               {ENEMY_BEHAVIOURS.map((b) => (
-                <button key={b} type="button" className={styles.step} onClick={() => create(b)}>
+                <button
+                  key={b}
+                  type="button"
+                  className={styles.step}
+                  onClick={() => create(b)}
+                >
                   {BEHAVIOUR_NAMES[b]}
                 </button>
               ))}
@@ -176,14 +246,21 @@ export function EnemiesScreen({
       </div>
 
       {!enemy ? (
-        <p className={styles.note}>Make your own enemies to fight. Start with New enemy.</p>
+        <p className={styles.note}>
+          Make your own enemies to fight. Start with New enemy.
+        </p>
       ) : (
         <>
           <div className={styles.drawing}>
             <NameField
               key={`${enemy.id}:${enemy.name}`}
               name={tidyName(enemy.name)}
-              onRename={(name) => onCommand({ name: "renameEnemy", args: { enemyId: enemy.id, name } })}
+              onRename={(name) =>
+                onCommand({
+                  name: "renameEnemy",
+                  args: { enemyId: enemy.id, name },
+                })
+              }
             />
             <div role="group" aria-label="Behaviour" className={styles.ability}>
               <span className={styles.abilityLabel}>Behaviour</span>
@@ -194,15 +271,27 @@ export function EnemiesScreen({
                     type="button"
                     className={styles.step}
                     aria-pressed={enemy.behaviour === b}
-                    onClick={() => onCommand({ name: "setEnemyBehaviour", args: { enemyId: enemy.id, behaviour: b } })}
+                    onClick={() =>
+                      onCommand({
+                        name: "setEnemyBehaviour",
+                        args: { enemyId: enemy.id, behaviour: b },
+                      })
+                    }
                   >
                     {BEHAVIOUR_NAMES[b]}
                   </button>
                 ))}
               </div>
             </div>
-            {STEP_ROWS.filter((row) => TUNING_USED[enemy.behaviour].includes(row.key)).map((row) => (
-              <div key={row.key} role="group" aria-label={row.label} className={styles.ability}>
+            {STEP_ROWS.filter((row) =>
+              TUNING_USED[enemy.behaviour].includes(row.key),
+            ).map((row) => (
+              <div
+                key={row.key}
+                role="group"
+                aria-label={row.label}
+                className={styles.ability}
+              >
                 <span className={styles.abilityLabel}>{row.label}</span>
                 <div className={styles.steps}>
                   {row.steps.map((step) => (
@@ -211,7 +300,12 @@ export function EnemiesScreen({
                       type="button"
                       className={styles.step}
                       aria-pressed={enemy.tuning[row.key] === step}
-                      onClick={() => onCommand({ name: "setEnemyTuning", args: { enemyId: enemy.id, [row.key]: step } })}
+                      onClick={() =>
+                        onCommand({
+                          name: "setEnemyTuning",
+                          args: { enemyId: enemy.id, [row.key]: step },
+                        })
+                      }
                     >
                       {row.name(step)}
                     </button>
@@ -221,13 +315,23 @@ export function EnemiesScreen({
             ))}
           </div>
           <div className={styles.heroSide}>
-            <EnemyPreview enemy={enemy} project={project} pack={pack} art={art} />
+            <EnemyPreview
+              enemy={enemy}
+              project={project}
+              pack={pack}
+              art={art}
+            />
             <button
               type="button"
               className={styles.swatch}
               onClick={() => {
-                if (confirm(`Delete ${tidyName(enemy.name)}? You can undo this.`)) {
-                  onCommand({ name: "removeEnemy", args: { enemyId: enemy.id } });
+                if (
+                  confirm(`Delete ${tidyName(enemy.name)}? You can undo this.`)
+                ) {
+                  onCommand({
+                    name: "removeEnemy",
+                    args: { enemyId: enemy.id },
+                  });
                 }
               }}
             >
@@ -245,6 +349,7 @@ export function EnemiesScreen({
             onBegin={onBegin}
             onCommit={onCommit}
             readPicture={readPicture}
+            confirm={confirm}
           />
         </>
       )}

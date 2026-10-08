@@ -9,7 +9,10 @@ import { ImportDialog } from "./ImportDialog";
 import { PixelCanvas } from "./PixelCanvas";
 import { slotChar, slotOf } from "@/model/look";
 
-export type DrawTool = "pencil" | "eraser" | "fill" | "pick";
+// The four drawing tools, or an extra tool a screen adds (such as the hitbox).
+export type DrawTool = string;
+
+export type ExtraTool = { id: string; label: string; press(p: Pixel): void; drag(p: Pixel): void; release(): void };
 
 const TOOLS: { id: DrawTool; label: string }[] = [
   { id: "pencil", label: "Pencil" },
@@ -26,6 +29,8 @@ type Props = {
   body: Box | null;
   feet: boolean;
   under?: string[]; // the onion skin
+  shot?: { y: number; h: number }; // where shots come out
+  extraTools?: ExtraTool[]; // tools that work on the picture without drawing, after the four drawing tools
   testId: string;
   colours: number[];
   tool: DrawTool;
@@ -52,6 +57,8 @@ export function PictureEditor({
   body,
   feet,
   under,
+  shot,
+  extraTools = [],
   testId,
   colours,
   tool,
@@ -78,8 +85,10 @@ export function PictureEditor({
     onCommit();
   };
 
+  const extra = extraTools.find((t) => t.id === tool);
   const press = (p: Pixel) => {
     if (locked) return;
+    if (extra) return extra.press(p);
     if (tool === "pick") {
       const ch = rows[p.y][p.x];
       if (ch !== ".") onSlot(slotOf(ch));
@@ -95,6 +104,7 @@ export function PictureEditor({
     onRows(next);
   };
   const drag = (p: Pixel, fresh: boolean) => {
+    if (extra) return extra.drag(p);
     const current = stroke.current;
     if (!current) return;
     const next = setPixels(current.rows, fresh ? [p] : linePixels(current.last, p), ink);
@@ -102,6 +112,7 @@ export function PictureEditor({
     onRows(next);
   };
   const release = () => {
+    if (extra) return extra.release();
     if (!stroke.current) return;
     stroke.current = null;
     onCommit();
@@ -166,6 +177,7 @@ export function PictureEditor({
         body={body}
         feet={feet}
         under={under}
+        shot={shot}
         name={name}
         testId={testId}
         onPress={press}
@@ -173,7 +185,7 @@ export function PictureEditor({
         onRelease={release}
       />
       <div className={styles.drawTools} role="group" aria-label="Drawing tools">
-        {TOOLS.map((t) => (
+        {[...TOOLS, ...extraTools].map((t) => (
           <button
             key={t.id}
             type="button"

@@ -5,7 +5,10 @@ type Saved = {
     id: string;
     name: string;
     behaviour: string;
-    look: { animations: { walk: { frames: string[][] } } };
+    look: {
+      animations: { walk: { frames: string[][] } };
+      canvases: { main: { w: number; h: number } };
+    };
   }[];
   levels: { zones: { things: { type: string }[] }[] }[];
 };
@@ -66,6 +69,22 @@ test("make an enemy, place it, and play against it", async ({ page }) => {
     fullPage: true,
   });
   await page.getByRole("button", { name: "Stop animation" }).click();
+  await page
+    .getByRole("group", { name: "Size" })
+    .getByRole("button", { name: "Taller" })
+    .click();
+  await page
+    .getByRole("group", { name: "Size" })
+    .getByRole("button", { name: "Wider" })
+    .click();
+  await expect
+    .poll(async () => (await saved(page)).enemies[0].look.canvases.main)
+    .toEqual({ w: 18, h: 18 });
+  await page.getByRole("button", { name: "Hitbox" }).click();
+  await page.screenshot({
+    path: "test-results/enemy-resized.png",
+    fullPage: true,
+  });
 
   await page.getByRole("button", { name: "Level" }).click();
   await page.getByRole("tab", { name: "Enemies and items" }).click();

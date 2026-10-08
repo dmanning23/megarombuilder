@@ -8,6 +8,7 @@ import {
   pixelFromPointer,
   setPixels,
   ONION_ALPHA,
+  SHOT_LINE,
   ZOOM,
 } from "@/editor/hero/pixels";
 
@@ -107,9 +108,25 @@ describe("the onion skin", () => {
         fills.push({ colour: String(this.fillStyle), alpha: this.globalAlpha, x, y });
       },
     };
-    drawPixels(ctx, ["1.", ".."], { "1": "#ff0000", "2": "#00ff00" }, { w: 2, h: 2 }, null, false, ["..", ".2"]);
+    drawPixels(ctx, ["1.", ".."], { "1": "#ff0000", "2": "#00ff00" }, { w: 2, h: 2 }, null, false, { under: ["..", ".2"] });
     expect(fills).toContainEqual({ colour: "#00ff00", alpha: ONION_ALPHA, x: ZOOM, y: ZOOM });
     expect(fills).toContainEqual({ colour: "#ff0000", alpha: 1, x: 0, y: 0 });
     expect(ctx.globalAlpha).toBe(1); // put back
+  });
+});
+
+describe("the shot line", () => {
+  it("is drawn across the canvas at the shot's rows", () => {
+    const fills: { colour: string; x: number; y: number; w: number; h: number }[] = [];
+    const ctx = {
+      fillStyle: "",
+      globalAlpha: 1,
+      fillRect(x: number, y: number, w: number, h: number) {
+        fills.push({ colour: String(this.fillStyle), x, y, w, h });
+      },
+    };
+    drawPixels(ctx, blankRows(16, 24), {}, { w: 16, h: 24 }, { x: 1, y: 2, w: 14, h: 22 }, true, { shot: { y: 10, h: 4 } });
+    expect(fills).toContainEqual({ colour: SHOT_LINE, x: 0, y: 10 * ZOOM, w: 16 * ZOOM, h: 2 });
+    expect(fills).toContainEqual({ colour: SHOT_LINE, x: 0, y: 14 * ZOOM - 2, w: 16 * ZOOM, h: 2 });
   });
 });

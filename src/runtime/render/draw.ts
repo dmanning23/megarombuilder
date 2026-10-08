@@ -65,7 +65,7 @@ function rect(ctx: Ctx2D, colour: string, x: number, y: number, w: number, h: nu
 // Where to draw a picture so its hitbox's bottom middle lands on the box's bottom middle. A mirrored
 // picture's hitbox is mirrored too. For a centred hitbox with its feet on the picture's bottom, this
 // is exactly where onBox draws.
-function placeOn(box: Box, body: LookBox, canvasW: number, flip: boolean): { x: number; y: number } {
+export function placeOn(box: Box, body: LookBox, canvasW: number, flip: boolean): { x: number; y: number } {
   const bodyMiddle = flip ? canvasW - (body.x + body.w / 2) : body.x + body.w / 2;
   return { x: Math.round(box.x + box.w / 2 - bodyMiddle), y: Math.round(box.y + box.h - body.y - body.h) };
 }

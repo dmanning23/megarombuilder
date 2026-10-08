@@ -216,4 +216,13 @@ describe("the Enemies tab", () => {
     expect(screen.getByRole("img", { name: "On the ground frame 1, 16 by 16 pixels" })).toBeTruthy();
     expect(within(screen.getByRole("group", { name: "Animations" })).getByRole("button", { name: "In the air, 3 frames" })).toBeTruthy();
   });
+
+  it("offers the Shot point tool only to enemies that shoot", async () => {
+    const { open } = setup();
+    await open();
+    await make("Frost Fang", "Walker");
+    expect(screen.queryByRole("button", { name: "Shot point" })).toBeNull();
+    await make("Ice Eye", "Turret");
+    expect(screen.getByRole("button", { name: "Shot point" })).toBeTruthy();
+  });
 });

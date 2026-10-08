@@ -87,4 +87,12 @@ describe("createCheckCache", () => {
     const narrow = run(project, { name: "setBody", args: { target: "hero", body: { x: 2, y: 2, w: 12, h: 22 } } });
     expect(cache.zone(narrow, "L1", "z1", pack)).not.toBe(first);
   });
+
+  it("checks a zone again after the kid's boss changes", () => {
+    const cache = createCheckCache();
+    let project = run(game(), { name: "createBoss", args: { name: "Volt Viper" } });
+    const first = cache.zone(project, "L1", "boss", pack);
+    project = run(project, { name: "resizeCanvas", args: { target: "boss", canvas: "main", w: 32, h: 32 } });
+    expect(cache.zone(project, "L1", "boss", pack)).not.toBe(first);
+  });
 });

@@ -1,9 +1,14 @@
 import type { ContentPack } from "@/model/contentPack";
-import type { EnemyDesign } from "@/model/designs";
+import type { BossDesign, EnemyDesign } from "@/model/designs";
 import type { Abilities } from "@/model/hero";
 import type { LookBox } from "@/model/look";
 import type { Checkpoint, Project, Zone } from "@/model/schema";
-import { checkZone, levelProblems, type LevelCheck, type ZoneCheck } from "./check";
+import {
+  checkZone,
+  levelProblems,
+  type LevelCheck,
+  type ZoneCheck,
+} from "./check";
 
 type Cached = {
   abilities: Abilities;
@@ -11,23 +16,34 @@ type Cached = {
   slideBody: LookBox | undefined;
   shotY: number | undefined;
   enemies: EnemyDesign[];
+  boss: BossDesign | null;
   checkpoints: Checkpoint[];
   pack: ContentPack;
   check: ZoneCheck;
 };
 
 export type CheckCache = {
-  zone(project: Project, levelId: string, zoneId: string, pack: ContentPack): ZoneCheck;
+  zone(
+    project: Project,
+    levelId: string,
+    zoneId: string,
+    pack: ContentPack,
+  ): ZoneCheck;
   level(project: Project, levelId: string, pack: ContentPack): LevelCheck;
 };
 
-// A zone's check depends only on the zone itself, the hero's abilities and hitboxes (not its drawing), the kid's enemies, the
+// A zone's check depends only on the zone itself, the hero's abilities and hitboxes (not its drawing), the kid's enemies and boss, the
 // level's checkpoints and the pack. Unchanged zones keep the same object through edits, so only zones that actually
 // changed are checked again. That keeps checking quick on levels with many long zones.
 export function createCheckCache(): CheckCache {
   const cache = new WeakMap<Zone, Cached>();
 
-  const zone = (project: Project, levelId: string, zoneId: string, pack: ContentPack): ZoneCheck => {
+  const zone = (
+    project: Project,
+    levelId: string,
+    zoneId: string,
+    pack: ContentPack,
+  ): ZoneCheck => {
     const level = project.levels.find((l) => l.id === levelId);
     const found = level?.zones.find((z) => z.id === zoneId);
     if (!level || !found) return checkZone(project, levelId, zoneId, pack); // throws the checker's own error
@@ -39,6 +55,7 @@ export function createCheckCache(): CheckCache {
       hit.slideBody === project.hero.look.slideBody &&
       hit.shotY === project.hero.look.shotY &&
       hit.enemies === project.enemies &&
+      hit.boss === project.boss &&
       hit.checkpoints === level.checkpoints &&
       hit.pack === pack;
     if (hit && fresh) {
@@ -51,6 +68,7 @@ export function createCheckCache(): CheckCache {
       slideBody: project.hero.look.slideBody,
       shotY: project.hero.look.shotY,
       enemies: project.enemies,
+      boss: project.boss,
       checkpoints: level.checkpoints,
       pack,
       check,

@@ -274,3 +274,26 @@ export function lookForKind(look: Look, from: LookKind, to: LookKind): Look {
   const shotY = Math.min(look.shotY ?? Math.round(look.body.h / 2) - Math.round(shotHeight / 2), highest);
   return { ...rest, animations, shotY: Math.max(0, shotY) };
 }
+
+// Pads or trims a frame: evenly at the left and right (the odd pixel on the right), and at the
+// top only, so the bottom row (the feet) stays the bottom row.
+export function reframeRows(rows: string[], w: number, h: number): string[] {
+  const oldW = rows[0].length;
+  const left = Math.floor((w - oldW) / 2);
+  const widened = rows.map((row) => {
+    if (left >= 0) return ".".repeat(left) + row + ".".repeat(w - oldW - left);
+    return row.slice(-left, -left + w);
+  });
+  const dy = h - widened.length;
+  return dy >= 0 ? [...Array.from({ length: dy }, () => ".".repeat(w)), ...widened] : widened.slice(-dy);
+}
+
+const drawn = (frames: string[][]) => frames.reduce((n, rows) => n + rows.join("").replace(/\./g, "").length, 0);
+
+// Whether resizing a canvas would cut off any drawn pixel of the frames on it.
+export function cutsDrawing(look: Look, kind: LookKind, canvas: string, w: number, h: number): boolean {
+  const frames = Object.entries(look.animations)
+    .filter(([name]) => KINDS[kind].animations[name] === canvas)
+    .flatMap(([, anim]) => anim.frames);
+  return drawn(frames.map((rows) => reframeRows(rows, w, h))) < drawn(frames);
+}

@@ -27,18 +27,41 @@ export const ATTACK_TEXT: Record<BossAttack, { name: string; tip: string }> = {
   jump: { name: "Jump", tip: "Leaps at you. Run under it." },
   dash: { name: "Dash", tip: "Charges along the floor. Jump over it." },
   spread: { name: "Spread", tip: "Three shots fan out. Jump through the gap." },
-  aimed: { name: "Aimed shot", tip: "One quick shot right at you. Move after it fires." },
+  aimed: {
+    name: "Aimed shot",
+    tip: "One quick shot right at you. Move after it fires.",
+  },
   rain: { name: "Rain", tip: "Shots fall from above. Stand in a gap." },
-  big: { name: "Big shot", tip: "A huge, slow shot. Jump over it or slide under." },
+  big: {
+    name: "Big shot",
+    tip: "A huge, slow shot. Jump over it or slide under.",
+  },
 };
 
-const FIGHT_NAMES: Record<BossDesign["fight"], string> = { short: "Short", normal: "Normal", long: "Long" };
+const FIGHT_NAMES: Record<BossDesign["fight"], string> = {
+  short: "Short",
+  normal: "Normal",
+  long: "Long",
+};
 const NO_ENEMIES: EnemyDesign[] = []; // one array, so the preview doesn't restart on every render
 
 // The boss fighting in a one-screen boss room, with the hero standing still.
-function BossPreview({ boss, project, pack, art }: { boss: BossDesign; project: Project; pack: ContentPack; art?: ArtSet }) {
+function BossPreview({
+  boss,
+  project,
+  pack,
+  art,
+}: {
+  boss: BossDesign;
+  project: Project;
+  pack: ContentPack;
+  art?: ArtSet;
+}) {
   const hero = project.hero;
-  const start = useCallback(() => bossPreviewSim(boss, hero, pack), [boss, hero, pack]);
+  const start = useCallback(
+    () => bossPreviewSim(boss, hero, pack),
+    [boss, hero, pack],
+  );
   return (
     <GamePreview
       label={`${tidyName(boss.name)} fighting`}
@@ -53,10 +76,19 @@ function BossPreview({ boss, project, pack, art }: { boss: BossDesign; project: 
 }
 
 // Which boss the game's boss rooms hold: the kid's, the pack's, or none placed.
-function bossInUse(project: Project, pack: ContentPack): "yours" | "snow" | null {
-  const types = project.levels.flatMap((l) => l.zones.flatMap((z) => z.things.map((t) => t.type)));
+function bossInUse(
+  project: Project,
+  pack: ContentPack,
+): "yours" | "snow" | null {
+  const types = project.levels.flatMap((l) =>
+    l.zones.flatMap((z) => z.things.map((t) => t.type)),
+  );
   if (types.includes(OWN_BOSS)) return "yours";
-  const packBosses = new Set(pack.things.filter((d) => d.behaviour === "boss" && !d.own).map((d) => d.type));
+  const packBosses = new Set(
+    pack.things
+      .filter((d) => d.behaviour === "boss" && !d.own)
+      .map((d) => d.type),
+  );
   return types.some((t) => packBosses.has(t)) ? "snow" : null;
 }
 
@@ -89,14 +121,22 @@ export function BossScreen({
 }: Props) {
   const { boss } = project;
   const look = boss?.look;
-  const bossArt = useMemo(() => (look ? lookArt(designLook("boss", look)) : null), [look]);
+  const bossArt = useMemo(
+    () => (look ? lookArt(designLook("boss", look)) : null),
+    [look],
+  );
   const packBoss = pack.things.find((d) => d.behaviour === "boss" && !d.own);
   const inUse = bossInUse(project, pack);
 
-  const setAttacks = (attacks: BossAttack[]) => onCommand({ name: "setBoss", args: { attacks } });
+  const setAttacks = (attacks: BossAttack[]) =>
+    onCommand({ name: "setBoss", args: { attacks } });
 
   return (
-    <fieldset className={`${styles.heroScreen} ${styles.bossScreen}`} disabled={locked} aria-label="Your boss">
+    <fieldset
+      className={`${styles.heroScreen} ${styles.bossScreen}`}
+      disabled={locked}
+      aria-label="Your boss"
+    >
       {error && (
         <p className={styles.alert} role="alert">
           {error}
@@ -108,9 +148,16 @@ export function BossScreen({
       {!boss || !bossArt ? (
         <div>
           <p className={styles.note}>
-            Make your own boss to fight in the boss room. It starts as a copy of the {packBoss?.name ?? "boss"}.
+            Make your own boss to fight in the boss room. It starts as a copy of
+            the {packBoss?.name ?? "boss"}.
           </p>
-          <button type="button" className={styles.swatch} onClick={() => onCommand({ name: "createBoss", args: { name: "My Boss" } })}>
+          <button
+            type="button"
+            className={styles.swatch}
+            onClick={() =>
+              onCommand({ name: "createBoss", args: { name: "My Boss" } })
+            }
+          >
             Make your own boss
           </button>
         </div>
@@ -120,7 +167,9 @@ export function BossScreen({
             <NameField
               key={boss.name}
               name={tidyName(boss.name)}
-              onRename={(name) => onCommand({ name: "setBoss", args: { name } })}
+              onRename={(name) =>
+                onCommand({ name: "setBoss", args: { name } })
+              }
             />
             <div role="group" aria-label="Fight" className={styles.ability}>
               <span className={styles.abilityLabel}>Fight</span>
@@ -131,14 +180,20 @@ export function BossScreen({
                     type="button"
                     className={styles.step}
                     aria-pressed={boss.fight === fight}
-                    onClick={() => onCommand({ name: "setBoss", args: { fight } })}
+                    onClick={() =>
+                      onCommand({ name: "setBoss", args: { fight } })
+                    }
                   >
                     {FIGHT_NAMES[fight]}
                   </button>
                 ))}
               </div>
             </div>
-            <div role="group" aria-label="Attacks, in order" className={styles.ability}>
+            <div
+              role="group"
+              aria-label="Attacks, in order"
+              className={styles.ability}
+            >
               <span className={styles.abilityLabel}>Attacks, in order</span>
               {[0, 1, 2].map((i) => (
                 <div key={i} className={styles.field}>
@@ -162,21 +217,31 @@ export function BossScreen({
                       </option>
                     ))}
                   </select>
-                  {boss.attacks[i] && <span className={styles.note}>{ATTACK_TEXT[boss.attacks[i]].tip}</span>}
+                  {boss.attacks[i] && (
+                    <span className={styles.note}>
+                      {ATTACK_TEXT[boss.attacks[i]].tip}
+                    </span>
+                  )}
                 </div>
               ))}
             </div>
           </div>
           <div className={styles.heroSide}>
             <BossPreview boss={boss} project={project} pack={pack} art={art} />
-            <div role="group" aria-label="Use in the boss room" className={styles.ability}>
+            <div
+              role="group"
+              aria-label="Use in the boss room"
+              className={styles.ability}
+            >
               <span className={styles.abilityLabel}>Use in the boss room</span>
               <div className={styles.steps}>
                 <button
                   type="button"
                   className={styles.step}
                   aria-pressed={inUse === "snow"}
-                  onClick={() => onCommand({ name: "useBoss", args: { boss: "snow" } })}
+                  onClick={() =>
+                    onCommand({ name: "useBoss", args: { boss: "snow" } })
+                  }
                 >
                   {packBoss?.name ?? "Pack boss"}
                 </button>
@@ -184,7 +249,9 @@ export function BossScreen({
                   type="button"
                   className={styles.step}
                   aria-pressed={inUse === "yours"}
-                  onClick={() => onCommand({ name: "useBoss", args: { boss: "yours" } })}
+                  onClick={() =>
+                    onCommand({ name: "useBoss", args: { boss: "yours" } })
+                  }
                 >
                   Your boss
                 </button>
@@ -194,7 +261,10 @@ export function BossScreen({
               type="button"
               className={styles.swatch}
               onClick={() => {
-                if (confirm(`Delete ${tidyName(boss.name)}? You can undo this.`)) onCommand({ name: "removeBoss", args: {} });
+                if (
+                  confirm(`Delete ${tidyName(boss.name)}? You can undo this.`)
+                )
+                  onCommand({ name: "removeBoss", args: {} });
               }}
             >
               Delete boss
@@ -210,6 +280,7 @@ export function BossScreen({
             onBegin={onBegin}
             onCommit={onCommit}
             readPicture={readPicture}
+            confirm={confirm}
           />
         </>
       )}
