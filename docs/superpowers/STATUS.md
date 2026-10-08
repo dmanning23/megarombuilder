@@ -87,7 +87,8 @@ keep up. 1017 tests and 12 browser tests pass; typecheck, lint and build are cle
 | `plans/2026-10-07-m4-plan-3-bodies-in-game.md` | Milestone 4 plan 3 of 5, implemented, reviewed and merged |
 | `plans/2026-10-07-m4-plan-4-animation-editor.md` | Milestone 4 plan 4 of 5, implemented, reviewed and merged |
 | `plans/2026-10-08-m4-plan-5-size-hitbox-shot.md` | Milestone 4 plan 5 of 5, implemented, reviewed and merged |
-| `specs/2026-10-08-character-editor-cleanup-design.md` | Character editor tidy-up spec, written, waiting for review |
+| `specs/2026-10-08-character-editor-cleanup-design.md` | Character editor tidy-up spec, approved |
+| `plans/2026-10-08-tidy-plan-1-screen-frame.md` | Tidy-up plan 1 of 2, written, waiting for approval |
 
 Milestone 1 is now eight plans (the editor became two):
 
