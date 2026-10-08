@@ -6,6 +6,7 @@ import {
   firstStanding,
   fitBody,
   HERO_BODY_MAX_H,
+  HERO_BODY_MAX_W,
   KINDS,
   lookProblems,
   MAX_FRAMES,
@@ -184,7 +185,8 @@ function reframe(rows: string[], w: number, h: number): string[] {
 const bodyFor = (found: Found, look: Look, which: "main" | "slide") => {
   const animation = which === "slide" ? "slide" : firstStanding(found.kind);
   const maxH = found.kind !== "hero" ? null : which === "slide" ? SLIDE_BODY_MAX_H : HERO_BODY_MAX_H;
-  return fitBody(look.animations[animation].frames[0], look.canvases[which], maxH);
+  const maxW = found.kind === "hero" && which === "main" ? HERO_BODY_MAX_W : null;
+  return fitBody(look.animations[animation].frames[0], look.canvases[which], maxH, maxW);
 };
 
 // Keeps a shot point inside a new body.

@@ -1,5 +1,6 @@
 import type { ContentPack, ThingBehaviour, TileBehaviour } from "@/model/contentPack";
 import { TILE_SIZE, tileIndex, zoneSize } from "@/model/geometry";
+import type { LookBox } from "@/model/look";
 import type { Zone } from "@/model/schema";
 import { CHARGE_STEPS, ENEMY_SHOT_SIZE, SCREEN_H, SCREEN_W } from "@/runtime/sim/constants";
 import { shotSize } from "@/runtime/sim/shots";
@@ -59,6 +60,14 @@ const TILE_COLOURS: Record<TileBehaviour, string> = {
 function rect(ctx: Ctx2D, colour: string, x: number, y: number, w: number, h: number): void {
   ctx.fillStyle = colour;
   ctx.fillRect(x, y, w, h);
+}
+
+// Where to draw a picture so its hitbox's bottom middle lands on the box's bottom middle. A mirrored
+// picture's hitbox is mirrored too. For a centred hitbox with its feet on the picture's bottom, this
+// is exactly where onBox draws.
+function placeOn(box: Box, body: LookBox, canvasW: number, flip: boolean): { x: number; y: number } {
+  const bodyMiddle = flip ? canvasW - (body.x + body.w / 2) : body.x + body.w / 2;
+  return { x: Math.round(box.x + box.w / 2 - bodyMiddle), y: Math.round(box.y + box.h - body.y - body.h) };
 }
 
 // Draws a sprite with its bottom centre on the bottom centre of a box.
@@ -130,7 +139,8 @@ function drawEntity(ctx: Ctx2D, sim: Sim, e: Entity, skin: Skin | undefined, ox:
     if (flashing) return; // blink
     const shown = entityShown(e, sim.steps, timingsOf(own.animations));
     const frames = own.animations[shown.animation]?.frames ?? own.art.frames;
-    onBox(ctx, own.image, frames[Math.min(shown.frame, frames.length - 1)], shown.flip, e, ox, oy);
+    const at = placeOn(e, own.body, own.canvas.w, shown.flip);
+    ctx.drawImage(own.image(frames[Math.min(shown.frame, frames.length - 1)], shown.flip), at.x + ox, at.y + oy);
     return;
   }
   const frames = skin?.set.things[e.type]; // the content pack's own things keep their art set
@@ -174,7 +184,10 @@ export function draw(ctx: Ctx2D, sim: Sim, skin?: Skin): void {
       const shown = heroShown(p, sim.steps, timingsOf(skin.hero.art.animations));
       const blink = p.charge >= CHARGE_STEPS && Math.floor(sim.steps / 4) % 2 === 0;
       const image = blink && skin.hero.flashImage ? skin.hero.flashImage : skin.hero.image;
-      onBox(ctx, image, skin.hero.art.animations[shown.animation].frames[shown.frame], shown.flip, p, originX, originY);
+      const art = skin.hero.art;
+      const sliding = shown.animation === "slide";
+      const at = placeOn(p, sliding ? art.slideBody : art.body, art.canvases[sliding ? "slide" : "main"].w, shown.flip);
+      ctx.drawImage(image(art.animations[shown.animation].frames[shown.frame], shown.flip), at.x + originX, at.y + originY);
     } else {
       const px = Math.round(p.x) + originX;
       const py = Math.round(p.y) + originY;

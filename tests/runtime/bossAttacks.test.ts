@@ -116,3 +116,18 @@ describe("the new attacks", () => {
     expect(bottom).toBeGreaterThan(floor - PLAYER_H); // a standing body doesn't
   });
 });
+
+describe("aiming from the shot point", () => {
+  it("aims the shot from where it starts, so it heads for the hero's middle", () => {
+    const { sim, boss } = arena("aimed,aimed");
+    boss.shotY = 0; // a shot point at the top of the boss
+    until(sim, boss, "aimed");
+    const shot = sim.enemyShots[0];
+    const p = sim.player;
+    // Back to where it started, then on along its path to the hero's middle column: it is level with the hero's middle.
+    const sx = shot.x - shot.vx + 3;
+    const sy = shot.y - shot.vy + 3;
+    const t = (p.x + p.w / 2 - sx) / shot.vx;
+    expect(sy + shot.vy * t).toBeCloseTo(p.y + p.h / 2, 0);
+  });
+});

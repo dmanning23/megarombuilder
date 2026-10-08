@@ -77,7 +77,7 @@ function startAttack(sim: Sim, e: Entity): void {
   } else if (attack === "aimed") {
     const p = sim.player;
     const dx = p.x + p.w / 2 - (e.x + e.w / 2);
-    const dy = p.y + p.h / 2 - (e.y + e.h / 2);
+    const dy = p.y + p.h / 2 - (e.y + e.shotY + ENEMY_SHOT_SIZE / 2);
     const distance = Math.hypot(dx, dy) || 1;
     fireAt(sim, e, (dx / distance) * AIMED_SHOT_SPEED, (dy / distance) * AIMED_SHOT_SPEED, damage);
     e.timer = 40;

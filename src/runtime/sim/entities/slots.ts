@@ -42,7 +42,7 @@ export function updateSlots(sim: Sim): void {
   const camera = cameraFor(sim);
   for (const slot of sim.slots) {
     if (ALWAYS_PRESENT.has(slot.def.behaviour)) continue;
-    const visible = inView(spawnBox(slot.thing, slot.def.behaviour), camera, 0);
+    const visible = inView(spawnBox(slot.thing, slot.def), camera, 0);
     if (slot.entity) {
       if (!inView(slot.entity, camera, DESPAWN_MARGIN)) slot.entity = null;
     } else if (visible && !slot.wasInView) {

@@ -5,13 +5,13 @@ import type { Player } from "@/runtime/sim/state";
 
 const player = (o: Partial<Player> = {}): Player => ({
   x: 0, y: 0, vx: 0, vy: 0, w: 14, h: 22, facing: 1, onGround: true, onIce: false, onLadder: false,
-  health: 28, hurt: 0, invuln: 0, knockback: 1, ridingId: null, shotTimer: 0, slide: 0, charge: 0, airSteps: 0,
+  health: 28, hurt: 0, invuln: 0, knockback: 1, ridingId: null, shotTimer: 0, slide: 0, charge: 0, airSteps: 0, standH: 22, slideH: 14, shotY: 8,
   ...o,
 });
 const entity = (o: Partial<Entity> = {}): Entity => ({
   x: 0, y: 0, w: 14, h: 14, vx: 0, vy: 0, onGround: true, onIce: false,
   id: "t", type: "own-e1", behaviour: "walker", facing: 1, health: 1, mode: "walk",
-  timer: 0, attack: 0, homeX: 0, homeY: 0, dx: 0, dy: 0, flash: 0, modeSteps: 0, settings: {},
+  timer: 0, attack: 0, homeX: 0, homeY: 0, dx: 0, dy: 0, flash: 0, modeSteps: 0, shotY: 4, settings: {},
   ...o,
 });
 const t = (frames: number, speed: Timing["speed"] = "normal"): Timing => ({ frames, speed });

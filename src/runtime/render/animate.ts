@@ -1,5 +1,5 @@
 import type { AnimationSpeed } from "@/model/look";
-import { HURT_STEPS, PLAYER_H } from "../sim/constants";
+import { HURT_STEPS } from "../sim/constants";
 import type { Entity } from "../sim/entities/types";
 import type { Player } from "../sim/state";
 
@@ -29,7 +29,7 @@ export function heroShown(p: Player, steps: number, timings: Record<string, Timi
   const loop = (animation: string, base = BASE): Shown => ({ animation, frame: pickFrame(timingOf(timings, animation), base, steps, true), flip });
   const once = (animation: string, elapsed: number): Shown => ({ animation, frame: pickFrame(timingOf(timings, animation), BASE, elapsed, false), flip });
 
-  if (p.h < PLAYER_H) return loop("slide");
+  if (p.h < p.standH) return loop("slide");
   if (p.hurt > 0) return once("hurt", HURT_STEPS - p.hurt);
   if (p.onLadder) {
     const n = timingOf(timings, "climb").frames;

@@ -3,7 +3,7 @@ import { TILE_SIZE } from "@/model/geometry";
 import { gamePack } from "@/model/gamePack";
 import { heroPhysics } from "@/model/hero";
 import type { Level, PlayerSettings, Project } from "@/model/schema";
-import { PLAYER_H, PLAYER_W } from "./constants";
+import { SLIDE_H } from "./constants";
 import { loadZoneThings } from "./entities/slots";
 import type { EnemyShot, Slot } from "./entities/types";
 import { clamp } from "./math";
@@ -47,6 +47,9 @@ export type Player = {
   slide: number; // steps left of a slide's own length (it carries on past this under a low ceiling)
   charge: number; // steps shoot has been held, for a charged shot
   airSteps: number; // steps since leaving the ground, for the jump animation
+  standH: number; // the standing hitbox's height, from the hero's look
+  slideH: number; // the sliding hitbox's height
+  shotY: number; // where shots come out, below the hitbox's top
 };
 
 export type Shot = { x: number; y: number; vx: number; charged?: boolean };
@@ -82,15 +85,15 @@ export type Sim = {
 
 // Where the player appears at a zone's entry. `carry` is how far along the previous
 // zone's exit opening they were, in pixels, or null for a fresh start.
-export function entryPosition(map: TileMap, carry: number | null): { x: number; y: number } {
+export function entryPosition(map: TileMap, carry: number | null, body: { w: number; h: number }): { x: number; y: number } {
   const entry = map.zone.entry;
   const start = entry.from * TILE_SIZE;
   const end = (entry.to + 1) * TILE_SIZE;
   if (entry.edge === "left" || entry.edge === "right") {
-    const feet = carry === null ? end : clamp(start + carry, start + PLAYER_H, end);
-    return { x: 2, y: feet - PLAYER_H };
+    const feet = carry === null ? end : clamp(start + carry, start + body.h, end);
+    return { x: 2, y: feet - body.h };
   }
-  const y = entry.edge === "bottom" ? map.heightPx - PLAYER_H : 0;
+  const y = entry.edge === "bottom" ? map.heightPx - body.h : 0;
   if (carry === null) {
     // A fresh start: stand in the first column with a ladder at this edge, or the first column.
     const row = entry.edge === "bottom" ? map.height - 1 : 0;
@@ -101,9 +104,9 @@ export function entryPosition(map: TileMap, carry: number | null): { x: number; 
         break;
       }
     }
-    return { x: col * TILE_SIZE + (TILE_SIZE - PLAYER_W) / 2, y };
+    return { x: col * TILE_SIZE + (TILE_SIZE - body.w) / 2, y };
   }
-  const half = PLAYER_W / 2;
+  const half = body.w / 2;
   const centre = clamp(start + carry, start + half, end - half);
   return { x: centre - half, y };
 }
@@ -123,14 +126,16 @@ export function createSim(
   if (zoneIndex < 0) throw new Error(`There is no zone with id "${opts.startZoneId}".`);
 
   const map = createTileMap(level.zones[zoneIndex], pack);
-  const start = entryPosition(map, null);
+  const look = project.hero.look;
+  const body = { w: look.body.w, h: look.body.h };
+  const start = entryPosition(map, null, body);
   const settings = opts.settings ?? heroPhysics(project.hero.abilities);
   const player: Player = {
     ...start,
     vx: 0,
     vy: 0,
-    w: PLAYER_W,
-    h: PLAYER_H,
+    w: body.w,
+    h: body.h,
     facing: 1,
     onGround: false,
     onIce: false,
@@ -144,6 +149,9 @@ export function createSim(
     slide: 0,
     charge: 0,
     airSteps: 0,
+    standH: body.h,
+    slideH: Math.min(look.slideBody?.h ?? SLIDE_H, body.h - 1), // always lower than standing, so a slide ends
+    shotY: look.shotY ?? 8,
   };
   player.onLadder = touchingLadder(map, player);
   const sim: Sim = {

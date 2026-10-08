@@ -41,7 +41,7 @@ function warningsFor(project: Project, level: Level, zone: Zone, pack: ContentPa
   for (const thing of zone.things) {
     const def = pack.things.find((d) => d.type === thing.type);
     if (!def || !ENEMY_BEHAVIOURS.has(def.behaviour)) continue;
-    const box = spawnBox(thing, def.behaviour);
+    const box = spawnBox(thing, def);
     const cx = box.x + box.w / 2;
     const cy = box.y + box.h / 2;
     for (const spot of spots) {
@@ -61,8 +61,8 @@ export function checkZone(project: Project, levelId: string, zoneId: string, pac
   if (!zone) throw new Error(`There is no zone with id "${zoneId}" in level "${level.name}".`);
 
   const settings = heroPhysics(project.hero.abilities);
-  const found = findPassage(zone, pack, settings);
-  const probe = createProbe(zone, pack, settings);
+  const found = findPassage(zone, pack, settings, project.hero.look);
+  const probe = createProbe(zone, pack, settings, project.hero.look);
   const p = probe.sim.player;
   const arrival = { x: p.x + p.w / 2, y: p.y + p.h / 2 };
 
@@ -109,7 +109,7 @@ function bossProblems(level: Level, pack: ContentPack): string[] {
 
   const map = createTileMap(room, pack);
   for (const boss of bosses) {
-    const box = spawnBox(boss, "boss");
+    const box = spawnBox(boss, pack.things.find((d) => d.type === boss.type) ?? { behaviour: "boss" });
     let floor = false;
     for (let c = firstTile(box.x); c <= lastTile(box.x + box.w) && !floor; c++) {
       for (let r = boss.y + 1; r < map.height && !floor; r++) {

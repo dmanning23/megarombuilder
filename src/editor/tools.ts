@@ -11,7 +11,7 @@ export function thingAt(zone: Zone, pack: ContentPack, point: { x: number; y: nu
     const thing = zone.things[i];
     const def = pack.things.find((d) => d.type === thing.type);
     if (!def) continue;
-    const box = spawnBox(thing, def.behaviour);
+    const box = spawnBox(thing, def);
     if (point.x >= box.x && point.x < box.x + box.w && point.y >= box.y && point.y < box.y + box.h) {
       return thing;
     }

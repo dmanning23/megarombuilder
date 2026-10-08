@@ -7,15 +7,15 @@ import { entity, makeSim, run, runUntil } from "./simHelpers";
 
 describe("spawnBox", () => {
   it("stands most things on the bottom of their tile, centred", () => {
-    expect(spawnBox(thing("walker", 3, 5), "walker")).toEqual({ x: 49, y: 82, w: 14, h: 14 });
-    expect(spawnBox(thing("boss", 3, 5), "boss")).toEqual({ x: 44, y: 68, w: 24, h: 28 });
-    expect(spawnBox(thing("health", 3, 5), "health")).toEqual({ x: 51, y: 86, w: 10, h: 10 });
+    expect(spawnBox(thing("walker", 3, 5), { behaviour: "walker" })).toEqual({ x: 49, y: 82, w: 14, h: 14 });
+    expect(spawnBox(thing("boss", 3, 5), { behaviour: "boss" })).toEqual({ x: 44, y: 68, w: 24, h: 28 });
+    expect(spawnBox(thing("health", 3, 5), { behaviour: "health" })).toEqual({ x: 51, y: 86, w: 10, h: 10 });
   });
 
   it("centres flyers, hangs droppers and lays platforms along the top", () => {
-    expect(spawnBox(thing("flyer", 3, 5), "flyer")).toEqual({ x: 49, y: 82, w: 14, h: 12 });
-    expect(spawnBox(thing("dropper", 3, 5), "dropper")).toEqual({ x: 49, y: 80, w: 14, h: 12 });
-    expect(spawnBox(thing("platform", 3, 5), "platform")).toEqual({ x: 48, y: 80, w: 32, h: 8 });
+    expect(spawnBox(thing("flyer", 3, 5), { behaviour: "flyer" })).toEqual({ x: 49, y: 82, w: 14, h: 12 });
+    expect(spawnBox(thing("dropper", 3, 5), { behaviour: "dropper" })).toEqual({ x: 49, y: 80, w: 14, h: 12 });
+    expect(spawnBox(thing("platform", 3, 5), { behaviour: "platform" })).toEqual({ x: 48, y: 80, w: 32, h: 8 });
   });
 });
 

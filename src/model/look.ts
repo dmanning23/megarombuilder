@@ -58,6 +58,7 @@ export const ENEMY_SHOT_H = 6;
 export const HERO_BODY_MAX_H = 30; // fits through the level pieces' 2-tile openings
 export const SLIDE_BODY_MAX_H = 14; // fits under the crawl space's 1-tile gap
 export const BODY_MIN = 4;
+export const HERO_BODY_MAX_W = 16; // centred on a ladder's tile, beside the ladder pieces' wall
 
 export const KINDS: Record<LookKind, KindRule> = {
   hero: {
@@ -192,6 +193,9 @@ export function lookProblems(kind: LookKind, look: Look, name: string): string[]
     if (kind === "hero" && look.body.h > HERO_BODY_MAX_H) {
       problems.push(`${possessive} hitbox is ${look.body.h} tall; at most ${HERO_BODY_MAX_H}, so it fits through 2-tile gaps.`);
     }
+    if (kind === "hero" && look.body.w > HERO_BODY_MAX_W) {
+      problems.push(`${possessive} hitbox is ${look.body.w} wide; at most ${HERO_BODY_MAX_W}, so it fits on a ladder beside a wall.`);
+    }
   }
   if (kind === "hero") {
     const slide = look.canvases.slide;
@@ -219,7 +223,7 @@ export function lookProblems(kind: LookKind, look: Look, name: string): string[]
 
 // The smallest box around a picture's drawn pixels, at least BODY_MIN square and inside the canvas.
 // Taller than maxH keeps its bottom (the feet). Nothing drawn: the whole canvas.
-export function fitBody(rows: string[], canvas: Size, maxH: number | null): LookBox {
+export function fitBody(rows: string[], canvas: Size, maxH: number | null, maxW: number | null = null): LookBox {
   let left = canvas.w;
   let top = canvas.h;
   let right = -1;
@@ -243,6 +247,7 @@ export function fitBody(rows: string[], canvas: Size, maxH: number | null): Look
   [box.x, box.w] = grow(box.x, box.w, canvas.w);
   [box.y, box.h] = grow(box.y, box.h, canvas.h);
   if (maxH !== null && box.h > maxH) box = { ...box, y: box.y + box.h - maxH, h: maxH };
+  if (maxW !== null && box.w > maxW) box = { ...box, x: box.x + Math.floor((box.w - maxW) / 2), w: maxW }; // around its middle
   return box;
 }
 

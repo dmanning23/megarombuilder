@@ -54,7 +54,7 @@ describe("executeTool", () => {
     const out = executeTool(startTurn(game(), "L1"), "set_hero_abilities", { slide: true, jump: "high" }, context());
     expect(out).toMatchObject({ isError: false, activity: "Changing your hero…" });
     expect(out.command).toEqual({ name: "setHeroAbilities", args: { slide: true, jump: "high" } });
-    expect(out.content).toBe("Done. Your hero runs at normal speed, jumps onto ledges up to 3 tiles high, has 28 health and can have 3 shots on screen. It can slide under gaps one tile high. It has no charge shot.");
+    expect(out.content).toBe("Done. Your hero runs at normal speed, jumps onto ledges up to 3 tiles high, has 28 health and can have 3 shots on screen. Your hero is 22 pixels tall and 14 wide, so it fits through 2-tile gaps. It can slide under gaps one tile high. It has no charge shot.");
     expect(out.state.project.hero.abilities).toMatchObject({ slide: true, jump: "high" });
     expect(uncheckedZones(out.state)).toEqual(["z1", "corridor", "boss"]);
   });

@@ -19,6 +19,7 @@ import { heroArt } from "@/runtime/render/heroArt";
 import { createKeyboard } from "@/runtime/render/keyboard";
 import { MAX_STEPS_PER_FRAME, STEP_MS, stepsFor } from "@/runtime/render/loop";
 import { NO_INPUT } from "@/runtime/sim/state";
+import { applyCommand } from "@/commands";
 import { ownSkins } from "@/runtime/render/lookArt";
 import { game, run as runCommand } from "../ai/helpers";
 import { flatArt, thing } from "./helpers";
@@ -436,5 +437,25 @@ describe("animations in the game", () => {
       const expected = sim.player.vx === 0 ? art.poses.stand : Math.floor(sim.steps / 6) % 2 === 0 ? art.poses.run1 : art.poses.run2;
       expect(ctx.images.map((img) => img.sprite)).toContain(expected);
     }
+  });
+
+  it("lines the hero's picture up on its hitbox, facing either way", () => {
+    let project = game();
+    const result = applyCommand(project, { name: "setBody", args: { target: "hero", body: { x: 0, y: 2, w: 12, h: 22 } } }, { pack: snowPack });
+    if (!result.ok) throw new Error(result.error);
+    project = result.project;
+    const art = heroArt(project.hero.look);
+    const sim = createSim(project, "L1", snowPack);
+    for (let i = 0; i < 120 && !sim.player.onGround; i++) step(sim, NO_INPUT);
+    const at = (facing: 1 | -1) => {
+      sim.player.facing = facing;
+      const ctx = fakeContext();
+      draw(ctx, sim, { set: snowArt, image: fakeImage, hero: { art, image: fakeImage } });
+      return ctx.images.find((img) => img.sprite === art.poses.stand)!;
+    };
+    const right = at(1);
+    const left = at(-1);
+    // Facing right the hitbox is the picture's left 12 columns; mirrored, its right 12: 4 pixels along.
+    expect(right.x - left.x).toBe(4);
   });
 });

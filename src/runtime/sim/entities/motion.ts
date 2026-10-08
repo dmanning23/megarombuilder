@@ -36,7 +36,7 @@ export function patrol(sim: Sim, e: Entity, speed: number): void {
 export function fireAt(sim: Sim, e: Entity, vx: number, vy: number, damage: number): void {
   sim.enemyShots.push({
     x: e.x + e.w / 2 - ENEMY_SHOT_SIZE / 2,
-    y: e.y + e.h / 2 - ENEMY_SHOT_SIZE / 2,
+    y: e.y + e.shotY,
     vx,
     vy,
     damage,

@@ -1,5 +1,4 @@
 import { TILE_SIZE } from "@/model/geometry";
-import { PLAYER_H } from "@/runtime/sim/constants";
 import { NO_INPUT, type Input, type Sim } from "@/runtime/sim/state";
 import { firstTile, isPlatform, isSolid, ladderAtPx } from "@/runtime/sim/tilemap";
 
@@ -108,7 +107,7 @@ const slide = (d: -1 | 1): Move => ({
   start: () => (sim, t) => {
     if (t === 0) return keys({ ...toward(d), down: true }); // face that way
     if (t === 1) return keys({ down: true, jump: true });
-    if (sim.player.h < PLAYER_H && t < 600) return NO_INPUT;
+    if (sim.player.h < sim.player.standH && t < 600) return NO_INPUT;
     return null;
   },
 });

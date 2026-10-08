@@ -10,7 +10,7 @@ export function shoot(sim: Sim): void {
   if (sim.shots.length >= sim.settings.maxShots) return;
   sim.shots.push({
     x: p.facing > 0 ? p.x + p.w : p.x - SHOT_W,
-    y: p.y + 8,
+    y: p.y + p.shotY,
     vx: p.facing * SHOT_SPEED,
   });
   p.shotTimer = SHOT_POSE_STEPS;
@@ -44,7 +44,7 @@ export function chargeShot(sim: Sim, input: Input): void {
   if (!input.shoot && sim.prev.shoot && p.charge >= CHARGE_STEPS && !sliding(p)) {
     sim.shots.push({
       x: p.facing > 0 ? p.x + p.w : p.x - CHARGED_W,
-      y: p.y + 5,
+      y: p.y + p.shotY + SHOT_H / 2 - CHARGED_H / 2, // centred on a normal shot's line
       vx: p.facing * SHOT_SPEED,
       charged: true,
     });

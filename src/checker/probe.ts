@@ -2,6 +2,7 @@ import type { ContentPack } from "@/model/contentPack";
 import { createZone } from "@/model/factory";
 import { tileIndex, zoneSize } from "@/model/geometry";
 import { DEFAULT_ABILITIES } from "@/model/hero";
+import type { Look } from "@/model/look";
 import { FORMAT_VERSION, type Level, type PlayerSettings, type Project, type Zone } from "@/model/schema";
 import { num } from "@/runtime/sim/entities/types";
 import { createSim, NO_INPUT, type Player, type Sim } from "@/runtime/sim/state";
@@ -43,7 +44,8 @@ export function checkerZone(zone: Zone, pack: ContentPack): Zone {
 // A simulation of one zone, with an empty zone after it so that leaving by the exit can be seen.
 export type Probe = { sim: Sim; map: TileMap; zone: Zone };
 
-export function createProbe(zone: Zone, pack: ContentPack, settings: PlayerSettings): Probe {
+// The probe plays the kid's own hero (its size), or the pack's when none is given.
+export function createProbe(zone: Zone, pack: ContentPack, settings: PlayerSettings, look: Look = pack.hero): Probe {
   const checked = checkerZone(zone, pack);
   const zones = checked.exit ? [checked, createZone({ id: NEXT_ZONE_ID, name: NEXT_ZONE_ID }, pack)] : [checked];
   const level: Level = { id: "check", name: "check", brief: "", zones, checkpoints: [] };
@@ -52,7 +54,7 @@ export function createProbe(zone: Zone, pack: ContentPack, settings: PlayerSetti
     id: "check",
     name: "check",
     contentPackId: pack.id,
-    hero: { abilities: { ...DEFAULT_ABILITIES }, look: pack.hero },
+    hero: { abilities: { ...DEFAULT_ABILITIES }, look },
     levels: [level],
     chat: [],
     enemies: [],

@@ -1,5 +1,6 @@
 import type { ThingBehaviour } from "@/model/contentPack";
 import { moveX } from "../body";
+import { ENEMY_SHOT_SIZE } from "../constants";
 import type { Sim } from "../state";
 import { updateBoss } from "./boss";
 import { fall, fireAt, patrol, towardPlayer } from "./motion";
@@ -53,7 +54,7 @@ const dropper: Update = (sim, e) => {
 const turret: Update = (sim, e) => {
   const p = sim.player;
   const dx = p.x + p.w / 2 - (e.x + e.w / 2);
-  const dy = p.y + p.h / 2 - (e.y + e.h / 2);
+  const dy = p.y + p.h / 2 - (e.y + e.shotY + ENEMY_SHOT_SIZE / 2);
   e.facing = dx < 0 ? -1 : 1;
   e.timer++;
   if (e.timer < num(e.settings, "interval", 90)) return;
