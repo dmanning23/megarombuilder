@@ -31,7 +31,7 @@ describe("the snow art", () => {
     const problems: string[] = [];
     for (const def of snowPack.things) {
       if (!["walker", "flyer", "turret", "jumper", "shielded", "dropper", "boss"].includes(def.behaviour)) continue;
-      const box = spawnBox({ id: "t", type: def.type, x: 0, y: 0, settings: {} }, def.behaviour);
+      const box = spawnBox({ id: "t", type: def.type, x: 0, y: 0, settings: {} }, def);
       snowArt.things[def.type].forEach((frame, i) => {
         const left = Math.round(box.w / 2 - frame.w / 2);
         const top = box.h - frame.h;

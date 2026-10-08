@@ -76,3 +76,31 @@ describe("the kid's boss in the game", () => {
     expect(checkZone(project, "L1", "boss", pack).passable).toBe(before);
   });
 });
+
+describe("the kid's enemies' own hitboxes and shot points", () => {
+  function bigTurret(shotY: number) {
+    let project = run(game(), "addEnemy", { enemyId: "e1", name: "Ice Eye", behaviour: "turret" });
+    const target = { enemy: "e1" };
+    project = run(project, "resizeCanvas", { target, canvas: "main", w: 24, h: 24 });
+    project = run(project, "setBody", { target, body: { x: 2, y: 4, w: 20, h: 20 } });
+    project = run(project, "setShotY", { target, y: shotY });
+    return run(project, "placeThing", { levelId: "L1", zoneId: "z1", thingId: "t1", type: "own-e1", x: 8, y: 12 });
+  }
+
+  it("stand on their tile at their own size", () => {
+    const sim = createSim(bigTurret(2), "L1", pack);
+    step(sim, NO_INPUT);
+    const turret = sim.slots.find((s) => s.thing.type === "own-e1")!.entity!;
+    expect([turret.w, turret.h]).toEqual([20, 20]);
+    expect(turret.y + turret.h).toBe(13 * 16); // feet on the bottom of its tile
+    expect(turret.x + turret.w / 2).toBe(8 * 16 + 8); // centred on its tile
+  });
+
+  it("shoot from their shot point, while the snow turret still shoots from its middle", () => {
+    const sim = createSim(bigTurret(12), "L1", pack);
+    sim.player.invuln = 1_000_000;
+    for (let i = 0; i < 400 && sim.enemyShots.length === 0; i++) step(sim, NO_INPUT);
+    const turret = sim.slots.find((s) => s.thing.type === "own-e1")!.entity!;
+    expect(sim.enemyShots[0].y).toBe(turret.y + 12);
+  });
+});

@@ -41,7 +41,7 @@ function warningsFor(project: Project, level: Level, zone: Zone, pack: ContentPa
   for (const thing of zone.things) {
     const def = pack.things.find((d) => d.type === thing.type);
     if (!def || !ENEMY_BEHAVIOURS.has(def.behaviour)) continue;
-    const box = spawnBox(thing, def.behaviour);
+    const box = spawnBox(thing, def);
     const cx = box.x + box.w / 2;
     const cy = box.y + box.h / 2;
     for (const spot of spots) {
@@ -109,7 +109,7 @@ function bossProblems(level: Level, pack: ContentPack): string[] {
 
   const map = createTileMap(room, pack);
   for (const boss of bosses) {
-    const box = spawnBox(boss, "boss");
+    const box = spawnBox(boss, pack.things.find((d) => d.type === boss.type) ?? { behaviour: "boss" });
     let floor = false;
     for (let c = firstTile(box.x); c <= lastTile(box.x + box.w) && !floor; c++) {
       for (let r = boss.y + 1; r < map.height && !floor; r++) {

@@ -45,7 +45,7 @@ export function drawZoneView(
   for (const thing of zone.things) {
     const def = pack.things.find((d) => d.type === thing.type);
     if (!def) continue;
-    const box = spawnBox(thing, def.behaviour);
+    const box = spawnBox(thing, def);
     const own = skin?.own?.[thing.type];
     const frame = own ? own.art.frames[0] : skin?.set.things[thing.type]?.[0];
     if (skin && frame) {

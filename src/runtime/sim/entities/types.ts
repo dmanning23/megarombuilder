@@ -17,6 +17,7 @@ export type Entity = Body & {
   dy: number;
   flash: number; // steps left of the hit flash
   modeSteps: number; // steps in the current mode, for once-through animations
+  shotY: number; // where its shots come out, below its top
   settings: ThingSettings;
 };
 

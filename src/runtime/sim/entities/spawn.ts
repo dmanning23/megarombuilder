@@ -1,7 +1,7 @@
 import type { ThingBehaviour, ThingDef } from "@/model/contentPack";
 import { TILE_SIZE } from "@/model/geometry";
 import type { Thing } from "@/model/schema";
-import { BOSS_INTRO_STEPS } from "../constants";
+import { BOSS_INTRO_STEPS, ENEMY_SHOT_SIZE } from "../constants";
 import { num, type Box, type Entity } from "./types";
 
 const SIZES: Record<ThingBehaviour, [number, number]> = {
@@ -34,9 +34,15 @@ export function bodySize(behaviour: ThingBehaviour): { w: number; h: number } {
   return { w, h };
 }
 
+// A thing's hitbox size: the kid's own types carry theirs; the content pack's use the behaviour's.
+export function bodySizeOf(def: Pick<ThingDef, "behaviour" | "body">): { w: number; h: number } {
+  return def.body ?? bodySize(def.behaviour);
+}
+
 // Where a thing appears. Most stand on the bottom of their tile, centred across it.
-export function spawnBox(thing: Thing, behaviour: ThingBehaviour): Box {
-  const [w, h] = SIZES[behaviour];
+export function spawnBox(thing: Thing, def: Pick<ThingDef, "behaviour" | "body">): Box {
+  const { w, h } = bodySizeOf(def);
+  const behaviour = def.behaviour;
   const left = thing.x * TILE_SIZE;
   const top = thing.y * TILE_SIZE;
   const x = behaviour === "platform" ? left : left + (TILE_SIZE - w) / 2;
@@ -48,7 +54,7 @@ export function spawnBox(thing: Thing, behaviour: ThingBehaviour): Box {
 
 export function createEntity(thing: Thing, def: ThingDef, playerCentreX: number): Entity {
   const behaviour = def.behaviour;
-  const box = spawnBox(thing, behaviour);
+  const box = spawnBox(thing, def);
   // The kid's own enemies and boss take their settings from their designs alone, even when an
   // older game stored some on the placed copy.
   const settings = def.own ? { ...def.defaults } : { ...def.defaults, ...thing.settings };
@@ -73,6 +79,7 @@ export function createEntity(thing: Thing, def: ThingDef, playerCentreX: number)
     dy: 0,
     flash: 0,
     modeSteps: 0,
+    shotY: def.shotY ?? Math.round(box.h / 2 - ENEMY_SHOT_SIZE / 2), // the middle, as it always was
     settings,
   };
 }
