@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { backgroundOf, hasTransparency, importPicture, type RawImage } from "@/editor/hero/importPicture";
-import { nearestColour, PALETTE_8BIT } from "@/model/palette";
+import { slotOf } from "@/model/look";
+import { nearestColour, PALETTE_8BIT, PALETTE_RGB } from "@/model/palette";
 
 type Rgba = [number, number, number, number];
 const RED: Rgba = [248, 56, 0, 255]; // exactly an 8-bit colour
@@ -89,19 +90,28 @@ describe("importPicture", () => {
     expect(white).not.toBe(nearWhite);
   });
 
-  it("never goes past eight colours, merging the rest into the nearest", () => {
-    const seven = [13, 0, 1, 9, 22, 30, 40];
+  it("never goes past sixteen colours, merging the rest into the nearest", () => {
+    const fifteen = [13, 0, 1, 9, 22, 30, 40, 2, 3, 4, 5, 6, 7, 8, 10];
     const art = solid(16, 24, ".");
     art[0] = "rrrrrrrrrrrr....";
     art[1] = "bbbbbbbb........";
     art[2] = "wwww............";
-    const result = importPicture(image(art), "stand", seven, false);
-    expect(result.colours).toHaveLength(8);
-    expect(result.colours.slice(0, 7)).toEqual(seven);
-    expect(result.colours[7]).toBe(red); // the most-used new colour gets the last slot
+    const result = importPicture(image(art), "stand", fifteen, false);
+    expect(result.colours).toHaveLength(16);
+    expect(result.colours.slice(0, 15)).toEqual(fifteen);
+    expect(result.colours[15]).toBe(red); // the most-used new colour gets the last slot
     const used = new Set(result.rows.join("").replace(/\./g, ""));
-    for (const ch of used) expect(Number(ch)).toBeLessThanOrEqual(8);
-    expect(PALETTE_8BIT[result.colours[Number(result.rows[1][0]) - 1]]).toBeDefined();
+    for (const ch of used) expect(slotOf(ch)).toBeLessThanOrEqual(16);
+    expect(PALETTE_8BIT[result.colours[slotOf(result.rows[1][0]) - 1]]).toBeDefined();
+  });
+
+  it("keeps up to sixteen colours", () => {
+    const colours = Array.from({ length: 16 }, (_, i) => i * 3);
+    const data: number[] = [];
+    for (const c of colours) data.push(...PALETTE_RGB[c], 255);
+    const result = importPicture({ width: 16, height: 1, data }, { w: 16, h: 1, stand: false }, [colours[0]], false);
+    expect(result.colours).toHaveLength(16);
+    expect(result.rows[0]).toBe("123456789abcdefg");
   });
 });
 

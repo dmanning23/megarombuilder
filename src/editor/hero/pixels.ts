@@ -1,9 +1,5 @@
-import { PICTURE_SIZES, type HeroPicture } from "@/model/hero";
-import { ENEMY_FRAME, type EnemyBehaviour } from "@/model/designs";
-import { PLAYER_H, PLAYER_W, SLIDE_H } from "@/runtime/sim/constants";
-import { bodySize } from "@/runtime/sim/entities/spawn";
-
-// Pixel work for the hero screen. Pictures are rows of characters: "." is empty, a digit is a colour.
+// Pixel work for the Characters screen. Pictures are rows of characters: "." is empty, and "1" to
+// "9" then "a" to "g" name colour slots.
 
 export type Pixel = { x: number; y: number };
 export type Box = { x: number; y: number; w: number; h: number };
@@ -77,40 +73,42 @@ export function edgePixel(
   };
 }
 
-// Where the game's body sits in a picture: what counts as the hero for walls and hits. Poses are
-// drawn bottom-centred on the body; a shot's picture is its whole box.
-export function bodyBox(picture: HeroPicture): Box {
-  const { w, h } = PICTURE_SIZES[picture];
-  if (picture === "shot" || picture === "chargedShot") return { x: 0, y: 0, w, h };
-  const bodyH = picture === "slide" ? SLIDE_H : PLAYER_H;
-  return { x: Math.round(w / 2 - PLAYER_W / 2), y: h - bodyH, w: PLAYER_W, h: bodyH };
-}
+export type PixelCtx = Pick<CanvasRenderingContext2D, "fillStyle" | "fillRect" | "globalAlpha">;
 
-// Where an enemy's body sits in its frame: bottom-centred, as the game draws it.
-export function enemyBody(behaviour: EnemyBehaviour): Box {
-  const { w, h } = bodySize(behaviour);
-  return { x: Math.round((ENEMY_FRAME.w - w) / 2), y: ENEMY_FRAME.h - h, w, h };
-}
-
-export type PixelCtx = Pick<CanvasRenderingContext2D, "fillStyle" | "fillRect">;
+// How strongly the onion skin (the frame before) shows under the drawing.
+export const ONION_ALPHA = 1 / 3;
 
 const BACKGROUND = "#e9eef5";
 const GRID = "#c9d3e0";
 const OUTLINE = "#ff2d95";
 const FEET = "#2ec4b6";
 
-// Draws a picture big, with a light grid, the body's outline, and the feet line or the box's bottom edge.
+// Draws a picture big, with a light grid, the body's outline (if it has one), the feet line or the box's
+// bottom edge, and faintly underneath, the onion skin: another frame to line this one up with.
 export function drawPixels(
   ctx: PixelCtx,
   rows: string[],
   palette: Record<string, string>,
   size: { w: number; h: number },
-  body: Box,
+  body: Box | null,
   feet: boolean,
+  under?: string[],
 ): void {
   const { w, h } = size;
   ctx.fillStyle = BACKGROUND;
   ctx.fillRect(0, 0, w * ZOOM, h * ZOOM);
+  if (under) {
+    ctx.globalAlpha = ONION_ALPHA;
+    under.forEach((row, y) =>
+      [...row].forEach((ch, x) => {
+        const colour = palette[ch];
+        if (!colour) return;
+        ctx.fillStyle = colour;
+        ctx.fillRect(x * ZOOM, y * ZOOM, ZOOM, ZOOM);
+      }),
+    );
+    ctx.globalAlpha = 1;
+  }
   rows.forEach((row, y) =>
     [...row].forEach((ch, x) => {
       const colour = palette[ch];
@@ -123,6 +121,13 @@ export function drawPixels(
   for (let x = 1; x < w; x++) ctx.fillRect(x * ZOOM, 0, 1, h * ZOOM);
   for (let y = 1; y < h; y++) ctx.fillRect(0, y * ZOOM, w * ZOOM, 1);
 
+  if (!body) {
+    if (feet) {
+      ctx.fillStyle = FEET;
+      ctx.fillRect(0, h * ZOOM - 3, w * ZOOM, 3);
+    }
+    return;
+  }
   ctx.fillStyle = OUTLINE;
   ctx.fillRect(body.x * ZOOM, body.y * ZOOM, 2, body.h * ZOOM);
   ctx.fillRect((body.x + body.w) * ZOOM - 2, body.y * ZOOM, 2, body.h * ZOOM);
@@ -135,6 +140,3 @@ export function drawPixels(
   }
 }
 
-export function drawPicture(ctx: PixelCtx, rows: string[], palette: Record<string, string>, picture: HeroPicture): void {
-  drawPixels(ctx, rows, palette, PICTURE_SIZES[picture], bodyBox(picture), picture !== "shot" && picture !== "chargedShot");
-}

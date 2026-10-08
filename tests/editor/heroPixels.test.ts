@@ -1,15 +1,13 @@
 import { describe, expect, it } from "vitest";
 import {
   blankRows,
-  bodyBox,
-  drawPicture,
   drawPixels,
-  enemyBody,
   flipRows,
   floodFill,
   linePixels,
   pixelFromPointer,
   setPixels,
+  ONION_ALPHA,
   ZOOM,
 } from "@/editor/hero/pixels";
 
@@ -50,20 +48,15 @@ describe("pixel helpers", () => {
     expect(pixelFromPointer(5, 25, rect, 16, 24)).toBeNull();
     expect(pixelFromPointer(10 + 16 * ZOOM, 30, rect, 16, 24)).toBeNull();
   });
-
-  it("know where the game's body sits in each picture", () => {
-    expect(bodyBox("stand")).toEqual({ x: 1, y: 2, w: 14, h: 22 });
-    expect(bodyBox("slide")).toEqual({ x: 5, y: 2, w: 14, h: 14 });
-    expect(bodyBox("chargedShot")).toEqual({ x: 0, y: 0, w: 12, h: 10 });
-  });
 });
 
-describe("drawPicture", () => {
+describe("drawPixels", () => {
   function fake() {
     const rects: { colour: string; x: number; y: number; w: number; h: number }[] = [];
     return {
       rects,
       fillStyle: "" as string,
+      globalAlpha: 1,
       fillRect(x: number, y: number, w: number, h: number) {
         rects.push({ colour: this.fillStyle, x, y, w, h });
       },
@@ -74,14 +67,14 @@ describe("drawPicture", () => {
     const rows = blankRows(6, 4);
     rows[1] = "..1...";
     const ctx = fake();
-    drawPicture(ctx, rows, { "1": "#ff0000" }, "shot");
+    drawPixels(ctx, rows, { "1": "#ff0000" }, { w: 6, h: 4 }, null, false);
     expect(ctx.rects).toContainEqual({ colour: "#ff0000", x: 2 * ZOOM, y: 1 * ZOOM, w: ZOOM, h: ZOOM });
     expect(ctx.rects.filter((r) => r.colour === "#ff0000")).toHaveLength(1);
   });
 
   it("outlines the body and draws the feet line on poses", () => {
     const ctx = fake();
-    drawPicture(ctx, blankRows(16, 24), {}, "stand");
+    drawPixels(ctx, blankRows(16, 24), {}, { w: 16, h: 24 }, { x: 1, y: 2, w: 14, h: 22 }, true);
     const outline = ctx.rects.filter((r) => r.colour === "#ff2d95");
     expect(outline.some((r) => r.x === 1 * ZOOM && r.y === 2 * ZOOM && r.h === 22 * ZOOM)).toBe(true); // left side
     expect(ctx.rects.some((r) => r.colour === "#2ec4b6" && r.y === 24 * ZOOM - 3 && r.w === 16 * ZOOM)).toBe(true);
@@ -89,22 +82,34 @@ describe("drawPicture", () => {
 });
 
 describe("enemy pictures", () => {
-  it("know where each behaviour's body sits in a 16 by 16 frame", () => {
-    expect(enemyBody("walker")).toEqual({ x: 1, y: 2, w: 14, h: 14 });
-    expect(enemyBody("flyer")).toEqual({ x: 1, y: 4, w: 14, h: 12 });
-    expect(enemyBody("shielded")).toEqual({ x: 1, y: 0, w: 14, h: 16 });
-  });
-
   it("are drawn at any size, with the body outline and feet line", () => {
     const rects: { colour: string; x: number; y: number; w: number; h: number }[] = [];
     const ctx = {
       fillStyle: "" as string,
+      globalAlpha: 1,
       fillRect(x: number, y: number, w: number, h: number) {
         rects.push({ colour: this.fillStyle, x, y, w, h });
       },
     };
-    drawPixels(ctx, blankRows(16, 16), {}, { w: 16, h: 16 }, enemyBody("walker"), true);
+    drawPixels(ctx, blankRows(16, 16), {}, { w: 16, h: 16 }, { x: 1, y: 2, w: 14, h: 14 }, true);
     expect(rects.some((r) => r.colour === "#ff2d95" && r.x === 1 * ZOOM && r.y === 2 * ZOOM && r.h === 14 * ZOOM)).toBe(true);
     expect(rects.some((r) => r.colour === "#2ec4b6" && r.y === 16 * ZOOM - 3)).toBe(true);
+  });
+});
+
+describe("the onion skin", () => {
+  it("draws the frame underneath faintly, and the frame itself at full strength", () => {
+    const fills: { colour: string; alpha: number; x: number; y: number }[] = [];
+    const ctx = {
+      fillStyle: "",
+      globalAlpha: 1,
+      fillRect(x: number, y: number) {
+        fills.push({ colour: String(this.fillStyle), alpha: this.globalAlpha, x, y });
+      },
+    };
+    drawPixels(ctx, ["1.", ".."], { "1": "#ff0000", "2": "#00ff00" }, { w: 2, h: 2 }, null, false, ["..", ".2"]);
+    expect(fills).toContainEqual({ colour: "#00ff00", alpha: ONION_ALPHA, x: ZOOM, y: ZOOM });
+    expect(fills).toContainEqual({ colour: "#ff0000", alpha: 1, x: 0, y: 0 });
+    expect(ctx.globalAlpha).toBe(1); // put back
   });
 });

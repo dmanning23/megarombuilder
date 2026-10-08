@@ -13,6 +13,8 @@ const RUN_BASE = 6; // the hero's run changes frame every 6 steps at normal spee
 const BASE = 8; // everything else every 8
 const CLIMB_PIXELS = 8; // a climb steps one frame every 8 pixels
 
+export const baseFor = (animation: string): number => (animation === "run" || animation === "runShoot" ? RUN_BASE : BASE);
+
 export const frameSteps = (base: number, speed: AnimationSpeed): number => Math.round(base * FACTOR[speed]);
 
 export function pickFrame(timing: Timing, base: number, elapsed: number, loop: boolean): number {
@@ -39,7 +41,10 @@ export function heroShown(p: Player, steps: number, timings: Record<string, Timi
   }
   const shooting = p.shotTimer > 0;
   if (!p.onGround) return once(shooting ? "jumpShoot" : "jump", p.airSteps);
-  if (p.vx !== 0) return loop(shooting ? "runShoot" : "run", RUN_BASE);
+  if (p.vx !== 0) {
+    const run = shooting ? "runShoot" : "run";
+    return loop(run, baseFor(run));
+  }
   return loop(shooting ? "standShoot" : "stand");
 }
 

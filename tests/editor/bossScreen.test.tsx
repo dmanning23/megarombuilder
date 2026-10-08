@@ -46,7 +46,7 @@ describe("the Boss tab", () => {
     expect(screen.getByText(/Make your own boss to fight in the boss room/)).toBeTruthy();
     await make();
     expect((screen.getByRole("textbox", { name: "Name" }) as HTMLInputElement).value).toBe("My Boss");
-    expect(screen.getByRole("img", { name: "Stand, 24 by 28 pixels" })).toBeTruthy();
+    expect(screen.getByRole("img", { name: "Stand frame 1, 24 by 28 pixels" })).toBeTruthy();
     expect(screen.getByRole("img", { name: "My Boss fighting" })).toBeTruthy();
     await userEvent.click(screen.getByRole("button", { name: "Undo" }));
     expect(screen.getByRole("button", { name: "Make your own boss" })).toBeTruthy();
@@ -89,8 +89,8 @@ describe("the Boss tab", () => {
     const { open, make, press, saved } = setup();
     await open();
     await make();
-    await userEvent.click(within(screen.getByRole("group", { name: "Frames" })).getByRole("button", { name: "Attack" }));
-    expect(screen.getByRole("img", { name: "Attack, 24 by 28 pixels" })).toBeTruthy();
+    await userEvent.click(within(screen.getByRole("group", { name: "Animations" })).getByRole("button", { name: /^Attack,/ }));
+    expect(screen.getByRole("img", { name: "Attack frame 1, 24 by 28 pixels" })).toBeTruthy();
     expect(designFrames("boss", snowPack.bossLook)[2][0][0]).toBe(".");
     press(0, 0);
     expect(designFrames("boss", saved().boss!.look)[2][0][0]).toBe("1");
@@ -135,5 +135,17 @@ describe("the Boss tab", () => {
     expect(confirm).toHaveBeenLastCalledWith("Delete My Boss? You can undo this.");
     expect(screen.getByRole("button", { name: "Make your own boss" })).toBeTruthy();
     expect(saved().boss).toBeNull();
+  });
+
+  it("draws the attack animation's frames", async () => {
+    const { open, make, press, saved } = setup();
+    await open();
+    await make();
+    await userEvent.click(within(screen.getByRole("group", { name: "Animations" })).getByRole("button", { name: /^Attack,/ }));
+    await userEvent.click(screen.getByRole("button", { name: "Copy frame" }));
+    press(0, 0);
+    const attack = saved().boss!.look.animations.attack.frames;
+    expect(attack).toHaveLength(2);
+    expect(attack[1][0][0]).toBe("1");
   });
 });

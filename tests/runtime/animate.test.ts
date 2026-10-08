@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { entityShown, frameSteps, heroShown, pickFrame, type Timing } from "@/runtime/render/animate";
+import { baseFor, entityShown, frameSteps, heroShown, pickFrame, type Timing } from "@/runtime/render/animate";
 import type { Entity } from "@/runtime/sim/entities/types";
 import type { Player } from "@/runtime/sim/state";
 
@@ -99,5 +99,11 @@ describe("entityShown", () => {
     expect(boss("dash", 0).animation).toBe("stand");
     expect([0, 8, 16, 99].map((s) => boss("jump", s).frame)).toEqual([0, 1, 2, 2]);
     for (const mode of ["spread", "aimed", "rain", "big"]) expect(boss(mode, 8)).toMatchObject({ animation: "attack", frame: 1 });
+  });
+});
+
+describe("baseFor", () => {
+  it("times the run every 6 steps and everything else every 8", () => {
+    expect(["run", "runShoot", "stand", "walk", "attack"].map(baseFor)).toEqual([6, 6, 8, 8, 8]);
   });
 });

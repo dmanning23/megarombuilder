@@ -24,9 +24,11 @@ test("draw on the hero, give it abilities, and play as it", async ({ page }) => 
   await page.screenshot({ path: "test-results/hero-open.png" });
 
   const canvas = page.getByTestId("hero-canvas");
+  await canvas.scrollIntoViewIfNeeded();
   const box = await canvas.boundingBox();
   if (!box) throw new Error("no canvas");
   const px = box.width / 16;
+  await page.screenshot({ path: "test-results/hero-canvas.png" });
   await page.mouse.click(box.x + 0.5 * px, box.y + 0.5 * px); // the top-left pixel of the stand pose
   await expect.poll(async () => (await saved(page)).hero.look.animations.stand.frames[0][0][0]).toBe("1");
 
@@ -63,7 +65,7 @@ test("import a picture into the hero", async ({ page }) => {
     buffer: Buffer.from(dataUrl.split(",")[1], "base64"),
   });
 
-  await expect(page.getByRole("dialog", { name: "Import a picture into Stand" })).toBeVisible();
+  await expect(page.getByRole("dialog", { name: "Import a picture into Stand frame 1" })).toBeVisible();
   await page.screenshot({ path: "test-results/hero-import.png" });
   await page.getByRole("button", { name: "Use this" }).click();
   await expect.poll(async () => (await saved(page)).hero.look.animations.stand.frames[0][8]).toBe("....88888888....");

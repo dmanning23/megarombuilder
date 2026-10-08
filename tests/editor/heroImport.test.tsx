@@ -48,7 +48,7 @@ describe("importing a picture", () => {
   it("shows before and after, and puts the picture in the pose as one undo step", async () => {
     const { saved, choose } = setup(async () => picture("clear"));
     await choose();
-    expect(screen.getByRole("dialog", { name: "Import a picture into Stand" })).toBeTruthy();
+    expect(screen.getByRole("dialog", { name: "Import a picture into Stand frame 1" })).toBeTruthy();
     expect(screen.queryByRole("checkbox", { name: "Remove background" })).toBeNull(); // already see-through
     expect(screen.getByText("This adds 1 colour to your hero.")).toBeTruthy();
     await userEvent.click(screen.getByRole("button", { name: "Use this" }));
@@ -107,7 +107,7 @@ describe("the import dialog and the keyboard", () => {
   it("keeps the keyboard in the dialog: the rest of the page is inert, and Use this has focus", async () => {
     const { choose } = setup(async () => picture("clear"));
     await choose();
-    const dialog = screen.getByRole("dialog", { name: "Import a picture into Stand" });
+    const dialog = screen.getByRole("dialog", { name: "Import a picture into Stand frame 1" });
     expect(document.activeElement).toBe(screen.getByRole("button", { name: "Use this" }));
     const others = [...document.body.children].filter((el) => !el.contains(dialog));
     expect(others.length).toBeGreaterThan(0);

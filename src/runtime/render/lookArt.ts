@@ -8,9 +8,12 @@ import { sprite, type Sprite } from "./art";
 // A design's look as sprites. Pixels name colour slots ("1" to "9", then "a" to "g"), so the palette maps "1" to the first.
 export type LookArt = { palette: Record<string, string>; frames: Sprite[] };
 
+export const paletteOf = (colours: number[]): Record<string, string> =>
+  Object.fromEntries(colours.map((colour, i) => [slotChar(i + 1), PALETTE_8BIT[colour]]));
+
 export function lookArt(look: DesignLook): LookArt {
   return {
-    palette: Object.fromEntries(look.colours.map((colour, i) => [slotChar(i + 1), PALETTE_8BIT[colour]])),
+    palette: paletteOf(look.colours),
     frames: look.frames.map((rows) => sprite(rows)),
   };
 }
@@ -49,7 +52,7 @@ export function ownSkins(
       const { animation, frame } = designSlot(kind, look, i);
       return animations[animation].frames[frame];
     });
-    const art = { palette: lookArt({ colours: look.colours, frames: [] }).palette, frames };
+    const art = { palette: paletteOf(look.colours), frames };
     return { art, animations, body: look.body, canvas: look.canvases.main, image: imageFor(art.palette) };
   };
   const skins: Record<string, OwnSkin> = Object.fromEntries(enemies.map((enemy) => [ownType(enemy.id), skin(enemy.behaviour, enemy.look)]));

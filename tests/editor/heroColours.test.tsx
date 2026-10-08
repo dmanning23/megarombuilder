@@ -23,17 +23,16 @@ describe("hero colours", () => {
     expect(saved().hero.look.colours[1]).toBe(21);
   });
 
-  it("adds a colour, chooses it, and draws with it", async () => {
+  it("adds colours up to sixteen, and draws with the sixteenth", async () => {
     const { open, choose, press, saved } = setupHero();
     await open();
-    await choose("Add a colour");
-    expect(screen.getByRole("button", { name: "Colour 8" }).getAttribute("aria-pressed")).toBe("true");
-    expect(screen.queryByRole("button", { name: "Add a colour" })).toBeNull(); // eight is the most
+    for (let i = 0; i < 9; i++) await choose("Add a colour");
+    expect(screen.getByRole("button", { name: "Colour 16" }).getAttribute("aria-pressed")).toBe("true");
+    expect(screen.queryByRole("button", { name: "Add a colour" })).toBeNull(); // sixteen is the most
     press(0, 0);
     const look = saved().hero.look;
-    expect(look.colours).toHaveLength(8);
-    expect(look.colours[7]).toBe(27);
-    expect(pictureRows(look, "stand")[0][0]).toBe("8");
+    expect(look.colours).toHaveLength(16);
+    expect(pictureRows(look, "stand")[0][0]).toBe("g");
   });
 
   it("refuses to remove a colour that is still used, and says where", async () => {

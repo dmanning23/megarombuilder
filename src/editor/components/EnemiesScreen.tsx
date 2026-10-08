@@ -6,14 +6,11 @@ import type { ContentPack } from "@/model/contentPack";
 import {
   DAMAGE_STEPS,
   ENEMY_BEHAVIOURS,
-  ENEMY_FRAME,
   HEALTH_STEPS,
   MAX_ENEMIES,
   SHOOT_STEPS,
   SPEED_STEPS,
   TUNING_USED,
-  designFrames,
-  designSlot,
   designLook,
   type EnemyBehaviour,
   type EnemyDesign,
@@ -24,14 +21,12 @@ import type { ArtSet } from "@/runtime/render/art";
 import { lookArt } from "@/runtime/render/lookArt";
 import styles from "../editor.module.css";
 import type { RawImage } from "../hero/importPicture";
-import { enemyBody } from "../hero/pixels";
 import { enemyPreviewSim, IDLE_INPUTS } from "../hero/preview";
 import { readPicture as readPictureFile } from "../hero/readPicture";
-import { Colours } from "./Colours";
+import { AnimationEditor } from "./AnimationEditor";
 import { GamePreview } from "./GamePreview";
 import { NameField } from "./NameField";
 import { SpriteSwatch } from "./Palette";
-import { PictureEditor, type DrawTool } from "./PictureEditor";
 
 export const BEHAVIOUR_NAMES: Record<EnemyBehaviour, string> = {
   walker: "Walker",
@@ -108,9 +103,6 @@ export function EnemiesScreen({
   const enemy = enemies.find((e) => e.id === selectedId) ?? enemies[0] ?? null;
   const [making, setMaking] = useState(false);
   const [newName, setNewName] = useState("");
-  const [frame, setFrame] = useState<0 | 1>(0);
-  const [tool, setTool] = useState<DrawTool>("pencil");
-  const [slot, setSlot] = useState(1);
   const arts = useMemo(() => new Map(enemies.map((e) => [e.id, lookArt(designLook(e.behaviour, e.look))])), [enemies]);
 
   const [newError, setNewError] = useState<string | null>(null);
@@ -128,7 +120,6 @@ export function EnemiesScreen({
     setSelectedId(id);
     setMaking(false);
     setNewName("");
-    setFrame(0);
   };
 
   return (
@@ -149,10 +140,7 @@ export function EnemiesScreen({
                 type="button"
                 className={styles.swatch}
                 aria-pressed={e.id === enemy?.id}
-                onClick={() => {
-                  setSelectedId(e.id);
-                  setFrame(0);
-                }}
+                onClick={() => setSelectedId(e.id)}
               >
                 <SpriteSwatch sprite={arts.get(e.id)?.frames[0]} palette={arts.get(e.id)?.palette} />
                 {tidyName(e.name)}
@@ -231,49 +219,8 @@ export function EnemiesScreen({
                 </div>
               </div>
             ))}
-            <div className={styles.drawTools} role="group" aria-label="Frames">
-              {([0, 1] as const).map((f) => (
-                <button key={f} type="button" className={styles.swatch} aria-pressed={frame === f} onClick={() => setFrame(f)}>
-                  Frame {f + 1}
-                </button>
-              ))}
-            </div>
-            <PictureEditor
-              key={`${enemy.id}:${frame}`}
-              name={`Frame ${frame + 1}`}
-              rows={designFrames(enemy.behaviour, enemy.look)[frame]}
-              palette={arts.get(enemy.id)!.palette}
-              size={ENEMY_FRAME}
-              body={enemyBody(enemy.behaviour)}
-              feet
-              testId="enemy-canvas"
-              colours={enemy.look.colours}
-              tool={tool}
-              onTool={setTool}
-              slot={Math.min(slot, enemy.look.colours.length)}
-              onSlot={setSlot}
-              partners={[{ id: String(1 - frame), name: `Frame ${2 - frame}`, rows: designFrames(enemy.behaviour, enemy.look)[1 - frame] }]}
-              importTarget={{ ...ENEMY_FRAME, stand: true }}
-              readPicture={readPicture}
-              locked={locked}
-              onRows={(rows) => onCommand({ name: "setFrame", args: { target: { enemy: enemy.id }, ...designSlot(enemy.behaviour, enemy.look, frame), rows } })}
-              onImport={(result) => {
-                if (result.colours.length !== enemy.look.colours.length) {
-                  onCommand({ name: "setLookColours", args: { target: { enemy: enemy.id }, colours: result.colours } });
-                }
-                onCommand({ name: "setFrame", args: { target: { enemy: enemy.id }, ...designSlot(enemy.behaviour, enemy.look, frame), rows: result.rows } });
-              }}
-              onBegin={onBegin}
-              onCommit={onCommit}
-            />
           </div>
           <div className={styles.heroSide}>
-            <Colours
-              colours={enemy.look.colours}
-              slot={Math.min(slot, enemy.look.colours.length)}
-              onSlot={setSlot}
-              onColours={(colours) => onCommand({ name: "setLookColours", args: { target: { enemy: enemy.id }, colours } })}
-            />
             <EnemyPreview enemy={enemy} project={project} pack={pack} art={art} />
             <button
               type="button"
@@ -287,6 +234,18 @@ export function EnemiesScreen({
               Delete enemy
             </button>
           </div>
+          <AnimationEditor
+            key={`${enemy.id}:${enemy.behaviour}`}
+            kind={enemy.behaviour}
+            look={enemy.look}
+            target={{ enemy: enemy.id }}
+            testId="enemy-canvas"
+            locked={locked}
+            onCommand={onCommand}
+            onBegin={onBegin}
+            onCommit={onCommit}
+            readPicture={readPicture}
+          />
         </>
       )}
     </fieldset>
