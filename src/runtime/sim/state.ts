@@ -150,7 +150,7 @@ export function createSim(
     charge: 0,
     airSteps: 0,
     standH: body.h,
-    slideH: look.slideBody?.h ?? SLIDE_H,
+    slideH: Math.min(look.slideBody?.h ?? SLIDE_H, body.h - 1), // always lower than standing, so a slide ends
     shotY: look.shotY ?? 8,
   };
   player.onLadder = touchingLadder(map, player);

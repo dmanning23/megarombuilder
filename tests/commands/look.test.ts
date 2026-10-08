@@ -111,3 +111,14 @@ describe("the canvas, body and shot point", () => {
     );
   });
 });
+
+describe("fitting the hero's hitboxes to wide drawings", () => {
+  it("fits the slide to the drawing, and keeps a standing hitbox at most 16 wide around its middle", () => {
+    const project = run(baseProject(), "fitBody", { target: "hero", which: "slide" });
+    expect(project.hero.look.slideBody!.h).toBeLessThanOrEqual(14);
+    const wide = run(baseProject(), "resizeCanvas", { target: "hero", canvas: "main", w: 24, h: 24 });
+    const filled = run(wide, "setFrame", { target: "hero", animation: "stand", frame: 0, rows: Array.from({ length: 24 }, () => "1".repeat(24)) });
+    const fitted = run(filled, "fitBody", { target: "hero" });
+    expect(fitted.hero.look.body).toEqual({ x: 4, y: 0, w: 16, h: 24 });
+  });
+});

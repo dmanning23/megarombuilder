@@ -67,4 +67,23 @@ describe("the hero's own size", () => {
     const sim = createSim(game(), "L1", snowPack);
     expect([sim.player.w, sim.player.h, sim.player.standH, sim.player.slideH, sim.player.shotY]).toEqual([14, 22, 22, 14, 8]);
   });
+
+  it("slides lower than it stands even when its sliding hitbox is taller, and stands up again", () => {
+    let project = game();
+    for (const [name, args] of [
+      ["setHeroAbilities", { slide: true }],
+      ["setBody", { target: "hero", body: { x: 2, y: 12, w: 12, h: 12 } }],
+    ] as const) {
+      const result = applyCommand(project, { name, args }, { pack: snowPack });
+      if (!result.ok) throw new Error(result.error);
+      project = result.project;
+    }
+    const sim = createSim(project, "L1", snowPack);
+    for (let i = 0; i < 120 && !sim.player.onGround; i++) step(sim, NO_INPUT);
+    step(sim, press({ down: true, right: true }));
+    step(sim, press({ down: true, jump: true }));
+    expect(sim.player.h).toBeLessThan(12);
+    for (let i = 0; i < 120 && sim.player.h !== 12; i++) step(sim, NO_INPUT);
+    expect(sim.player.h).toBe(12);
+  });
 });

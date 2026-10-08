@@ -82,7 +82,7 @@ describe("fitBody", () => {
 });
 
 describe("the hero's width", () => {
-  it("is at most one tile, standing and sliding", () => {
+  it("is at most one tile standing; the sliding hitbox, whose width the game doesn't use, may be wider", () => {
     const hero = heroLookFrom(testOldHero);
     expect(lookProblems("hero", { ...hero, body: { x: 0, y: 2, w: 16, h: 22 } }, "The hero")).toEqual([]);
     const widened = (rows: string[]) => rows.map((row) => `${row}..`);
@@ -95,8 +95,6 @@ describe("the hero's width", () => {
       body: { x: 0, y: 2, w: 18, h: 22 },
     };
     expect(lookProblems("hero", wide, "The hero")).toContain("The hero's hitbox is 18 wide; at most 16, so it fits on a ladder beside a wall.");
-    expect(lookProblems("hero", { ...hero, slideBody: { x: 3, y: 2, w: 18, h: 14 } }, "The hero")).toContain(
-      "The hero's sliding hitbox is 18 wide; at most 16, so it fits on a ladder beside a wall.",
-    );
+    expect(lookProblems("hero", { ...hero, slideBody: { x: 1, y: 2, w: 22, h: 14 } }, "The hero")).toEqual([]);
   });
 });
