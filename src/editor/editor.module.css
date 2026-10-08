@@ -742,7 +742,7 @@
 .animationEditor {
   grid-column: 1 / -1;
   display: grid;
-  grid-template-columns: 11rem auto minmax(14rem, 1fr);
+  grid-template-columns: 12rem minmax(0, auto) minmax(14rem, 1fr);
   gap: 1rem;
   align-items: start;
   min-width: 0;
@@ -801,4 +801,19 @@
   .animationEditor {
     grid-template-columns: 1fr;
   }
+}
+.animationName {
+  display: grid;
+  text-align: left;
+  line-height: 1.2;
+  min-width: 0;
+}
+.frameCount {
+  font-size: 13px;
+  font-weight: 400;
+  opacity: 0.8;
+}
+.animationEditor .poses .swatch {
+  min-width: 0;
+  box-sizing: border-box;
 }

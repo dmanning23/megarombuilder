@@ -1,6 +1,14 @@
 import { expect, test, type Page } from "@playwright/test";
 
-type Saved = { enemies: { id: string; name: string; behaviour: string }[]; levels: { zones: { things: { type: string }[] }[] }[] };
+type Saved = {
+  enemies: {
+    id: string;
+    name: string;
+    behaviour: string;
+    look: { animations: { walk: { frames: string[][] } } };
+  }[];
+  levels: { zones: { things: { type: string }[] }[] }[];
+};
 
 async function saved(page: Page): Promise<Saved> {
   return page.evaluate(
@@ -9,7 +17,10 @@ async function saved(page: Page): Promise<Saved> {
         const request = indexedDB.open("megarombuilder");
         request.onerror = () => reject(request.error);
         request.onsuccess = () => {
-          const all = request.result.transaction("projects").objectStore("projects").getAll();
+          const all = request.result
+            .transaction("projects")
+            .objectStore("projects")
+            .getAll();
           all.onsuccess = () => resolve(all.result[0].project);
         };
       }),
@@ -24,10 +35,37 @@ test("make an enemy, place it, and play against it", async ({ page }) => {
   await page.getByRole("tab", { name: "Enemies" }).click();
   await page.getByRole("button", { name: "New enemy" }).click();
   await page.getByRole("textbox", { name: "Enemy name" }).fill("Frost Fang");
-  await page.getByRole("group", { name: "Choose how it behaves" }).getByRole("button", { name: "Walker" }).click();
-  await page.getByRole("group", { name: "Speed" }).getByRole("button", { name: "Fast" }).click();
-  await expect.poll(async () => (await saved(page)).enemies.map((e) => e.name)).toEqual(["Frost Fang"]);
+  await page
+    .getByRole("group", { name: "Choose how it behaves" })
+    .getByRole("button", { name: "Walker" })
+    .click();
+  await page
+    .getByRole("group", { name: "Speed", exact: true })
+    .getByRole("button", { name: "Fast" })
+    .click();
+  await expect
+    .poll(async () => (await saved(page)).enemies.map((e) => e.name))
+    .toEqual(["Frost Fang"]);
   await page.screenshot({ path: "test-results/enemies.png", fullPage: true });
+
+  await page
+    .getByRole("group", { name: "Frames" })
+    .getByRole("button", { name: "Frame 2" })
+    .click();
+  await page.getByRole("button", { name: "Copy frame" }).click();
+  await page.getByRole("button", { name: "Copy frame" }).click();
+  await page.getByRole("button", { name: "Play animation" }).click();
+  await expect
+    .poll(
+      async () =>
+        (await saved(page)).enemies[0].look.animations.walk.frames.length,
+    )
+    .toBe(4);
+  await page.screenshot({
+    path: "test-results/enemy-frames.png",
+    fullPage: true,
+  });
+  await page.getByRole("button", { name: "Stop animation" }).click();
 
   await page.getByRole("button", { name: "Level" }).click();
   await page.getByRole("tab", { name: "Enemies and items" }).click();
@@ -36,11 +74,15 @@ test("make an enemy, place it, and play against it", async ({ page }) => {
   if (!box) throw new Error("no canvas");
   const t = box.height / 15;
   await page.mouse.click(box.x + 8.5 * t, box.y + 12.5 * t);
-  await expect.poll(async () => (await saved(page)).levels[0].zones[0].things.map((th) => th.type)).toContainEqual(
-    expect.stringMatching(/^own-/),
-  );
+  await expect
+    .poll(async () =>
+      (await saved(page)).levels[0].zones[0].things.map((th) => th.type),
+    )
+    .toContainEqual(expect.stringMatching(/^own-/));
 
   await page.getByRole("button", { name: "Play", exact: true }).click();
-  await expect(page.getByRole("button", { name: "Stop playing" })).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Stop playing" }),
+  ).toBeVisible();
   await page.screenshot({ path: "test-results/enemies-playing.png" });
 });

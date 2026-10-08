@@ -178,11 +178,13 @@ export function AnimationEditor({
                   sprite={sprites[name].frames[0]}
                   palette={palette}
                 />
-                {ANIMATION_NAMES[name]}
-                {notes[name] && (
-                  <span className={styles.needs}> {notes[name]}</span>
-                )}
-                <span className={styles.note}> {frameCount(count)}</span>
+                <span className={styles.animationName}>
+                  {ANIMATION_NAMES[name]}
+                  {notes[name] && (
+                    <span className={styles.needs}>{notes[name]}</span>
+                  )}
+                  <span className={styles.frameCount}>{frameCount(count)}</span>
+                </span>
               </button>
             </li>
           );
@@ -190,160 +192,168 @@ export function AnimationEditor({
       </ul>
 
       <div className={styles.animationMiddle}>
-      <div className={styles.frameStrip}>
-        <div role="group" aria-label="Frames" className={styles.frames}>
-          {anim.frames.map((_, i) => (
+        <div className={styles.frameStrip}>
+          <div role="group" aria-label="Frames" className={styles.frames}>
+            {anim.frames.map((_, i) => (
+              <button
+                key={i}
+                type="button"
+                draggable
+                className={styles.frameButton}
+                aria-label={`Frame ${i + 1}`}
+                aria-pressed={i === frame}
+                onClick={() => setChosen(i)}
+                onDragStart={() => setDragged(i)}
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  if (dragged !== null) move(dragged, i);
+                  setDragged(null);
+                }}
+              >
+                <SpriteSwatch
+                  sprite={sprites[animation].frames[i]}
+                  palette={palette}
+                />
+                {i + 1}
+              </button>
+            ))}
+          </div>
+          <div
+            className={styles.drawTools}
+            role="group"
+            aria-label="Frame tools"
+          >
             <button
-              key={i}
               type="button"
-              draggable
-              className={styles.frameButton}
-              aria-label={`Frame ${i + 1}`}
-              aria-pressed={i === frame}
-              onClick={() => setChosen(i)}
-              onDragStart={() => setDragged(i)}
-              onDragOver={(e) => e.preventDefault()}
-              onDrop={(e) => {
-                e.preventDefault();
-                if (dragged !== null) move(dragged, i);
-                setDragged(null);
+              className={styles.swatch}
+              disabled={anim.frames.length >= MAX_FRAMES}
+              onClick={() => {
+                send("addFrame", { animation, after: frame });
+                setChosen(frame + 1);
               }}
             >
-              <SpriteSwatch
-                sprite={sprites[animation].frames[i]}
-                palette={palette}
-              />
-              {i + 1}
+              Add frame
             </button>
-          ))}
-        </div>
-        <div className={styles.drawTools} role="group" aria-label="Frame tools">
-          <button
-            type="button"
-            className={styles.swatch}
-            disabled={anim.frames.length >= MAX_FRAMES}
-            onClick={() => {
-              send("addFrame", { animation, after: frame });
-              setChosen(frame + 1);
-            }}
-          >
-            Add frame
-          </button>
-          <button
-            type="button"
-            className={styles.swatch}
-            disabled={anim.frames.length >= MAX_FRAMES}
-            onClick={() => {
-              send("addFrame", { animation, after: frame, copy: true });
-              setChosen(frame + 1);
-            }}
-          >
-            Copy frame
-          </button>
-          <button
-            type="button"
-            className={styles.swatch}
-            disabled={anim.frames.length <= 1}
-            onClick={() => {
-              send("removeFrame", { animation, frame });
-              setChosen(Math.max(0, frame - 1));
-            }}
-          >
-            Delete frame
-          </button>
-          <button
-            type="button"
-            className={styles.swatch}
-            disabled={frame === 0}
-            onClick={() => move(frame, frame - 1)}
-          >
-            Move left
-          </button>
-          <button
-            type="button"
-            className={styles.swatch}
-            disabled={frame === anim.frames.length - 1}
-            onClick={() => move(frame, frame + 1)}
-          >
-            Move right
-          </button>
-        </div>
-        {anim.frames.length >= MAX_FRAMES && (
-          <p className={styles.note}>{MAX_FRAMES} frames is the most.</p>
-        )}
-      </div>
-
-      <div className={styles.playRow}>
-        <button
-          type="button"
-          className={styles.swatch}
-          onClick={() => setPlaying((p) => !p)}
-        >
-          {playing ? "Stop animation" : "Play animation"}
-        </button>
-        {playing && (
-          <Player
-            frames={anim.frames}
-            palette={palette}
-            size={canvas}
-            speed={anim.speed}
-            base={baseFor(animation)}
-          />
-        )}
-        <div role="group" aria-label="Animation speed" className={styles.steps}>
-          {ANIMATION_SPEEDS.map((speed) => (
             <button
-              key={speed}
               type="button"
-              className={styles.step}
-              aria-pressed={anim.speed === speed}
-              onClick={() => send("setAnimationSpeed", { animation, speed })}
+              className={styles.swatch}
+              disabled={anim.frames.length >= MAX_FRAMES}
+              onClick={() => {
+                send("addFrame", { animation, after: frame, copy: true });
+                setChosen(frame + 1);
+              }}
             >
-              {SPEED_NAMES[speed]}
+              Copy frame
             </button>
-          ))}
+            <button
+              type="button"
+              className={styles.swatch}
+              disabled={anim.frames.length <= 1}
+              onClick={() => {
+                send("removeFrame", { animation, frame });
+                setChosen(Math.max(0, frame - 1));
+              }}
+            >
+              Delete frame
+            </button>
+            <button
+              type="button"
+              className={styles.swatch}
+              disabled={frame === 0}
+              onClick={() => move(frame, frame - 1)}
+            >
+              Move left
+            </button>
+            <button
+              type="button"
+              className={styles.swatch}
+              disabled={frame === anim.frames.length - 1}
+              onClick={() => move(frame, frame + 1)}
+            >
+              Move right
+            </button>
+          </div>
+          {anim.frames.length >= MAX_FRAMES && (
+            <p className={styles.note}>{MAX_FRAMES} frames is the most.</p>
+          )}
         </div>
-        <button
-          type="button"
-          className={styles.swatch}
-          aria-pressed={onion}
-          onClick={() => setOnion((o) => !o)}
-        >
-          Onion skin
-        </button>
-      </div>
 
-      <PictureEditor
-        key={`${animation}:${frame}`}
-        name={`${label} frame ${frame + 1}`}
-        rows={anim.frames[frame]}
-        under={under}
-        palette={palette}
-        size={canvas}
-        body={body}
-        feet={group === "main" || group === "slide"}
-        testId={testId}
-        colours={look.colours}
-        tool={tool}
-        onTool={setTool}
-        slot={colour}
-        onSlot={setSlot}
-        partners={partners}
-        importTarget={{
-          ...canvas,
-          stand: group === "main" || group === "slide",
-        }}
-        readPicture={readPicture}
-        locked={locked}
-        onRows={(rows) => send("setFrame", { animation, frame, rows })}
-        onImport={(result) => {
-          if (result.colours.length !== look.colours.length)
-            send("setLookColours", { colours: result.colours });
-          send("setFrame", { animation, frame, rows: result.rows });
-        }}
-        onBegin={onBegin}
-        onCommit={onCommit}
-      />
+        <div className={styles.playRow}>
+          <button
+            type="button"
+            className={styles.swatch}
+            onClick={() => setPlaying((p) => !p)}
+          >
+            {playing ? "Stop animation" : "Play animation"}
+          </button>
+          {playing && (
+            <Player
+              frames={anim.frames}
+              palette={palette}
+              size={canvas}
+              speed={anim.speed}
+              base={baseFor(animation)}
+            />
+          )}
+          <div
+            role="group"
+            aria-label="Animation speed"
+            className={styles.steps}
+          >
+            {ANIMATION_SPEEDS.map((speed) => (
+              <button
+                key={speed}
+                type="button"
+                className={styles.step}
+                aria-pressed={anim.speed === speed}
+                onClick={() => send("setAnimationSpeed", { animation, speed })}
+              >
+                {SPEED_NAMES[speed]}
+              </button>
+            ))}
+          </div>
+          <button
+            type="button"
+            className={styles.swatch}
+            aria-pressed={onion}
+            onClick={() => setOnion((o) => !o)}
+          >
+            Onion skin
+          </button>
+        </div>
+
+        <PictureEditor
+          key={`${animation}:${frame}`}
+          name={`${label} frame ${frame + 1}`}
+          rows={anim.frames[frame]}
+          under={under}
+          palette={palette}
+          size={canvas}
+          body={body}
+          feet={group === "main" || group === "slide"}
+          testId={testId}
+          colours={look.colours}
+          tool={tool}
+          onTool={setTool}
+          slot={colour}
+          onSlot={setSlot}
+          partners={partners}
+          importTarget={{
+            ...canvas,
+            stand: group === "main" || group === "slide",
+          }}
+          readPicture={readPicture}
+          locked={locked}
+          onRows={(rows) => send("setFrame", { animation, frame, rows })}
+          onImport={(result) => {
+            if (result.colours.length !== look.colours.length)
+              send("setLookColours", { colours: result.colours });
+            send("setFrame", { animation, frame, rows: result.rows });
+          }}
+          onBegin={onBegin}
+          onCommit={onCommit}
+        />
       </div>
       <Colours
         colours={look.colours}
