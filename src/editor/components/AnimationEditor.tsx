@@ -360,7 +360,7 @@ export function AnimationEditor({
           >
             <button
               type="button"
-              className={styles.swatch}
+              className={styles.action}
               disabled={anim.frames.length >= MAX_FRAMES}
               onClick={() => {
                 send("addFrame", { animation, after: frame });
@@ -371,7 +371,7 @@ export function AnimationEditor({
             </button>
             <button
               type="button"
-              className={styles.swatch}
+              className={styles.action}
               disabled={anim.frames.length >= MAX_FRAMES}
               onClick={() => {
                 send("addFrame", { animation, after: frame, copy: true });
@@ -382,7 +382,7 @@ export function AnimationEditor({
             </button>
             <button
               type="button"
-              className={styles.swatch}
+              className={`${styles.action} ${styles.danger}`}
               disabled={anim.frames.length <= 1}
               onClick={() => {
                 send("removeFrame", { animation, frame });
@@ -393,7 +393,7 @@ export function AnimationEditor({
             </button>
             <button
               type="button"
-              className={styles.swatch}
+              className={styles.action}
               disabled={frame === 0}
               onClick={() => move(frame, frame - 1)}
             >
@@ -401,7 +401,7 @@ export function AnimationEditor({
             </button>
             <button
               type="button"
-              className={styles.swatch}
+              className={styles.action}
               disabled={frame === anim.frames.length - 1}
               onClick={() => move(frame, frame + 1)}
             >
@@ -416,7 +416,7 @@ export function AnimationEditor({
         <div className={styles.playRow}>
           <button
             type="button"
-            className={styles.swatch}
+            className={styles.action}
             onClick={() => setPlaying((p) => !p)}
           >
             {playing ? "Stop animation" : "Play animation"}
@@ -450,7 +450,7 @@ export function AnimationEditor({
           </div>
           <button
             type="button"
-            className={styles.swatch}
+            className={styles.choice}
             aria-pressed={onion}
             onClick={() => setOnion((o) => !o)}
           >
@@ -464,7 +464,7 @@ export function AnimationEditor({
             <span className={styles.note}>{`${canvas.w} × ${canvas.h}`}</span>
             <button
               type="button"
-              className={styles.step}
+              className={styles.action}
               disabled={canvas.w - 2 < limits.min.w}
               onClick={() => resize(canvas.w - 2, canvas.h)}
             >
@@ -472,7 +472,7 @@ export function AnimationEditor({
             </button>
             <button
               type="button"
-              className={styles.step}
+              className={styles.action}
               disabled={canvas.w + 2 > limits.max.w}
               onClick={() => resize(canvas.w + 2, canvas.h)}
             >
@@ -480,7 +480,7 @@ export function AnimationEditor({
             </button>
             <button
               type="button"
-              className={styles.step}
+              className={styles.action}
               disabled={canvas.h - 2 < limits.min.h}
               onClick={() => resize(canvas.w, canvas.h - 2)}
             >
@@ -488,7 +488,7 @@ export function AnimationEditor({
             </button>
             <button
               type="button"
-              className={styles.step}
+              className={styles.action}
               disabled={canvas.h + 2 > limits.max.h}
               onClick={() => resize(canvas.w, canvas.h + 2)}
             >
@@ -500,7 +500,7 @@ export function AnimationEditor({
         {activeTool === "hitbox" && (
           <button
             type="button"
-            className={styles.swatch}
+            className={styles.action}
             onClick={() => send("fitBody", { which })}
           >
             Fit to drawing

@@ -206,7 +206,7 @@ export function EnemiesScreen({
           </ul>
           <button
             type="button"
-            className={styles.swatch}
+            className={styles.action}
             disabled={enemies.length >= MAX_ENEMIES}
             onClick={() => setMaking((m) => !m)}
           >
@@ -251,7 +251,7 @@ export function EnemiesScreen({
           </p>
         ) : (
           <>
-            <div className={styles.aboutGroup}>
+            <div className={styles.aboutRow}>
               <NameField
                 key={`${enemy.id}:${enemy.name}`}
                 name={tidyName(enemy.name)}

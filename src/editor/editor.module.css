@@ -13,6 +13,7 @@
 .toolbar {
   grid-column: 1 / -1;
   display: flex;
+  flex-wrap: wrap; /* on a narrow window the buttons wrap rather than widen the page */
   align-items: center;
   gap: 0.75rem;
   padding: 0.75rem 1rem;
@@ -542,6 +543,15 @@
   align-content: start;
   min-width: 0;
 }
+/* A character's settings, side by side where there is room. */
+.aboutRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.75rem;
+  align-items: flex-start;
+  flex: 1 1 24rem;
+  min-width: 0;
+}
 .aboutBar > .action:last-child {
   margin-left: auto;
 }
@@ -641,6 +651,8 @@
 
 .abilities {
   grid-column: 1 / -1;
+  flex: 1 1 100%; /* fill the hero's About bar, so the abilities sit side by side */
+  min-width: 0;
 }
 .abilityRows {
   display: grid;
@@ -659,20 +671,68 @@
   flex-wrap: wrap;
   gap: 0.3rem;
 }
-.step {
+/* A choice that stays chosen: a pill, filled when pressed. */
+.step,
+.choice {
   font: inherit;
   font-size: 15px;
-  padding: 0.3rem 0.65rem;
+  padding: 0.3rem 0.75rem;
   border-radius: 999px;
   border: 2px solid var(--panel-2);
   background: #fff;
   color: var(--ink);
   cursor: pointer;
 }
-.step[aria-pressed="true"] {
+.step[aria-pressed="true"],
+.choice[aria-pressed="true"] {
   background: var(--signal);
   border-color: var(--signal);
   font-weight: 700;
+}
+/* An action: a solid button that does something once. */
+.action {
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  padding: 0.35rem 0.85rem;
+  border-radius: 10px;
+  border: 2px solid var(--panel);
+  background: var(--panel);
+  color: var(--paper);
+  cursor: pointer;
+}
+/* A destructive action (Delete, Clear): outlined in the warning colour. */
+.danger {
+  background: #fff;
+  color: #b3264a;
+  border-color: var(--warn);
+}
+.step:disabled,
+.choice:disabled,
+.action:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.step:focus-visible,
+.choice:focus-visible,
+.action:focus-visible {
+  outline: 3px solid var(--signal);
+  outline-offset: 2px;
+}
+.field input {
+  font: inherit;
+  font-weight: 400;
+  font-size: 15px;
+  padding: 0.3rem 0.5rem;
+  border-radius: 8px;
+  border: 2px solid var(--panel-2);
+  background: #fff;
+  color: var(--ink);
+  min-width: 0;
+}
+.field input:focus-visible {
+  outline: 3px solid var(--signal);
+  outline-offset: 2px;
 }
 .step:focus-visible,
 .link:focus-visible {

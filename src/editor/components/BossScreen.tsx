@@ -164,7 +164,7 @@ export function BossScreen({
           </div>
         ) : (
           <>
-            <div className={styles.aboutGroup}>
+            <div className={styles.aboutRow}>
               <NameField
                 key={boss.name}
                 name={tidyName(boss.name)}

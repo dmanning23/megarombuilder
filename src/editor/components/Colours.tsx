@@ -17,7 +17,7 @@ const WHITE = 27; // a new colour starts white
 export function Colours({ colours, slot, onSlot, onColours }: Props) {
   return (
     <section className={styles.colours} aria-label="Colours">
-      <h3 className={styles.heroHeading}>Colours</h3>
+      <h3 className={styles.panelHeading}>Colours</h3>
       <div className={styles.slots} role="group" aria-label="Your colours">
         {colours.map((colour, i) => (
           <button
@@ -37,7 +37,7 @@ export function Colours({ colours, slot, onSlot, onColours }: Props) {
         {colours.length < MAX_LOOK_COLOURS && (
           <button
             type="button"
-            className={styles.swatch}
+            className={styles.action}
             onClick={() => {
               onColours([...colours, WHITE]);
               onSlot(colours.length + 1);
@@ -47,7 +47,7 @@ export function Colours({ colours, slot, onSlot, onColours }: Props) {
           </button>
         )}
         {colours.length > 1 && (
-          <button type="button" className={styles.swatch} onClick={() => onColours(colours.slice(0, -1))}>
+          <button type="button" className={`${styles.action} ${styles.danger}`} onClick={() => onColours(colours.slice(0, -1))}>
             Remove colour {colours.length}
           </button>
         )}
