@@ -83,6 +83,7 @@ normal or fast, an onion skin, and sixteen colours. 992 tests and 12 browser tes
 | `plans/2026-10-07-m4-plan-2-animations-in-game.md` | Milestone 4 plan 2 of 5, implemented, reviewed and merged |
 | `plans/2026-10-07-m4-plan-3-bodies-in-game.md` | Milestone 4 plan 3 of 5, implemented, reviewed and merged |
 | `plans/2026-10-07-m4-plan-4-animation-editor.md` | Milestone 4 plan 4 of 5, implemented, reviewed and merged |
+| `plans/2026-10-08-m4-plan-5-size-hitbox-shot.md` | Milestone 4 plan 5 of 5, written, waiting for approval |
 
 Milestone 1 is now eight plans (the editor became two):
 
