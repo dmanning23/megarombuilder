@@ -80,6 +80,7 @@ size. 981 tests and 12 browser tests pass; typecheck, lint and build are clean. 
 | `plans/2026-10-07-m4-plan-1-shared-look.md` | Milestone 4 plan 1 of 5, implemented, reviewed and merged |
 | `plans/2026-10-07-m4-plan-2-animations-in-game.md` | Milestone 4 plan 2 of 5, implemented, reviewed and merged |
 | `plans/2026-10-07-m4-plan-3-bodies-in-game.md` | Milestone 4 plan 3 of 5, implemented, reviewed and merged |
+| `plans/2026-10-07-m4-plan-4-animation-editor.md` | Milestone 4 plan 4 of 5, written, waiting for approval |
 
 Milestone 1 is now eight plans (the editor became two):
 
