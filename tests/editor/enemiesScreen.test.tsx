@@ -65,7 +65,7 @@ describe("the Enemies tab", () => {
     await open();
     await make("Frost Fang", "Walker");
     expect(screen.getByRole("button", { name: /^Frost Fang/ }).getAttribute("aria-pressed")).toBe("true");
-    expect(screen.getByRole("img", { name: "Frame 1, 16 by 16 pixels" })).toBeTruthy();
+    expect(screen.getByRole("img", { name: "Walk frame 1, 16 by 16 pixels" })).toBeTruthy();
     expect(screen.getByRole("img", { name: "Frost Fang in action" })).toBeTruthy();
     const enemy = saved().enemies[0];
     expect(enemy).toMatchObject({ name: "Frost Fang", behaviour: "walker", look: snowPack.enemyLooks.walker });
@@ -152,7 +152,7 @@ describe("the Enemies tab", () => {
     await open();
     await make("Frost Fang", "Walker");
     await userEvent.click(screen.getByRole("button", { name: "Frame 2" }));
-    expect(screen.getByRole("img", { name: "Frame 2, 16 by 16 pixels" })).toBeTruthy();
+    expect(screen.getByRole("img", { name: "Walk frame 2, 16 by 16 pixels" })).toBeTruthy();
     press(0, 0);
     expect(designFrames("walker", saved().enemies[0].look)[1][0][0]).toBe("1");
   });
@@ -190,5 +190,30 @@ describe("the Enemies tab", () => {
     await open();
     expect(screen.getByRole("button", { name: "New enemy" })).toHaveProperty("disabled", true);
     expect(screen.getByText("12 is the most.")).toBeTruthy();
+  });
+
+  it("adds walk frames to an enemy and speeds them up", async () => {
+    const { open, saved } = setup();
+    await open();
+    await make("Frost Fang", "Walker");
+    const frames = screen.getByRole("group", { name: "Frames" });
+    await userEvent.click(within(frames).getByRole("button", { name: "Frame 2" }));
+    await userEvent.click(screen.getByRole("button", { name: "Copy frame" }));
+    await userEvent.click(screen.getByRole("button", { name: "Add frame" }));
+    await userEvent.click(within(screen.getByRole("group", { name: "Animation speed" })).getByRole("button", { name: "Fast" }));
+    const walk = saved().enemies[0].look.animations.walk;
+    expect(walk.frames).toHaveLength(4);
+    expect(walk.speed).toBe("fast");
+  });
+
+  it("starts on the first animation again when the behaviour changes", async () => {
+    const { open, group } = setup();
+    await open();
+    await make("Frost Fang", "Walker");
+    await userEvent.click(screen.getByRole("button", { name: "Add frame" }));
+    await userEvent.click(screen.getByRole("button", { name: "Add frame" }));
+    await userEvent.click(within(group("Behaviour")).getByRole("button", { name: "Hopper" }));
+    expect(screen.getByRole("img", { name: "On the ground frame 1, 16 by 16 pixels" })).toBeTruthy();
+    expect(within(screen.getByRole("group", { name: "Animations" })).getByRole("button", { name: "In the air, 3 frames" })).toBeTruthy();
   });
 });

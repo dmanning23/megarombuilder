@@ -1,14 +1,11 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo } from "react";
 import type { Command } from "@/commands/types";
 import type { ContentPack } from "@/model/contentPack";
 import {
   BOSS_ATTACKS,
   BOSS_FIGHTS,
-  BOSS_FRAME,
-  designFrames,
-  designSlot,
   designLook,
   type BossAttack,
   type BossDesign,
@@ -22,10 +19,9 @@ import styles from "../editor.module.css";
 import type { RawImage } from "../hero/importPicture";
 import { BOSS_PREVIEW_INPUTS, bossPreviewSim } from "../hero/preview";
 import { readPicture as readPictureFile } from "../hero/readPicture";
-import { Colours } from "./Colours";
+import { AnimationEditor } from "./AnimationEditor";
 import { GamePreview } from "./GamePreview";
 import { NameField } from "./NameField";
-import { PictureEditor, type DrawTool } from "./PictureEditor";
 
 export const ATTACK_TEXT: Record<BossAttack, { name: string; tip: string }> = {
   jump: { name: "Jump", tip: "Leaps at you. Run under it." },
@@ -37,8 +33,6 @@ export const ATTACK_TEXT: Record<BossAttack, { name: string; tip: string }> = {
 };
 
 const FIGHT_NAMES: Record<BossDesign["fight"], string> = { short: "Short", normal: "Normal", long: "Long" };
-const FRAME_NAMES = ["Stand", "Jump", "Attack"] as const;
-const WHOLE_FRAME = { x: 0, y: 0, ...BOSS_FRAME };
 const NO_ENEMIES: EnemyDesign[] = []; // one array, so the preview doesn't restart on every render
 
 // The boss fighting in a one-screen boss room, with the hero standing still.
@@ -94,9 +88,6 @@ export function BossScreen({
   readPicture = readPictureFile,
 }: Props) {
   const { boss } = project;
-  const [frame, setFrame] = useState<0 | 1 | 2>(0);
-  const [tool, setTool] = useState<DrawTool>("pencil");
-  const [slot, setSlot] = useState(1);
   const look = boss?.look;
   const bossArt = useMemo(() => (look ? lookArt(designLook("boss", look)) : null), [look]);
   const packBoss = pack.things.find((d) => d.behaviour === "boss" && !d.own);
@@ -175,51 +166,8 @@ export function BossScreen({
                 </div>
               ))}
             </div>
-            <div className={styles.drawTools} role="group" aria-label="Frames">
-              {([0, 1, 2] as const).map((f) => (
-                <button key={f} type="button" className={styles.swatch} aria-pressed={frame === f} onClick={() => setFrame(f)}>
-                  {FRAME_NAMES[f]}
-                </button>
-              ))}
-            </div>
-            <PictureEditor
-              key={frame}
-              name={FRAME_NAMES[frame]}
-              rows={designFrames("boss", boss.look)[frame]}
-              palette={bossArt.palette}
-              size={BOSS_FRAME}
-              body={WHOLE_FRAME}
-              feet
-              testId="boss-canvas"
-              colours={boss.look.colours}
-              tool={tool}
-              onTool={setTool}
-              slot={Math.min(slot, boss.look.colours.length)}
-              onSlot={setSlot}
-              partners={([0, 1, 2] as const)
-                .filter((f) => f !== frame)
-                .map((f) => ({ id: String(f), name: FRAME_NAMES[f], rows: designFrames("boss", boss.look)[f] }))}
-              importTarget={{ ...BOSS_FRAME, stand: true }}
-              readPicture={readPicture}
-              locked={locked}
-              onRows={(rows) => onCommand({ name: "setFrame", args: { target: "boss", ...designSlot("boss", boss.look, frame), rows } })}
-              onImport={(result) => {
-                if (result.colours.length !== boss.look.colours.length) {
-                  onCommand({ name: "setLookColours", args: { target: "boss", colours: result.colours } });
-                }
-                onCommand({ name: "setFrame", args: { target: "boss", ...designSlot("boss", boss.look, frame), rows: result.rows } });
-              }}
-              onBegin={onBegin}
-              onCommit={onCommit}
-            />
           </div>
           <div className={styles.heroSide}>
-            <Colours
-              colours={boss.look.colours}
-              slot={Math.min(slot, boss.look.colours.length)}
-              onSlot={setSlot}
-              onColours={(colours) => onCommand({ name: "setLookColours", args: { target: "boss", colours } })}
-            />
             <BossPreview boss={boss} project={project} pack={pack} art={art} />
             <div role="group" aria-label="Use in the boss room" className={styles.ability}>
               <span className={styles.abilityLabel}>Use in the boss room</span>
@@ -252,6 +200,17 @@ export function BossScreen({
               Delete boss
             </button>
           </div>
+          <AnimationEditor
+            kind="boss"
+            look={boss.look}
+            target="boss"
+            testId="boss-canvas"
+            locked={locked}
+            onCommand={onCommand}
+            onBegin={onBegin}
+            onCommit={onCommit}
+            readPicture={readPicture}
+          />
         </>
       )}
     </fieldset>
