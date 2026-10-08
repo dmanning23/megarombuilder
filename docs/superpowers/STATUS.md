@@ -50,7 +50,9 @@ held, climbs by distance); existing games look as before, and the content pack's
 own snow characters keep their art set. Characters move, collide, shoot and are
 drawn by their looks' hitboxes and shot points; heroes are at most one tile
 wide; the checker checks with the kid's own hero, and the assistant knows its
-size. 981 tests and 12 browser tests pass; typecheck, lint and build are clean. Browser tests: `npm run e2e`
+size. The Hero, Enemies and Boss tabs have an animation editor: an animation
+list, a frame strip (add, copy, delete, move, drag to reorder), play at slow,
+normal or fast, an onion skin, and sixteen colours. 992 tests and 12 browser tests pass; typecheck, lint and build are clean. Browser tests: `npm run e2e`
 (builds and serves on port 3100).
 
 | Document | State |
@@ -80,7 +82,7 @@ size. 981 tests and 12 browser tests pass; typecheck, lint and build are clean. 
 | `plans/2026-10-07-m4-plan-1-shared-look.md` | Milestone 4 plan 1 of 5, implemented, reviewed and merged |
 | `plans/2026-10-07-m4-plan-2-animations-in-game.md` | Milestone 4 plan 2 of 5, implemented, reviewed and merged |
 | `plans/2026-10-07-m4-plan-3-bodies-in-game.md` | Milestone 4 plan 3 of 5, implemented, reviewed and merged |
-| `plans/2026-10-07-m4-plan-4-animation-editor.md` | Milestone 4 plan 4 of 5, written, waiting for approval |
+| `plans/2026-10-07-m4-plan-4-animation-editor.md` | Milestone 4 plan 4 of 5, implemented, reviewed and merged |
 
 Milestone 1 is now eight plans (the editor became two):
 
@@ -116,6 +118,12 @@ Milestone 3, your own enemies and boss, was five plans:
 2. Try the assistant with a real API key using `docs/superpowers/ai-prompts.md`
    (prompts 1–17), and play what it builds.
 3. Review findings deferred in each plan's final review, to decide on:
+   - M4 plan 4: after undoing a frame move or delete the chosen frame index
+     stays put; the play box restarts on every pixel drawn while playing.
+   - M4 plan 4: the "(needs slide)" notes aren't in the animation buttons'
+     accessible names; the list uses ul role="group".
+   - M4 plan 4: the import dialog recomputes on every render and says "your
+     hero" on every tab; switching enemies resets the drawing tool and colour.
    - M4 plan 3: the editor's zone canvas places the kid's own things by
      bottom-centring, not by their hitbox; the check cache doesn't key on the
      kid's boss (both matter once plan 5 lets kids move hitboxes).
