@@ -10,6 +10,7 @@ import {
   linePixels,
   pixelFromPointer,
   setPixels,
+  ONION_ALPHA,
   ZOOM,
 } from "@/editor/hero/pixels";
 
@@ -64,6 +65,7 @@ describe("drawPicture", () => {
     return {
       rects,
       fillStyle: "" as string,
+      globalAlpha: 1,
       fillRect(x: number, y: number, w: number, h: number) {
         rects.push({ colour: this.fillStyle, x, y, w, h });
       },
@@ -99,6 +101,7 @@ describe("enemy pictures", () => {
     const rects: { colour: string; x: number; y: number; w: number; h: number }[] = [];
     const ctx = {
       fillStyle: "" as string,
+      globalAlpha: 1,
       fillRect(x: number, y: number, w: number, h: number) {
         rects.push({ colour: this.fillStyle, x, y, w, h });
       },
@@ -106,5 +109,22 @@ describe("enemy pictures", () => {
     drawPixels(ctx, blankRows(16, 16), {}, { w: 16, h: 16 }, enemyBody("walker"), true);
     expect(rects.some((r) => r.colour === "#ff2d95" && r.x === 1 * ZOOM && r.y === 2 * ZOOM && r.h === 14 * ZOOM)).toBe(true);
     expect(rects.some((r) => r.colour === "#2ec4b6" && r.y === 16 * ZOOM - 3)).toBe(true);
+  });
+});
+
+describe("the onion skin", () => {
+  it("draws the frame underneath faintly, and the frame itself at full strength", () => {
+    const fills: { colour: string; alpha: number; x: number; y: number }[] = [];
+    const ctx = {
+      fillStyle: "",
+      globalAlpha: 1,
+      fillRect(x: number, y: number) {
+        fills.push({ colour: String(this.fillStyle), alpha: this.globalAlpha, x, y });
+      },
+    };
+    drawPixels(ctx, ["1.", ".."], { "1": "#ff0000", "2": "#00ff00" }, { w: 2, h: 2 }, null, false, ["..", ".2"]);
+    expect(fills).toContainEqual({ colour: "#00ff00", alpha: ONION_ALPHA, x: ZOOM, y: ZOOM });
+    expect(fills).toContainEqual({ colour: "#ff0000", alpha: 1, x: 0, y: 0 });
+    expect(ctx.globalAlpha).toBe(1); // put back
   });
 });

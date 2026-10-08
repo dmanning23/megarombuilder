@@ -1,6 +1,6 @@
 "use client";
 
-import { EDITOR_MAX_COLOURS } from "../hero/importPicture";
+import { MAX_LOOK_COLOURS } from "@/model/look";
 import { PALETTE_8BIT } from "@/model/palette";
 import styles from "../editor.module.css";
 
@@ -13,7 +13,7 @@ type Props = {
 
 const WHITE = 27; // a new colour starts white
 
-// The hero's colours, and the 8-bit palette to change the chosen one.
+// A character's colours, and the 8-bit palette to change the chosen one.
 export function Colours({ colours, slot, onSlot, onColours }: Props) {
   return (
     <section className={styles.colours} aria-label="Colours">
@@ -34,7 +34,7 @@ export function Colours({ colours, slot, onSlot, onColours }: Props) {
         ))}
       </div>
       <div className={styles.drawTools}>
-        {colours.length < EDITOR_MAX_COLOURS && (
+        {colours.length < MAX_LOOK_COLOURS && (
           <button
             type="button"
             className={styles.swatch}
