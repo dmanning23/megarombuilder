@@ -31,6 +31,7 @@ type Props = {
   under?: string[]; // the onion skin
   shot?: { y: number; h: number }; // where shots come out
   extraTools?: ExtraTool[]; // tools that work on the picture without drawing, after the four drawing tools
+  zoom?: number; // screen pixels per picture pixel
   testId: string;
   colours: number[];
   tool: DrawTool;
@@ -59,6 +60,7 @@ export function PictureEditor({
   under,
   shot,
   extraTools = [],
+  zoom,
   testId,
   colours,
   tool,
@@ -178,6 +180,7 @@ export function PictureEditor({
         feet={feet}
         under={under}
         shot={shot}
+        zoom={zoom}
         name={name}
         testId={testId}
         onPress={press}

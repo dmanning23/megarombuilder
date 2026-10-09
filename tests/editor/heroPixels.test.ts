@@ -130,3 +130,18 @@ describe("the shot line", () => {
     expect(fills).toContainEqual({ colour: SHOT_LINE, x: 0, y: 14 * ZOOM - 2, w: 16 * ZOOM, h: 2 });
   });
 });
+
+describe("drawing at another zoom", () => {
+  it("draws each pixel at the zoom it is given", () => {
+    const rects: { colour: string; x: number; y: number; w: number; h: number }[] = [];
+    const ctx = {
+      fillStyle: "",
+      globalAlpha: 1,
+      fillRect(x: number, y: number, w: number, h: number) {
+        rects.push({ colour: String(this.fillStyle), x, y, w, h });
+      },
+    };
+    drawPixels(ctx, ["..", ".1"], { "1": "#ff0000" }, { w: 2, h: 2 }, null, false, {}, 20);
+    expect(rects).toContainEqual({ colour: "#ff0000", x: 20, y: 20, w: 20, h: 20 });
+  });
+});
