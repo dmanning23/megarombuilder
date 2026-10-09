@@ -43,3 +43,44 @@ for (const size of SIZES) {
     expect(overflow).toBeLessThanOrEqual(0);
   });
 }
+
+// The tab row (enemy chips, New enemy, How it plays) sits up beside the tabs on a wide screen; on a
+// phone it drops below them, and an alert above it pushes it down rather than hiding under it.
+async function twoEnemies(page: import("@playwright/test").Page) {
+  await page.goto("/");
+  await page.getByRole("textbox", { name: "Game name" }).fill("Rows");
+  await page.getByRole("button", { name: "Make a new game" }).click();
+  await page.getByRole("button", { name: "Characters" }).click();
+  await page.getByRole("tab", { name: "Enemies" }).click();
+  for (const name of ["Frost Fang", "Ice Bat"]) {
+    await page.getByRole("button", { name: "New enemy" }).click();
+    await page.getByRole("textbox", { name: "Enemy name" }).fill(name);
+    await page.getByRole("group", { name: "Choose how it behaves" }).getByRole("button", { name: "Walker" }).click();
+  }
+}
+const bottom = async (l: import("@playwright/test").Locator) => {
+  const box = (await l.boundingBox())!;
+  return box.y + box.height;
+};
+const top = async (l: import("@playwright/test").Locator) => (await l.boundingBox())!.y;
+
+test("on a phone the tab row sits under the tabs", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await twoEnemies(page);
+  expect(await top(page.getByRole("list", { name: "Enemies" }))).toBeGreaterThanOrEqual(
+    await bottom(page.getByRole("tab", { name: "Boss" })),
+  );
+});
+
+test("an alert pushes the tab row down", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await twoEnemies(page);
+  await page.getByRole("button", { name: "How it plays" }).click();
+  const name = page.getByRole("textbox", { name: "Name" });
+  await name.fill("frost fang");
+  await name.press("Enter");
+  await page.getByRole("button", { name: "Done" }).click();
+  const alert = page.getByRole("alert").filter({ hasText: "There is already an enemy called" });
+  await expect(alert).toBeVisible();
+  expect(await top(page.getByRole("list", { name: "Enemies" }))).toBeGreaterThanOrEqual(await bottom(alert));
+});

@@ -19,7 +19,6 @@ import {
 } from "@/model/look";
 import { baseFor, frameSteps } from "@/runtime/render/animate";
 import { lookSprites, paletteOf } from "@/runtime/render/lookArt";
-import { chooseZoom } from "../hero/zoom";
 import styles from "../editor.module.css";
 import {
   moveEdge,
@@ -144,23 +143,6 @@ export function AnimationEditor({
         ? (look.slideBody ?? null)
         : null;
   const colour = Math.min(slot, look.colours.length);
-  // The canvas grows to fill the light table: measure it (no ResizeObserver in tests: the smallest zoom).
-  const middle = useRef<HTMLDivElement>(null);
-  const [space, setSpace] = useState({ w: 0, h: 0 });
-  useEffect(() => {
-    const el = middle.current;
-    if (!el || typeof ResizeObserver === "undefined") return;
-    const observer = new ResizeObserver(([entry]) => {
-      // Leave room for the tools column, and keep the canvas within most of the window's height.
-      setSpace({
-        w: entry.contentRect.width - 170,
-        h: window.innerHeight - el.getBoundingClientRect().top - 190,
-      });
-    });
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, []);
-  const zoom = chooseZoom(space, canvas);
   const limits = rule.canvases[group];
   const fixed = limits.min.w === limits.max.w && limits.min.h === limits.max.h; // the hero's shots
   const resize = (w: number, h: number) => {
@@ -336,7 +318,7 @@ export function AnimationEditor({
         })}
       </ul>
 
-      <div className={styles.lightTable} ref={middle}>
+      <div className={styles.lightTable}>
         <div className={styles.frameStrip}>
           <div role="group" aria-label="Frames" className={styles.frames}>
             {anim.frames.map((_, i) => (
@@ -477,7 +459,6 @@ export function AnimationEditor({
         </div>
 
         <PictureEditor
-          zoom={zoom}
           pictureButtons={
             <>
               {activeTool === "hitbox" && (

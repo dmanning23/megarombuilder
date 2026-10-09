@@ -15,6 +15,7 @@ import {
 import { NOT_A_PICTURE } from "../hero/readPicture";
 import { ImportDialog } from "./ImportDialog";
 import { PixelCanvas } from "./PixelCanvas";
+import { chooseZoom, MIN_ZOOM } from "../hero/zoom";
 import { slotChar, slotOf } from "@/model/look";
 
 // The four drawing tools, or an extra tool a screen adds (such as the hitbox).
@@ -45,7 +46,6 @@ type Props = {
   under?: string[]; // the onion skin
   shot?: { y: number; h: number }; // where shots come out
   extraTools?: ExtraTool[]; // tools that work on the picture without drawing, after the four drawing tools
-  zoom?: number; // screen pixels per picture pixel
   pictureButtons?: ReactNode; // more buttons for the bar under the picture (Fit to drawing, Size)
   testId: string;
   colours: number[];
@@ -75,7 +75,6 @@ export function PictureEditor({
   under,
   shot,
   extraTools = [],
-  zoom,
   pictureButtons,
   testId,
   colours,
@@ -93,6 +92,19 @@ export function PictureEditor({
   onCommit,
 }: Props) {
   const colour = Math.min(slot, colours.length); // the chosen colour may have been removed
+  // The canvas grows to fill its drawing area, whose size the stylesheet sets: measure that area
+  // (there is no ResizeObserver in tests, so they draw at the smallest zoom).
+  const wrap = useRef<HTMLDivElement>(null);
+  const [zoom, setZoom] = useState(MIN_ZOOM);
+  useEffect(() => {
+    const el = wrap.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver(([entry]) => {
+      setZoom(chooseZoom({ w: entry.contentRect.width, h: entry.contentRect.height }, size)); // same zoom: no re-render
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [size]);
   const ink = tool === "eraser" ? "." : slotChar(colour);
   const stroke = useRef<{ rows: string[]; last: Pixel } | null>(null);
 
@@ -192,7 +204,7 @@ export function PictureEditor({
           </button>
         </p>
       )}
-      <div className={styles.canvasWrap}>
+      <div className={styles.canvasWrap} ref={wrap}>
         <PixelCanvas
           rows={rows}
           palette={palette}

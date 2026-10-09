@@ -982,6 +982,9 @@
   justify-items: center;
   overflow: auto; /* a picture bigger than the space scrolls here */
   max-width: 100%;
+  /* The picture editor measures this area to choose its zoom, so its height comes from here, not
+     from the canvas inside it. */
+  height: clamp(16rem, calc(100dvh - 21rem), 48rem);
 }
 .canvasWrap .heroCanvas {
   border: 0;
@@ -1020,8 +1023,8 @@
   }
 }
 @media (max-width: 760px) {
-  .tabTools {
-    margin: 0;
+  .canvasWrap {
+    height: 22rem;
   }
   .animationEditor {
     grid-template-columns: minmax(0, 1fr);
@@ -1049,10 +1052,15 @@
   }
 }
 
-/* A character tab's top row: the enemy chips, New enemy, and How it plays at the far right. It sits
-   up beside the Hero / Enemies / Boss tabs, so the workbench starts right under them. */
+/* A character tab's top row: the enemy chips, New enemy, and How it plays at the far right. On a
+   wide screen it sits up beside the Hero / Enemies / Boss tabs, so the workbench starts right under
+   them; not when an alert comes first (it would sit on top of it), nor on a phone. */
+@media (min-width: 761px) {
+  .characterScreen > .tabTools:first-child {
+    margin: -3.25rem 0 0 15.5rem;
+  }
+}
 .tabTools {
-  margin: -3.25rem 0 0 15.5rem;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
