@@ -13,6 +13,7 @@ import { previewInputs, previewSim } from "../hero/preview";
 import { readPicture as readPictureFile } from "../hero/readPicture";
 import { HeroAbilities } from "./HeroAbilities";
 import { AnimationEditor } from "./AnimationEditor";
+import { HowItPlays } from "./HowItPlays";
 import { GamePreview } from "./GamePreview";
 
 const NO_ENEMIES: EnemyDesign[] = [];
@@ -72,26 +73,28 @@ export function HeroScreen({
           </button>
         </p>
       )}
-      <section className={styles.aboutBar} aria-label="About your hero">
-        <HeroAbilities
-          abilities={abilities}
-          level={level}
-          check={check}
-          onAbilities={(changes) =>
-            onCommand({ name: "setHeroAbilities", args: changes })
-          }
-          onGoToZone={onGoToZone}
-          onReset={() => {
-            if (
-              confirm(
-                "Start again from the snow hero's look? You can undo this.",
-              )
-            ) {
-              onCommand({ name: "resetHeroLook", args: {} });
+      <div className={styles.tabTools}>
+        <HowItPlays>
+          <HeroAbilities
+            abilities={abilities}
+            level={level}
+            check={check}
+            onAbilities={(changes) =>
+              onCommand({ name: "setHeroAbilities", args: changes })
             }
-          }}
-        />
-      </section>
+            onGoToZone={onGoToZone}
+            onReset={() => {
+              if (
+                confirm(
+                  "Start again from the snow hero's look? You can undo this.",
+                )
+              ) {
+                onCommand({ name: "resetHeroLook", args: {} });
+              }
+            }}
+          />
+        </HowItPlays>
+      </div>
       <AnimationEditor
         kind="hero"
         look={look}

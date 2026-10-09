@@ -24,6 +24,7 @@ import type { RawImage } from "../hero/importPicture";
 import { enemyPreviewSim, IDLE_INPUTS } from "../hero/preview";
 import { readPicture as readPictureFile } from "../hero/readPicture";
 import { AnimationEditor } from "./AnimationEditor";
+import { HowItPlays } from "./HowItPlays";
 import { GamePreview } from "./GamePreview";
 import { NameField } from "./NameField";
 import { SpriteSwatch } from "./Palette";
@@ -184,73 +185,67 @@ export function EnemiesScreen({
           </button>
         </p>
       )}
-      <section className={styles.aboutBar} aria-label="About your enemies">
-        <div className={styles.aboutGroup}>
-          <ul className={styles.poses} aria-label="Enemies">
-            {enemies.map((e) => (
-              <li key={e.id}>
-                <button
-                  type="button"
-                  className={styles.swatch}
-                  aria-pressed={e.id === enemy?.id}
-                  onClick={() => setSelectedId(e.id)}
-                >
-                  <SpriteSwatch
-                    sprite={arts.get(e.id)?.frames[0]}
-                    palette={arts.get(e.id)?.palette}
-                  />
-                  {tidyName(e.name)}
-                </button>
-              </li>
-            ))}
-          </ul>
-          <button
-            type="button"
-            className={styles.action}
-            disabled={enemies.length >= MAX_ENEMIES}
-            onClick={() => setMaking((m) => !m)}
-          >
-            New enemy
-          </button>
-          {enemies.length >= MAX_ENEMIES && (
-            <p className={styles.note}>12 is the most.</p>
-          )}
-          {making && (
-            <div className={styles.newEnemy}>
-              <label className={styles.field}>
-                Enemy name
-                <input
-                  value={newName}
-                  maxLength={40}
-                  onChange={(e) => setNewName(e.target.value)}
-                />
-              </label>
-              {newError && <p className={styles.bad}>{newError}</p>}
-              <div
-                className={styles.steps}
-                role="group"
-                aria-label="Choose how it behaves"
+      <div className={styles.tabTools}>
+        <ul className={styles.poses} aria-label="Enemies">
+          {enemies.map((e) => (
+            <li key={e.id}>
+              <button
+                type="button"
+                className={styles.swatch}
+                aria-pressed={e.id === enemy?.id}
+                onClick={() => setSelectedId(e.id)}
               >
-                {ENEMY_BEHAVIOURS.map((b) => (
-                  <button
-                    key={b}
-                    type="button"
-                    className={styles.step}
-                    onClick={() => create(b)}
-                  >
-                    {BEHAVIOUR_NAMES[b]}
-                  </button>
-                ))}
-              </div>
+                <SpriteSwatch
+                  sprite={arts.get(e.id)?.frames[0]}
+                  palette={arts.get(e.id)?.palette}
+                />
+                {tidyName(e.name)}
+              </button>
+            </li>
+          ))}
+        </ul>
+        <button
+          type="button"
+          className={styles.action}
+          disabled={enemies.length >= MAX_ENEMIES}
+          onClick={() => setMaking((m) => !m)}
+        >
+          New enemy
+        </button>
+        {enemies.length >= MAX_ENEMIES && (
+          <p className={styles.note}>12 is the most.</p>
+        )}
+        {making && (
+          <div className={styles.newEnemy}>
+            <label className={styles.field}>
+              Enemy name
+              <input
+                value={newName}
+                maxLength={40}
+                onChange={(e) => setNewName(e.target.value)}
+              />
+            </label>
+            {newError && <p className={styles.bad}>{newError}</p>}
+            <div
+              className={styles.steps}
+              role="group"
+              aria-label="Choose how it behaves"
+            >
+              {ENEMY_BEHAVIOURS.map((b) => (
+                <button
+                  key={b}
+                  type="button"
+                  className={styles.step}
+                  onClick={() => create(b)}
+                >
+                  {BEHAVIOUR_NAMES[b]}
+                </button>
+              ))}
             </div>
-          )}
-        </div>
-        {!enemy ? (
-          <p className={styles.note}>
-            Make your own enemies to fight. Start with New enemy.
-          </p>
-        ) : (
-          <>
+          </div>
+        )}
+        {enemy && (
+          <HowItPlays>
             <div className={styles.aboutRow}>
               <NameField
                 key={`${enemy.id}:${enemy.name}`}
@@ -334,9 +329,14 @@ export function EnemiesScreen({
             >
               Delete enemy
             </button>
-          </>
+          </HowItPlays>
         )}
-      </section>
+      </div>
+      {!enemy && (
+        <p className={styles.note}>
+          Make your own enemies to fight. Start with New enemy.
+        </p>
+      )}
       {enemy && (
         <AnimationEditor
           key={`${enemy.id}:${enemy.behaviour}`}

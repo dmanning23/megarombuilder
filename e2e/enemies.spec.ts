@@ -42,10 +42,12 @@ test("make an enemy, place it, and play against it", async ({ page }) => {
     .getByRole("group", { name: "Choose how it behaves" })
     .getByRole("button", { name: "Walker" })
     .click();
+  await page.getByRole("button", { name: "How it plays" }).click();
   await page
     .getByRole("group", { name: "Speed", exact: true })
     .getByRole("button", { name: "Fast" })
     .click();
+  await page.getByRole("button", { name: "Done" }).click();
   await expect
     .poll(async () => (await saved(page)).enemies.map((e) => e.name))
     .toEqual(["Frost Fang"]);

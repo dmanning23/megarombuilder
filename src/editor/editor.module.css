@@ -526,6 +526,7 @@
 }
 /* A character tab: its About bar, then its look. */
 .characterScreen {
+  position: relative; /* the How it plays drawer opens over its right-hand side */
   display: grid;
   gap: 1rem;
   align-content: start;
@@ -536,18 +537,6 @@
 }
 .characterScreen > .alert {
   margin: 0;
-}
-/* The character's settings, in one card that wraps. */
-.aboutBar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  gap: 1rem 2rem;
-  padding: 1rem 1.25rem;
-  border-radius: 14px;
-  background: #ffffff;
-  border: 2px solid #d5deea;
-  min-width: 0;
 }
 .aboutGroup {
   display: grid;
@@ -563,9 +552,6 @@
   align-items: flex-start;
   flex: 1 1 24rem;
   min-width: 0;
-}
-.aboutBar > .action:last-child {
-  margin-left: auto;
 }
 /* A labelled panel beside the drawing. */
 .panel {
@@ -676,8 +662,7 @@
 
 .abilities {
   grid-column: 1 / -1;
-  flex: 1 1 100%; /* fill the hero's About bar, so the abilities sit side by side */
-  min-width: 0;
+  min-width: 0; /* in the How it plays drawer */
 }
 .abilityRows {
   display: grid;
@@ -936,5 +921,87 @@
 @media (max-width: 760px) {
   .animationColours {
     grid-column: auto;
+  }
+}
+
+/* A character tab's top row: the enemy chips, New enemy, and How it plays at the far right. */
+.tabTools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.5rem;
+}
+.tabTools > .poses {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+.tabTools > .poses .swatch {
+  width: auto;
+}
+.howItPlaysButton {
+  margin-left: auto;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  padding: 0.4rem 0.9rem;
+  border-radius: 999px;
+  border: 2px solid var(--panel);
+  background: #fff;
+  color: var(--ink);
+  cursor: pointer;
+}
+.howItPlaysButton[aria-expanded="true"] {
+  background: var(--panel);
+  color: var(--paper);
+}
+.howItPlaysButton:focus-visible {
+  outline: 3px solid var(--signal);
+  outline-offset: 2px;
+}
+.howItPlaysButton:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+/* The drawer: a white sheet over the right of the tab, its settings stacked. */
+.drawer {
+  position: absolute;
+  top: 3rem;
+  right: 0;
+  z-index: 5;
+  width: min(30rem, 100%);
+  max-height: calc(100vh - 9rem);
+  overflow: auto;
+  display: grid;
+  gap: 0.75rem;
+  padding: 1rem 1.1rem 1.25rem;
+  border-radius: 14px;
+  background: #fff;
+  border: 2px solid var(--panel);
+  box-shadow: 0 12px 32px rgb(16 33 58 / 0.25);
+}
+.drawerHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.drawerBody {
+  display: grid;
+  gap: 1rem;
+}
+.drawerBody .aboutRow {
+  flex-basis: auto;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .drawer {
+    animation: drawerIn 160ms ease-out;
+  }
+  @keyframes drawerIn {
+    from {
+      opacity: 0;
+      transform: translateX(12px);
+    }
   }
 }
