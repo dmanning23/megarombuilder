@@ -12,6 +12,10 @@ import { designFrames } from "@/model/designs";
 
 afterEach(cleanup);
 
+// The settings live in the "How it plays" drawer: open it.
+const settings = () => userEvent.click(screen.getByRole("button", { name: "How it plays" }));
+
+
 let n = 0;
 const makeId = () => `id-${++n}`;
 
@@ -83,6 +87,7 @@ describe("the Enemies tab", () => {
     const { open, group, saved } = setup();
     await open();
     await make("Frost Fang", "Walker");
+    await settings();
     expect(screen.queryByRole("group", { name: "Shoots" })).toBeNull();
     await userEvent.click(within(group("Speed")).getByRole("button", { name: "Fast" }));
     await userEvent.click(within(group("Health")).getByRole("button", { name: "5 hits" }));
@@ -100,6 +105,7 @@ describe("the Enemies tab", () => {
     await open();
     await make("Frost Fang", "Walker");
     await make("Ice Bat", "Flyer");
+    await settings();
     const name = screen.getByRole("textbox", { name: "Name" });
     await userEvent.clear(name);
     await userEvent.type(name, "frost fang{Enter}");
@@ -113,6 +119,7 @@ describe("the Enemies tab", () => {
     const { open, saved } = setup();
     await open();
     await make("Frost Fang", "Walker");
+    await settings();
     const name = () => screen.getByRole("textbox", { name: "Name" }) as HTMLInputElement;
     await userEvent.clear(name());
     await userEvent.type(name(), "Snow Bat{Enter}");
@@ -128,6 +135,7 @@ describe("the Enemies tab", () => {
     await open();
     await make("Frost Fang", "Walker");
     await make("Ice Bat", "Flyer");
+    await settings();
     const name = screen.getByRole("textbox", { name: "Name" }) as HTMLInputElement;
     await userEvent.clear(name);
     await userEvent.type(name, "frost fang{Enter}");
@@ -163,6 +171,7 @@ describe("the Enemies tab", () => {
     await open();
     await make("Frost Fang", "Walker");
     await make("Ice Bat", "Flyer");
+    await settings();
     await userEvent.click(screen.getByRole("button", { name: "Delete enemy" }));
     expect(confirm).toHaveBeenCalledWith("Delete Ice Bat? You can undo this.");
     expect(screen.getByRole("button", { name: /^Frost Fang/ }).getAttribute("aria-pressed")).toBe("true");
@@ -179,6 +188,7 @@ describe("the Enemies tab", () => {
     );
     const { open } = setup(project);
     await open();
+    await settings();
     await userEvent.click(screen.getByRole("button", { name: "Delete enemy" }));
     expect((await screen.findByRole("alert")).textContent).toContain("Frost Fang is used in Zone 1.");
   });
@@ -210,6 +220,7 @@ describe("the Enemies tab", () => {
     const { open, group } = setup();
     await open();
     await make("Frost Fang", "Walker");
+    await settings();
     await userEvent.click(screen.getByRole("button", { name: "Add frame" }));
     await userEvent.click(screen.getByRole("button", { name: "Add frame" }));
     await userEvent.click(within(group("Behaviour")).getByRole("button", { name: "Hopper" }));
@@ -226,16 +237,19 @@ describe("the Enemies tab", () => {
     expect(screen.getByRole("button", { name: "Shot point" })).toBeTruthy();
   });
 
-  it("holds the list, name, behaviour, tuning and Delete in the About bar, and the preview beside the drawing", async () => {
+  it("keeps the enemies in the tab's top row and their settings in the How it plays drawer", async () => {
     const { open } = setup();
     await open();
-    const about = () => screen.getByRole("region", { name: "About your enemies" });
-    expect(within(about()).getByRole("button", { name: "New enemy" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "New enemy" })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "How it plays" })).toBeNull(); // nothing to set yet
     await make("Frost Fang", "Walker");
-    expect(within(about()).getByRole("textbox", { name: "Name" })).toBeTruthy();
-    expect(within(about()).getByRole("group", { name: "Behaviour" })).toBeTruthy();
-    expect(within(about()).getByRole("group", { name: "Speed" })).toBeTruthy();
-    expect(within(about()).getByRole("button", { name: "Delete enemy" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /^Frost Fang/ })).toBeTruthy();
+    await userEvent.click(screen.getByRole("button", { name: "How it plays" }));
+    const drawer = screen.getByRole("complementary", { name: "How it plays" });
+    expect(within(drawer).getByRole("textbox", { name: "Name" })).toBeTruthy();
+    expect(within(drawer).getByRole("group", { name: "Behaviour" })).toBeTruthy();
+    expect(within(drawer).getByRole("group", { name: "Speed" })).toBeTruthy();
+    expect(within(drawer).getByRole("button", { name: "Delete enemy" })).toBeTruthy();
     expect(within(screen.getByRole("region", { name: "Look" })).getByRole("img", { name: "Frost Fang in action" })).toBeTruthy();
   });
 });

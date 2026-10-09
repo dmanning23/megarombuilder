@@ -32,10 +32,12 @@ test("draw on the hero, give it abilities, and play as it", async ({ page }) => 
   await page.mouse.click(box.x + 0.5 * px, box.y + 0.5 * px); // the top-left pixel of the stand pose
   await expect.poll(async () => (await saved(page)).hero.look.animations.stand.frames[0][0][0]).toBe("1");
 
+  await page.getByRole("button", { name: "How it plays" }).click();
   await page.getByRole("group", { name: "Jump" }).getByRole("button", { name: "Very high" }).click();
   await page.getByRole("group", { name: "Slide" }).getByRole("button", { name: "On" }).click();
   await expect.poll(async () => (await saved(page)).hero.abilities).toMatchObject({ jump: "veryHigh", slide: true });
   await expect(page.getByText("All zones can still be finished.")).toBeVisible();
+  await page.getByRole("button", { name: "Done" }).click();
   await page.screenshot({ path: "test-results/hero.png", fullPage: true });
 
   await page.getByRole("button", { name: "Play", exact: true }).click();

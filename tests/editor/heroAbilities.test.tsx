@@ -13,6 +13,10 @@ import { setupHero } from "./heroHelpers";
 
 afterEach(cleanup);
 
+// The abilities live in the "How it plays" drawer: open it.
+const settings = () => userEvent.click(screen.getByRole("button", { name: "How it plays" }));
+
+
 let n = 100;
 const makeId = () => `id-${++n}`;
 
@@ -36,6 +40,7 @@ describe("hero abilities", () => {
   it("changes an ability with a step button", async () => {
     const { open, saved } = setupHero();
     await open();
+    await settings();
     expect(within(group("Jump")).getByRole("button", { name: "Normal" }).getAttribute("aria-pressed")).toBe("true");
     await userEvent.click(within(group("Jump")).getByRole("button", { name: "Very high" }));
     await userEvent.click(within(group("Slide")).getByRole("button", { name: "On" }));
@@ -47,6 +52,7 @@ describe("hero abilities", () => {
   it("says which zones the hero can no longer finish, and opens one", async () => {
     const { open } = setupHero(walledGame());
     await open();
+    await settings();
     expect(await screen.findByText("All zones can still be finished.", undefined, { timeout: 3000 })).toBeTruthy();
     await userEvent.click(within(group("Jump")).getByRole("button", { name: "Normal" }));
     const note = await screen.findByText(/1 zone can't be finished with this hero/, undefined, { timeout: 3000 });
@@ -57,6 +63,7 @@ describe("hero abilities", () => {
   it("puts things back with one undo", async () => {
     const { open } = setupHero(walledGame());
     await open();
+    await settings();
     await userEvent.click(within(group("Jump")).getByRole("button", { name: "Normal" }));
     await screen.findByText(/1 zone can't be finished/, undefined, { timeout: 3000 });
     await userEvent.click(screen.getByRole("button", { name: "Undo" }));
@@ -67,6 +74,7 @@ describe("hero abilities", () => {
     const confirm = vi.fn(() => true);
     const { open, press, choose, saved } = setupHero(undefined, confirm);
     await open();
+    await settings();
     await userEvent.click(within(group("Speed")).getByRole("button", { name: "Fast" }));
     press(0, 0);
     await choose("Start from the snow hero");
@@ -90,7 +98,7 @@ describe("hero abilities", () => {
     await userEvent.click(screen.getByRole("button", { name: "Characters" }));
     // Disabled through the hero screen's fieldset, which the button's own property doesn't show.
     await waitFor(() => expect(screen.getByRole("button", { name: "Pencil" }).matches(":disabled")).toBe(true));
-    expect(within(group("Jump")).getByRole("button", { name: "High" }).matches(":disabled")).toBe(true);
+    expect(screen.getByRole("button", { name: "How it plays" }).matches(":disabled")).toBe(true); // the abilities can't be opened
     await act(async () => finish());
     await waitFor(() => expect(screen.getByRole("button", { name: "Pencil" }).matches(":disabled")).toBe(false));
     view.unmount();

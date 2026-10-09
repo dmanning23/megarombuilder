@@ -95,11 +95,12 @@ export function drawPixels(
   body: Box | null,
   feet: boolean,
   extras: { under?: string[]; shot?: { y: number; h: number } } = {},
+  zoom = ZOOM,
 ): void {
   const { under, shot } = extras;
   const { w, h } = size;
   ctx.fillStyle = BACKGROUND;
-  ctx.fillRect(0, 0, w * ZOOM, h * ZOOM);
+  ctx.fillRect(0, 0, w * zoom, h * zoom);
   if (under) {
     ctx.globalAlpha = ONION_ALPHA;
     under.forEach((row, y) =>
@@ -107,7 +108,7 @@ export function drawPixels(
         const colour = palette[ch];
         if (!colour) return;
         ctx.fillStyle = colour;
-        ctx.fillRect(x * ZOOM, y * ZOOM, ZOOM, ZOOM);
+        ctx.fillRect(x * zoom, y * zoom, zoom, zoom);
       }),
     );
     ctx.globalAlpha = 1;
@@ -117,34 +118,34 @@ export function drawPixels(
       const colour = palette[ch];
       if (!colour) return;
       ctx.fillStyle = colour;
-      ctx.fillRect(x * ZOOM, y * ZOOM, ZOOM, ZOOM);
+      ctx.fillRect(x * zoom, y * zoom, zoom, zoom);
     }),
   );
   ctx.fillStyle = GRID;
-  for (let x = 1; x < w; x++) ctx.fillRect(x * ZOOM, 0, 1, h * ZOOM);
-  for (let y = 1; y < h; y++) ctx.fillRect(0, y * ZOOM, w * ZOOM, 1);
+  for (let x = 1; x < w; x++) ctx.fillRect(x * zoom, 0, 1, h * zoom);
+  for (let y = 1; y < h; y++) ctx.fillRect(0, y * zoom, w * zoom, 1);
 
   if (shot) {
     ctx.fillStyle = SHOT_LINE;
-    ctx.fillRect(0, shot.y * ZOOM, w * ZOOM, 2);
-    ctx.fillRect(0, (shot.y + shot.h) * ZOOM - 2, w * ZOOM, 2);
+    ctx.fillRect(0, shot.y * zoom, w * zoom, 2);
+    ctx.fillRect(0, (shot.y + shot.h) * zoom - 2, w * zoom, 2);
   }
   if (!body) {
     if (feet) {
       ctx.fillStyle = FEET;
-      ctx.fillRect(0, h * ZOOM - 3, w * ZOOM, 3);
+      ctx.fillRect(0, h * zoom - 3, w * zoom, 3);
     }
     return;
   }
   ctx.fillStyle = OUTLINE;
-  ctx.fillRect(body.x * ZOOM, body.y * ZOOM, 2, body.h * ZOOM);
-  ctx.fillRect((body.x + body.w) * ZOOM - 2, body.y * ZOOM, 2, body.h * ZOOM);
-  ctx.fillRect(body.x * ZOOM, body.y * ZOOM, body.w * ZOOM, 2);
+  ctx.fillRect(body.x * zoom, body.y * zoom, 2, body.h * zoom);
+  ctx.fillRect((body.x + body.w) * zoom - 2, body.y * zoom, 2, body.h * zoom);
+  ctx.fillRect(body.x * zoom, body.y * zoom, body.w * zoom, 2);
   if (feet) {
     ctx.fillStyle = FEET;
-    ctx.fillRect(0, h * ZOOM - 3, w * ZOOM, 3);
+    ctx.fillRect(0, h * zoom - 3, w * zoom, 3);
   } else {
-    ctx.fillRect(body.x * ZOOM, (body.y + body.h) * ZOOM - 2, body.w * ZOOM, 2);
+    ctx.fillRect(body.x * zoom, (body.y + body.h) * zoom - 2, body.w * zoom, 2);
   }
 }
 

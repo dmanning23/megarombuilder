@@ -117,4 +117,13 @@ describe("the animation editor", () => {
     fireEvent.drop(frameButton(1)); // a file dragged in from outside, say
     expect(saved().hero.look.animations.run.frames).toEqual(snowHero.animations.run.frames);
   });
+
+  it("keeps the colours and the preview beside the light table", async () => {
+    const { open } = setupHero();
+    await open();
+    const look = screen.getByRole("region", { name: "Look" });
+    expect(within(look).getByRole("heading", { level: 2, name: "Colours" })).toBeTruthy();
+    expect(within(look).getByRole("heading", { level: 2, name: "Preview" })).toBeTruthy();
+    expect(within(look).getByRole("group", { name: "8-bit colours" })).toBeTruthy();
+  });
 });

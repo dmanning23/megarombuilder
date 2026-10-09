@@ -11,6 +11,10 @@ import { designFrames } from "@/model/designs";
 
 afterEach(cleanup);
 
+// The settings live in the "How it plays" drawer: open it.
+const settings = () => userEvent.click(screen.getByRole("button", { name: "How it plays" }));
+
+
 let n = 0;
 const makeId = () => `id-${++n}`;
 
@@ -45,6 +49,7 @@ describe("the Boss tab", () => {
     await open();
     expect(screen.getByText(/Make your own boss to fight in the boss room/)).toBeTruthy();
     await make();
+    await settings();
     expect((screen.getByRole("textbox", { name: "Name" }) as HTMLInputElement).value).toBe("My Boss");
     expect(screen.getByRole("img", { name: "Stand frame 1, 24 by 28 pixels" })).toBeTruthy();
     expect(screen.getByRole("img", { name: "My Boss fighting" })).toBeTruthy();
@@ -63,6 +68,7 @@ describe("the Boss tab", () => {
     const { open, make, group, saved } = setup();
     await open();
     await make();
+    await settings();
     const name = screen.getByRole("textbox", { name: "Name" });
     await userEvent.clear(name);
     await userEvent.type(name, "Volt Viper{Enter}");
@@ -75,6 +81,7 @@ describe("the Boss tab", () => {
     const { open, make, saved } = setup();
     await open();
     await make();
+    await settings();
     await userEvent.selectOptions(screen.getByRole("combobox", { name: "Attack 3" }), "None");
     await userEvent.selectOptions(screen.getByRole("combobox", { name: "Attack 1" }), "Rain");
     await userEvent.selectOptions(screen.getByRole("combobox", { name: "Attack 2" }), "Big shot");
@@ -100,6 +107,7 @@ describe("the Boss tab", () => {
     const { open, make, group, saved, placedBoss } = setup();
     await open();
     await make();
+    await settings();
     const use = (name: string) => within(group("Use in the boss room")).getByRole("button", { name });
     expect(use("Blizzard Bot").getAttribute("aria-pressed")).toBe("true");
     await userEvent.click(use("Your boss"));
@@ -117,6 +125,7 @@ describe("the Boss tab", () => {
     const { open, make, group } = setup(project);
     await open();
     await make();
+    await settings();
     expect(within(group("Use in the boss room")).getByRole("button", { name: "Your boss" }).getAttribute("aria-pressed")).toBe("false");
     await userEvent.click(within(group("Use in the boss room")).getByRole("button", { name: "Your boss" }));
     expect((await screen.findByRole("alert")).textContent).toContain("There is no boss in a boss room to swap.");
@@ -127,6 +136,7 @@ describe("the Boss tab", () => {
     const { open, make, group, saved } = setup(undefined, confirm);
     await open();
     await make();
+    await settings();
     await userEvent.click(within(group("Use in the boss room")).getByRole("button", { name: "Your boss" }));
     await userEvent.click(screen.getByRole("button", { name: "Delete boss" }));
     expect((await screen.findByRole("alert")).textContent).toContain("My Boss is in Boss Room. Put the Blizzard Bot back first.");
@@ -149,16 +159,18 @@ describe("the Boss tab", () => {
     expect(attack[1][0][0]).toBe("1");
   });
 
-  it("holds the boss's settings in the About bar, with Make your own boss there before there is one", async () => {
+  it("keeps the boss's settings in the How it plays drawer, with Make your own boss before there is one", async () => {
     const { open, make } = setup();
     await open();
-    const about = () => screen.getByRole("region", { name: "About your boss" });
-    expect(within(about()).getByRole("button", { name: "Make your own boss" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Make your own boss" })).toBeTruthy();
     expect(screen.queryByRole("region", { name: "Look" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "How it plays" })).toBeNull();
     await make();
-    for (const name of ["Fight", "Use in the boss room"]) expect(within(about()).getByRole("group", { name })).toBeTruthy();
-    expect(within(about()).getByRole("combobox", { name: "Attack 1" })).toBeTruthy();
-    expect(within(about()).getByRole("button", { name: "Delete boss" })).toBeTruthy();
+    await userEvent.click(screen.getByRole("button", { name: "How it plays" }));
+    const drawer = screen.getByRole("complementary", { name: "How it plays" });
+    for (const name of ["Fight", "Use in the boss room"]) expect(within(drawer).getByRole("group", { name })).toBeTruthy();
+    expect(within(drawer).getByRole("combobox", { name: "Attack 1" })).toBeTruthy();
+    expect(within(drawer).getByRole("button", { name: "Delete boss" })).toBeTruthy();
     expect(within(screen.getByRole("region", { name: "Look" })).getByRole("img", { name: "My Boss fighting" })).toBeTruthy();
   });
 });

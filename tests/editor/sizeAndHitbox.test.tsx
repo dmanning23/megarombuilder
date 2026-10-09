@@ -108,6 +108,16 @@ describe("the Hitbox tool", () => {
     await choose("Fit to drawing");
     expect(saved().hero.look.body.w).toBeGreaterThan(8);
   });
+
+  it("offers Fit to drawing and Size in the picture bar under the canvas", async () => {
+    const { open, choose } = setupHero();
+    await open();
+    const bar = () => screen.getByRole("group", { name: "Picture tools" });
+    expect(within(bar()).getByRole("group", { name: "Size" })).toBeTruthy();
+    expect(within(bar()).queryByRole("button", { name: "Fit to drawing" })).toBeNull();
+    await choose("Hitbox");
+    expect(within(bar()).getByRole("button", { name: "Fit to drawing" })).toBeTruthy();
+  });
 });
 
 describe("the Shot point tool", () => {

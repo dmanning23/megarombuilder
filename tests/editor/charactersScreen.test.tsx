@@ -69,15 +69,28 @@ describe("the Characters screen", () => {
     expect(screen.queryByRole("navigation", { name: "Zones" })).toBeNull();
   });
 
-  it("puts the hero's abilities in its About bar, and its preview beside the drawing", async () => {
+  it("keeps the hero's abilities in the How it plays drawer, closed at first", async () => {
     const { open } = setupHero();
     await open();
-    const about = screen.getByRole("region", { name: "About your hero" });
-    expect(within(about).getByRole("group", { name: "Jump" })).toBeTruthy();
-    expect(within(about).getByRole("button", { name: /Start from/ })).toBeTruthy();
+    const button = screen.getByRole("button", { name: "How it plays" });
+    expect(button.getAttribute("aria-expanded")).toBe("false");
+    expect(screen.queryByRole("group", { name: "Jump" })).toBeNull();
+    await userEvent.click(button);
+    const drawer = screen.getByRole("complementary", { name: "How it plays" });
+    expect(within(drawer).getByRole("group", { name: "Jump" })).toBeTruthy();
+    expect(within(drawer).getByRole("button", { name: /Start from/ })).toBeTruthy();
+    await userEvent.click(within(drawer).getByRole("button", { name: "Done" }));
+    expect(screen.queryByRole("complementary", { name: "How it plays" })).toBeNull();
     const look = screen.getByRole("region", { name: "Look" });
     expect(within(look).getByRole("img", { name: "Your hero in action" })).toBeTruthy();
-    expect(within(look).getByRole("img", { name: "Stand frame 1, 16 by 24 pixels" })).toBeTruthy();
+  });
+
+  it("closes the drawer with Escape", async () => {
+    const { open } = setupHero();
+    await open();
+    await userEvent.click(screen.getByRole("button", { name: "How it plays" }));
+    await userEvent.keyboard("{Escape}");
+    expect(screen.queryByRole("complementary", { name: "How it plays" })).toBeNull();
   });
 
   it("says when the assistant is working, and can stop it, while the chat is hidden", async () => {

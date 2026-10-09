@@ -20,6 +20,7 @@ import type { RawImage } from "../hero/importPicture";
 import { BOSS_PREVIEW_INPUTS, bossPreviewSim } from "../hero/preview";
 import { readPicture as readPictureFile } from "../hero/readPicture";
 import { AnimationEditor } from "./AnimationEditor";
+import { HowItPlays } from "./HowItPlays";
 import { GamePreview } from "./GamePreview";
 import { NameField } from "./NameField";
 
@@ -145,25 +146,25 @@ export function BossScreen({
           </button>
         </p>
       )}
-      <section className={styles.aboutBar} aria-label="About your boss">
-        {!boss || !bossArt ? (
-          <div>
-            <p className={styles.note}>
-              Make your own boss to fight in the boss room. It starts as a copy
-              of the {packBoss?.name ?? "boss"}.
-            </p>
-            <button
-              type="button"
-              className={styles.action}
-              onClick={() =>
-                onCommand({ name: "createBoss", args: { name: "My Boss" } })
-              }
-            >
-              Make your own boss
-            </button>
-          </div>
-        ) : (
-          <>
+      {!boss || !bossArt ? (
+        <div>
+          <p className={styles.note}>
+            Make your own boss to fight in the boss room. It starts as a copy of
+            the {packBoss?.name ?? "boss"}.
+          </p>
+          <button
+            type="button"
+            className={styles.action}
+            onClick={() =>
+              onCommand({ name: "createBoss", args: { name: "My Boss" } })
+            }
+          >
+            Make your own boss
+          </button>
+        </div>
+      ) : (
+        <div className={styles.tabTools}>
+          <HowItPlays>
             <div className={styles.aboutRow}>
               <NameField
                 key={boss.name}
@@ -272,9 +273,9 @@ export function BossScreen({
             >
               Delete boss
             </button>
-          </>
-        )}
-      </section>
+          </HowItPlays>
+        </div>
+      )}
       {boss && bossArt && (
         <AnimationEditor
           kind="boss"

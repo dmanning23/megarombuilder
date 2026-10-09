@@ -318,7 +318,7 @@ export function AnimationEditor({
         })}
       </ul>
 
-      <div className={styles.animationMiddle}>
+      <div className={styles.lightTable}>
         <div className={styles.frameStrip}>
           <div role="group" aria-label="Frames" className={styles.frames}>
             {anim.frames.map((_, i) => (
@@ -458,56 +458,61 @@ export function AnimationEditor({
           </button>
         </div>
 
-        {!fixed && (
-          <div role="group" aria-label="Size" className={styles.steps}>
-            <span className={styles.abilityLabel}>Size</span>
-            <span className={styles.note}>{`${canvas.w} × ${canvas.h}`}</span>
-            <button
-              type="button"
-              className={styles.action}
-              disabled={canvas.w - 2 < limits.min.w}
-              onClick={() => resize(canvas.w - 2, canvas.h)}
-            >
-              Narrower
-            </button>
-            <button
-              type="button"
-              className={styles.action}
-              disabled={canvas.w + 2 > limits.max.w}
-              onClick={() => resize(canvas.w + 2, canvas.h)}
-            >
-              Wider
-            </button>
-            <button
-              type="button"
-              className={styles.action}
-              disabled={canvas.h - 2 < limits.min.h}
-              onClick={() => resize(canvas.w, canvas.h - 2)}
-            >
-              Shorter
-            </button>
-            <button
-              type="button"
-              className={styles.action}
-              disabled={canvas.h + 2 > limits.max.h}
-              onClick={() => resize(canvas.w, canvas.h + 2)}
-            >
-              Taller
-            </button>
-          </div>
-        )}
-
-        {activeTool === "hitbox" && (
-          <button
-            type="button"
-            className={styles.action}
-            onClick={() => send("fitBody", { which })}
-          >
-            Fit to drawing
-          </button>
-        )}
-
         <PictureEditor
+          pictureButtons={
+            <>
+              {activeTool === "hitbox" && (
+                <button
+                  type="button"
+                  className={styles.action}
+                  onClick={() => send("fitBody", { which })}
+                >
+                  Fit to drawing
+                </button>
+              )}
+
+              {!fixed && (
+                <div role="group" aria-label="Size" className={styles.steps}>
+                  <span className={styles.abilityLabel}>Size</span>
+                  <span
+                    className={styles.note}
+                  >{`${canvas.w} × ${canvas.h}`}</span>
+                  <button
+                    type="button"
+                    className={styles.action}
+                    disabled={canvas.w - 2 < limits.min.w}
+                    onClick={() => resize(canvas.w - 2, canvas.h)}
+                  >
+                    Narrower
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.action}
+                    disabled={canvas.w + 2 > limits.max.w}
+                    onClick={() => resize(canvas.w + 2, canvas.h)}
+                  >
+                    Wider
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.action}
+                    disabled={canvas.h - 2 < limits.min.h}
+                    onClick={() => resize(canvas.w, canvas.h - 2)}
+                  >
+                    Shorter
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.action}
+                    disabled={canvas.h + 2 > limits.max.h}
+                    onClick={() => resize(canvas.w, canvas.h + 2)}
+                  >
+                    Taller
+                  </button>
+                </div>
+              )}
+            </>
+          }
           key={`${animation}:${frame}`}
           name={`${label} frame ${frame + 1}`}
           rows={anim.frames[frame]}
@@ -541,7 +546,7 @@ export function AnimationEditor({
           onCommit={onCommit}
         />
       </div>
-      <div className={styles.animationColours}>
+      <div className={styles.lookPanels}>
         <Colours
           colours={look.colours}
           slot={colour}
@@ -550,7 +555,7 @@ export function AnimationEditor({
         />
         {preview && (
           <div className={styles.panel}>
-            <h3 className={styles.panelHeading}>Preview</h3>
+            <h2 className={styles.panelHeading}>Preview</h2>
             {preview}
           </div>
         )}

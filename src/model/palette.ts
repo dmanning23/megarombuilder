@@ -46,3 +46,27 @@ export function nearestColour(hex: string): number {
   const [r, g, b] = channels(hex);
   return nearestIndex(r, g, b);
 }
+
+// The palette in a kid-friendly order: the greys from black to white, then the colours round the
+// colour wheel (red, orange, yellow, green, blue, purple, pink), each hue from dark to light.
+export function sortedPalette(): number[] {
+  const described = PALETTE_8BIT.map((hex, index) => {
+    const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255);
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    const light = (max + min) / 2;
+    const chroma = max - min;
+    const saturation = chroma === 0 ? 0 : chroma / (1 - Math.abs(2 * light - 1));
+    let hue = 0;
+    if (chroma > 0) {
+      if (max === r) hue = ((g - b) / chroma) % 6;
+      else if (max === g) hue = (b - r) / chroma + 2;
+      else hue = (r - g) / chroma + 4;
+      hue = (hue * 60 + 360) % 360;
+    }
+    // Greys first; then twelve hue families of 30 degrees, starting with red.
+    const family = saturation < 0.15 ? -1 : Math.floor(((hue + 15) % 360) / 30);
+    return { index, family, light };
+  });
+  return described.sort((a, b) => a.family - b.family || a.light - b.light).map((c) => c.index);
+}
