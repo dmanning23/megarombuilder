@@ -21,7 +21,7 @@ const ORDER = sortedPalette();
 export function Colours({ colours, slot, onSlot, onColours }: Props) {
   return (
     <section className={styles.colours} aria-label="Colours">
-      <h3 className={styles.panelHeading}>Colours</h3>
+      <h2 className={styles.panelHeading}>Colours</h2>
       <div className={styles.slots} role="group" aria-label="Your colours">
         {colours.map((colour, i) => (
           <button

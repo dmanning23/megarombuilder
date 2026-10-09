@@ -1,9 +1,17 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import styles from "../editor.module.css";
 import type { Imported, ImportTarget, RawImage } from "../hero/importPicture";
-import { blankRows, flipRows, floodFill, linePixels, setPixels, type Box, type Pixel } from "../hero/pixels";
+import {
+  blankRows,
+  flipRows,
+  floodFill,
+  linePixels,
+  setPixels,
+  type Box,
+  type Pixel,
+} from "../hero/pixels";
 import { NOT_A_PICTURE } from "../hero/readPicture";
 import { ImportDialog } from "./ImportDialog";
 import { PixelCanvas } from "./PixelCanvas";
@@ -12,7 +20,13 @@ import { slotChar, slotOf } from "@/model/look";
 // The four drawing tools, or an extra tool a screen adds (such as the hitbox).
 export type DrawTool = string;
 
-export type ExtraTool = { id: string; label: string; press(p: Pixel): void; drag(p: Pixel): void; release(): void };
+export type ExtraTool = {
+  id: string;
+  label: string;
+  press(p: Pixel): void;
+  drag(p: Pixel): void;
+  release(): void;
+};
 
 const TOOLS: { id: DrawTool; label: string }[] = [
   { id: "pencil", label: "Pencil" },
@@ -32,6 +46,7 @@ type Props = {
   shot?: { y: number; h: number }; // where shots come out
   extraTools?: ExtraTool[]; // tools that work on the picture without drawing, after the four drawing tools
   zoom?: number; // screen pixels per picture pixel
+  pictureButtons?: ReactNode; // more buttons for the bar under the picture (Fit to drawing, Size)
   testId: string;
   colours: number[];
   tool: DrawTool;
@@ -61,6 +76,7 @@ export function PictureEditor({
   shot,
   extraTools = [],
   zoom,
+  pictureButtons,
   testId,
   colours,
   tool,
@@ -109,7 +125,11 @@ export function PictureEditor({
     if (extra) return extra.drag(p);
     const current = stroke.current;
     if (!current) return;
-    const next = setPixels(current.rows, fresh ? [p] : linePixels(current.last, p), ink);
+    const next = setPixels(
+      current.rows,
+      fresh ? [p] : linePixels(current.last, p),
+      ink,
+    );
     stroke.current = { rows: next, last: p };
     onRows(next);
   };
@@ -163,7 +183,7 @@ export function PictureEditor({
   };
 
   return (
-    <div className={styles.drawing}>
+    <div className={styles.pictureEditor}>
       {importError && (
         <p className={styles.alert} role="alert">
           {importError}
@@ -172,22 +192,28 @@ export function PictureEditor({
           </button>
         </p>
       )}
-      <PixelCanvas
-        rows={rows}
-        palette={palette}
-        size={size}
-        body={body}
-        feet={feet}
-        under={under}
-        shot={shot}
-        zoom={zoom}
-        name={name}
-        testId={testId}
-        onPress={press}
-        onDrag={drag}
-        onRelease={release}
-      />
-      <div className={styles.drawTools} role="group" aria-label="Drawing tools">
+      <div className={styles.canvasWrap}>
+        <PixelCanvas
+          rows={rows}
+          palette={palette}
+          size={size}
+          body={body}
+          feet={feet}
+          under={under}
+          shot={shot}
+          zoom={zoom}
+          name={name}
+          testId={testId}
+          onPress={press}
+          onDrag={drag}
+          onRelease={release}
+        />
+      </div>
+      <div
+        className={styles.toolColumn}
+        role="group"
+        aria-label="Drawing tools"
+      >
         {[...TOOLS, ...extraTools].map((t) => (
           <button
             key={t.id}
@@ -200,7 +226,11 @@ export function PictureEditor({
           </button>
         ))}
       </div>
-      <div className={styles.drawTools} role="group" aria-label="Picture tools">
+      <div
+        className={styles.pictureBar}
+        role="group"
+        aria-label="Picture tools"
+      >
         {partners.length > 0 && (
           <label className={styles.field}>
             Copy from
@@ -220,13 +250,26 @@ export function PictureEditor({
             </select>
           </label>
         )}
-        <button type="button" className={styles.action} onClick={() => once("Flip", flipRows(rows))}>
+        <button
+          type="button"
+          className={styles.action}
+          onClick={() => once("Flip", flipRows(rows))}
+        >
           Flip
         </button>
-        <button type="button" className={`${styles.action} ${styles.danger}`} onClick={() => once("Clear", blankRows(size.w, size.h))}>
+        <button
+          type="button"
+          className={`${styles.action} ${styles.danger}`}
+          onClick={() => once("Clear", blankRows(size.w, size.h))}
+        >
           Clear
         </button>
-        <button ref={importButton} type="button" className={styles.action} onClick={() => fileInput.current?.click()}>
+        <button
+          ref={importButton}
+          type="button"
+          className={styles.action}
+          onClick={() => fileInput.current?.click()}
+        >
           Import picture
         </button>
         <input
@@ -240,6 +283,7 @@ export function PictureEditor({
             e.target.value = "";
           }}
         />
+        {pictureButtons}
       </div>
       {importing && (
         <ImportDialog
