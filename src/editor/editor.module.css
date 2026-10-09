@@ -624,33 +624,46 @@
 .slots {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.4rem;
-  margin-bottom: 0.5rem;
+  gap: 0.3rem;
+  margin-bottom: 0.4rem;
 }
-.slot {
-  width: 2.25rem;
-  height: 2.25rem;
-  border-radius: 8px;
+.slot,
+.slotButton {
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 6px;
   border: 2px solid var(--panel);
   font: inherit;
+  font-size: 12px;
   font-weight: 700;
   color: #fff;
   text-shadow: 0 0 2px #000, 0 0 2px #000;
   cursor: pointer;
+  padding: 0;
+}
+.slotButton {
+  background: transparent;
+  color: var(--panel);
+  text-shadow: none;
+  font-size: 18px;
+  line-height: 1;
+  border-style: dashed;
 }
 .slot[aria-pressed="true"],
 .colour[aria-pressed="true"] {
   outline: 3px solid var(--signal);
   outline-offset: 2px;
 }
+/* The 8-bit palette: a tight grid of small squares, in the friendly order. */
 .palette8 {
   display: grid;
-  grid-template-columns: repeat(11, 1fr);
-  gap: 3px;
+  grid-template-columns: repeat(11, 18px);
+  gap: 2px;
 }
 .colour {
-  aspect-ratio: 1;
-  min-width: 1rem;
+  width: 18px;
+  height: 18px;
+  padding: 0;
   border: 1px solid rgb(0 0 0 / 0.25);
   border-radius: 3px;
   cursor: pointer;

@@ -1,7 +1,7 @@
 "use client";
 
 import { MAX_LOOK_COLOURS } from "@/model/look";
-import { PALETTE_8BIT } from "@/model/palette";
+import { PALETTE_8BIT, sortedPalette } from "@/model/palette";
 import styles from "../editor.module.css";
 
 type Props = {
@@ -14,6 +14,10 @@ type Props = {
 const WHITE = 27; // a new colour starts white
 
 // A character's colours, and the 8-bit palette to change the chosen one.
+// The palette in a friendly order (greys, then round the colour wheel, each hue dark to light),
+// worked out once.
+const ORDER = sortedPalette();
+
 export function Colours({ colours, slot, onSlot, onColours }: Props) {
   return (
     <section className={styles.colours} aria-label="Colours">
@@ -32,37 +36,43 @@ export function Colours({ colours, slot, onSlot, onColours }: Props) {
             {i + 1}
           </button>
         ))}
-      </div>
-      <div className={styles.drawTools}>
         {colours.length < MAX_LOOK_COLOURS && (
           <button
             type="button"
-            className={styles.action}
+            className={styles.slotButton}
+            aria-label="Add a colour"
+            title="Add a colour"
             onClick={() => {
               onColours([...colours, WHITE]);
               onSlot(colours.length + 1);
             }}
           >
-            Add a colour
+            +
           </button>
         )}
         {colours.length > 1 && (
-          <button type="button" className={`${styles.action} ${styles.danger}`} onClick={() => onColours(colours.slice(0, -1))}>
-            Remove colour {colours.length}
+          <button
+            type="button"
+            className={styles.slotButton}
+            aria-label={`Remove colour ${colours.length}`}
+            title={`Remove colour ${colours.length}`}
+            onClick={() => onColours(colours.slice(0, -1))}
+          >
+            −
           </button>
         )}
       </div>
-      <p className={styles.note}>Pick a new look for colour {slot}:</p>
+      <p className={styles.note}>Pick a colour for slot {slot}:</p>
       <div className={styles.palette8} role="group" aria-label="8-bit colours">
-        {PALETTE_8BIT.map((hex, i) => (
+        {ORDER.map((i) => (
           <button
-            key={hex}
+            key={i}
             type="button"
             className={styles.colour}
             aria-label={`8-bit colour ${i + 1}`}
-            title={hex}
+            title={PALETTE_8BIT[i]}
             aria-pressed={colours[slot - 1] === i}
-            style={{ background: hex }}
+            style={{ background: PALETTE_8BIT[i] }}
             onClick={() => onColours(colours.map((c, j) => (j === slot - 1 ? i : c)))}
           />
         ))}
