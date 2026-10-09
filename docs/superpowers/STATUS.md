@@ -56,9 +56,12 @@ normal or fast, an onion skin, and sixteen colours. Kids also resize a
 character's canvas (asked first before drawing is cut off), drag its hitbox
 (or Fit to drawing) and drag its shot point; the level canvas and the checker
 keep up. The Characters screen now uses the whole window (the zone panel and the
-chat step aside; a status line shows the assistant's work there), each tab opens
-with an About bar of the character's settings, the preview sits beside the
-drawing, and its buttons share one look. 1025 tests and 15 browser tests pass; typecheck, lint and build are clean. Browser tests: `npm run e2e`
+chat step aside; a status line shows the assistant's work there) and is laid out
+as a workbench: the animation list, a dark light table with the frames, playback,
+drawing tools, a canvas that grows to fit (zoom 12 to 24) and a picture bar, and a
+right column with a compact colour grid (sorted greys, then by hue) and the
+preview. A character's settings sit in a How it plays drawer. 1036 tests and 17
+browser tests pass; typecheck, lint and build are clean. Browser tests: `npm run e2e`
 (builds and serves on port 3100).
 
 | Document | State |
@@ -93,7 +96,7 @@ drawing, and its buttons share one look. 1025 tests and 15 browser tests pass; t
 | `specs/2026-10-08-character-editor-cleanup-design.md` | Character editor tidy-up spec, approved |
 | `plans/2026-10-08-tidy-plan-1-screen-frame.md` | Tidy-up plan 1 of 2, implemented, reviewed and merged |
 | `plans/2026-10-08-tidy-plan-2-paint-layout.md` | Tidy-up plan 2 of 2, superseded by the workbench plan |
-| `plans/2026-10-09-tidy-plan-2-workbench.md` | Tidy-up plan 2 (revised: the workbench), approved in conversation |
+| `plans/2026-10-09-tidy-plan-2-workbench.md` | Tidy-up plan 2 (revised: the workbench), implemented, reviewed and merged |
 
 Milestone 1 is now eight plans (the editor became two):
 
@@ -147,6 +150,12 @@ Milestone 4, characters that fit, was five plans:
      .step and .choice fade differently; a few dead or duplicate CSS rules.
    - Tidy plan 1: the wide-screen screenshots don't show the bottom of the
      scrolling panel (plan 2 should screenshot the panel itself).
+   - Workbench: the drawer can cover its own button when the tab row wraps;
+     focus is lost when the drawer's tab unmounts; no tests of the drawer's
+     focus moves.
+   - Workbench: 16 colour slots wrap onto three rows; the + and − slot buttons
+     have no focus style of their own; some dead CSS (.drawing, .abilities,
+     .aboutRow).
    - M4 plan 5: a drag cut off by a second finger or by undo can leave a stale
      outline until the next press (and an import then could send it); extra
      tools don't check the locked state mid-drag.
