@@ -139,3 +139,28 @@ bar wraps as it already does.
    column) and the shared button, field and heading styles.
 2. The look editor's paint-app layout: tools column, frames bar, picture bar,
    right-hand panels, and the growing canvas.
+
+## 8. Amendment, 2026-10-09: the workbench design
+
+After plan 1, user feedback: the About bar is obtrusive for settings that are
+rarely changed; the colour picker is enormous; the 8-bit palette is unsorted.
+This replaces sections 2 (About bars) and 3–5 (the look editor's layout):
+
+- **Settings in a drawer.** The About bars go. A **How it plays** button in the
+  tab row (with `aria-expanded`) opens a side drawer over the right column,
+  closed with **Done**: the hero's abilities, its can't-finish note and Start
+  from the snow hero; an enemy's name, behaviour, tuning and Delete enemy; the
+  boss's name, fight, attacks, Use in the boss room and Delete boss. On the
+  Enemies tab the enemy chips and **New enemy** stay in the tab row; with no
+  boss, **Make your own boss** shows in place of the look editor.
+- **The workbench.** Three columns: the animation list; a dark "light table"
+  (the app's navy) holding a frames-and-playback strip above, the drawing tools
+  down the left of the canvas, the canvas (growing, whole-number zoom 12–24),
+  and a picture bar beneath (Flip, Clear, Copy from, Import, Fit to drawing,
+  Size); and a light right column with Colours and Preview.
+- **A compact, sorted palette.** Up to 16 colour slots in one small row, and the
+  palette as a tight grid of small squares (about 18 pixels): greys in one
+  column from black to white, then one column per hue (red through purple),
+  each from dark to light.
+- Every control keeps its accessible name; the existing tests change only to
+  open the drawer first.

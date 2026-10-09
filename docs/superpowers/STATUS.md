@@ -92,7 +92,8 @@ drawing, and its buttons share one look. 1025 tests and 15 browser tests pass; t
 | `plans/2026-10-08-m4-plan-5-size-hitbox-shot.md` | Milestone 4 plan 5 of 5, implemented, reviewed and merged |
 | `specs/2026-10-08-character-editor-cleanup-design.md` | Character editor tidy-up spec, approved |
 | `plans/2026-10-08-tidy-plan-1-screen-frame.md` | Tidy-up plan 1 of 2, implemented, reviewed and merged |
-| `plans/2026-10-08-tidy-plan-2-paint-layout.md` | Tidy-up plan 2 of 2, written, waiting for approval |
+| `plans/2026-10-08-tidy-plan-2-paint-layout.md` | Tidy-up plan 2 of 2, superseded by the workbench plan |
+| `plans/2026-10-09-tidy-plan-2-workbench.md` | Tidy-up plan 2 (revised: the workbench), approved in conversation |
 
 Milestone 1 is now eight plans (the editor became two):
 
