@@ -1,7 +1,7 @@
 import type { ContentPack } from "@/model/contentPack";
 import type { BossDesign, EnemyDesign } from "@/model/designs";
 import type { Abilities } from "@/model/hero";
-import type { LookBox } from "@/model/look";
+import { shotPoints, type Size } from "@/model/look";
 import type { Checkpoint, Project, Zone } from "@/model/schema";
 import {
   checkZone,
@@ -12,9 +12,9 @@ import {
 
 type Cached = {
   abilities: Abilities;
-  body: LookBox;
-  slideBody: LookBox | undefined;
-  shotY: number | undefined;
+  body: Size;
+  slideBody: Size | undefined;
+  shots: string; // every pose's shot point
   enemies: EnemyDesign[];
   boss: BossDesign | null;
   checkpoints: Checkpoint[];
@@ -35,6 +35,8 @@ export type CheckCache = {
 // A zone's check depends only on the zone itself, the hero's abilities and hitboxes (not its drawing), the kid's enemies and boss, the
 // level's checkpoints and the pack. Unchanged zones keep the same object through edits, so only zones that actually
 // changed are checked again. That keeps checking quick on levels with many long zones.
+const shotsOf = (project: Project): string => JSON.stringify(shotPoints(project.hero.look));
+
 export function createCheckCache(): CheckCache {
   const cache = new WeakMap<Zone, Cached>();
 
@@ -53,7 +55,7 @@ export function createCheckCache(): CheckCache {
       hit.abilities === project.hero.abilities &&
       hit.body === project.hero.look.body &&
       hit.slideBody === project.hero.look.slideBody &&
-      hit.shotY === project.hero.look.shotY &&
+      hit.shots === shotsOf(project) &&
       hit.enemies === project.enemies &&
       hit.boss === project.boss &&
       hit.checkpoints === level.checkpoints &&
@@ -66,7 +68,7 @@ export function createCheckCache(): CheckCache {
       abilities: project.hero.abilities,
       body: project.hero.look.body,
       slideBody: project.hero.look.slideBody,
-      shotY: project.hero.look.shotY,
+      shots: shotsOf(project),
       enemies: project.enemies,
       boss: project.boss,
       checkpoints: level.checkpoints,

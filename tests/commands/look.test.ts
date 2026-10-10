@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import { createHistory, runCommand, undo } from "@/commands/history";
-import { lookProblems } from "@/model/look";
 import { baseProject, ctx, run, runError } from "./helpers";
 
 const fill = (w: number, h: number, ch: string) => Array.from({ length: h }, () => ch.repeat(w));

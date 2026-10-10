@@ -1,6 +1,6 @@
 import { designLook, designSlot, type BossDesign, type DesignLook, type EnemyDesign } from "@/model/designs";
 import { OWN_BOSS, ownType } from "@/model/gamePack";
-import { slotChar, type AnimationSpeed, type Look, type LookBox } from "@/model/look";
+import { firstStanding, poseBox, slotChar, type AnimationSpeed, type Look, type LookBox, type LookKind, type Size } from "@/model/look";
 import { PALETTE_8BIT } from "@/model/palette";
 import type { Timing } from "./animate";
 import { sprite, type Sprite } from "./art";
@@ -18,12 +18,15 @@ export function lookArt(look: DesignLook): LookArt {
   };
 }
 
-export type AnimSprites = { frames: Sprite[]; speed: AnimationSpeed };
+export type AnimSprites = { frames: Sprite[]; speed: AnimationSpeed; size: Size; box: LookBox | null };
 
-// Every animation of a look as sprites.
-export function lookSprites(look: Look): Record<string, AnimSprites> {
+// Every pose of a look as sprites, with its picture size and its hitbox in that picture.
+export function lookSprites(look: Look, kind: LookKind): Record<string, AnimSprites> {
   return Object.fromEntries(
-    Object.entries(look.animations).map(([name, anim]) => [name, { frames: anim.frames.map((rows) => sprite(rows)), speed: anim.speed }]),
+    Object.entries(look.animations).map(([name, anim]) => [
+      name,
+      { frames: anim.frames.map((rows) => sprite(rows)), speed: anim.speed, size: anim.size, box: poseBox(look, kind, name) },
+    ]),
   );
 }
 
@@ -34,8 +37,8 @@ export const timingsOf = (animations: Record<string, AnimSprites>): Record<strin
 export type OwnSkin = {
   art: LookArt;
   animations: Record<string, AnimSprites>;
-  body: LookBox; // the hitbox, in the picture
-  canvas: { w: number; h: number };
+  body: LookBox; // the first pose's hitbox, in its picture, for the zone view (the game draws each pose's own)
+  canvas: Size; // the first pose's picture size
   image: (s: Sprite, flip: boolean) => CanvasImageSource;
 };
 
@@ -46,14 +49,15 @@ export function ownSkins(
   boss: BossDesign | null = null,
 ): Record<string, OwnSkin> {
   const skin = (kind: EnemyDesign["behaviour"] | "boss", look: Look): OwnSkin => {
-    const animations = lookSprites(look);
+    const animations = lookSprites(look, kind);
     // The first frames in the old order: the very same sprites as in `animations`.
     const frames = designLook(kind, look).frames.map((_, i) => {
       const { animation, frame } = designSlot(kind, look, i);
       return animations[animation].frames[frame];
     });
     const art = { palette: paletteOf(look.colours), frames };
-    return { art, animations, body: look.body, canvas: look.canvases.main, image: imageFor(art.palette) };
+    const first = animations[firstStanding(kind)];
+    return { art, animations, body: first.box!, canvas: first.size, image: imageFor(art.palette) };
   };
   const skins: Record<string, OwnSkin> = Object.fromEntries(enemies.map((enemy) => [ownType(enemy.id), skin(enemy.behaviour, enemy.look)]));
   if (boss) skins[OWN_BOSS] = skin("boss", boss.look);

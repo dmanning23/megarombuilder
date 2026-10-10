@@ -84,7 +84,7 @@ describe("createCheckCache", () => {
     const cache = createCheckCache();
     const project = game();
     const first = cache.zone(project, "L1", "z1", pack);
-    const narrow = run(project, { name: "setBody", args: { target: "hero", body: { x: 2, y: 2, w: 12, h: 22 } } });
+    const narrow = run(project, { name: "setBody", args: { target: "hero", animation: "stand", body: { x: 2, y: 2, w: 12, h: 22 } } });
     expect(cache.zone(narrow, "L1", "z1", pack)).not.toBe(first);
   });
 
@@ -92,7 +92,7 @@ describe("createCheckCache", () => {
     const cache = createCheckCache();
     let project = run(game(), { name: "createBoss", args: { name: "Volt Viper" } });
     const first = cache.zone(project, "L1", "boss", pack);
-    project = run(project, { name: "resizeCanvas", args: { target: "boss", canvas: "main", w: 32, h: 32 } });
+    project = run(project, { name: "resizePose", args: { target: "boss", animation: "stand", w: 32, h: 32 } });
     expect(cache.zone(project, "L1", "boss", pack)).not.toBe(first);
   });
 });

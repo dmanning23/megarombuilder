@@ -1,7 +1,7 @@
 import type { ThingBehaviour, ThingDef } from "@/model/contentPack";
 import { TILE_SIZE } from "@/model/geometry";
 import type { Thing } from "@/model/schema";
-import { BOSS_INTRO_STEPS, ENEMY_SHOT_SIZE } from "../constants";
+import { BOSS_INTRO_STEPS } from "../constants";
 import { num, type Box, type Entity } from "./types";
 
 const SIZES: Record<ThingBehaviour, [number, number]> = {
@@ -79,7 +79,7 @@ export function createEntity(thing: Thing, def: ThingDef, playerCentreX: number)
     dy: 0,
     flash: 0,
     modeSteps: 0,
-    shotY: def.shotY ?? Math.round(box.h / 2 - ENEMY_SHOT_SIZE / 2), // the middle, as it always was
+    shotYs: def.shotYs ?? {}, // a pose without one shoots from the middle, as it always has
     settings,
   };
 }

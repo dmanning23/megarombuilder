@@ -1,6 +1,7 @@
 import type { AnimationSpeed } from "@/model/look";
 import { HURT_STEPS } from "../sim/constants";
 import type { Entity } from "../sim/entities/types";
+import { entityPose, heroPose } from "../sim/pose";
 import type { Player } from "../sim/state";
 
 // Which animation a character shows, and which of its frames, from the game's state alone.
@@ -31,47 +32,33 @@ export function heroShown(p: Player, steps: number, timings: Record<string, Timi
   const loop = (animation: string, base = BASE): Shown => ({ animation, frame: pickFrame(timingOf(timings, animation), base, steps, true), flip });
   const once = (animation: string, elapsed: number): Shown => ({ animation, frame: pickFrame(timingOf(timings, animation), BASE, elapsed, false), flip });
 
-  if (p.h < p.standH) return loop("slide");
-  if (p.hurt > 0) return once("hurt", HURT_STEPS - p.hurt);
-  if (p.onLadder) {
-    const n = timingOf(timings, "climb").frames;
-    const rung = Math.floor(p.y / CLIMB_PIXELS);
-    if (n <= 1) return { animation: "climb", frame: 0, flip: rung % 2 === 1 }; // mirrors, as it always has
-    return { animation: "climb", frame: (((-rung) % n) + n) % n, flip: false }; // y falls going up: forwards
+  const animation = heroPose(p, p.shotTimer > 0);
+  switch (animation) {
+    case "hurt":
+      return once("hurt", HURT_STEPS - p.hurt);
+    case "climb": {
+      const n = timingOf(timings, "climb").frames;
+      const rung = Math.floor(p.y / CLIMB_PIXELS);
+      if (n <= 1) return { animation: "climb", frame: 0, flip: rung % 2 === 1 }; // mirrors, as it always has
+      return { animation: "climb", frame: (((-rung) % n) + n) % n, flip: false }; // y falls going up: forwards
+    }
+    case "jump":
+    case "jumpShoot":
+      return once(animation, p.airSteps);
+    case "run":
+    case "runShoot":
+      return loop(animation, baseFor(animation));
+    default:
+      return loop(animation);
   }
-  const shooting = p.shotTimer > 0;
-  if (!p.onGround) return once(shooting ? "jumpShoot" : "jump", p.airSteps);
-  if (p.vx !== 0) {
-    const run = shooting ? "runShoot" : "run";
-    return loop(run, baseFor(run));
-  }
-  return loop(shooting ? "standShoot" : "stand");
 }
 
-const BOSS_ATTACKS = new Set(["spread", "aimed", "rain", "big"]);
 
 export function entityShown(e: Entity, steps: number, timings: Record<string, Timing>): Shown {
   const flip = e.facing < 0;
-  const loop = (animation: string): Shown => ({ animation, frame: pickFrame(timingOf(timings, animation), BASE, steps, true), flip });
-  const once = (animation: string): Shown => ({ animation, frame: pickFrame(timingOf(timings, animation), BASE, e.modeSteps, false), flip });
-  switch (e.behaviour) {
-    case "walker":
-      return loop("walk");
-    case "flyer":
-      return loop("fly");
-    case "turret":
-      return loop("idle");
-    case "jumper":
-      return loop(e.onGround ? "ground" : "air");
-    case "shielded":
-      return loop(e.mode === "open" ? "open" : "closed");
-    case "dropper":
-      return loop(e.mode === "hang" ? "hang" : "fall");
-    case "boss":
-      if (e.mode === "jump") return once("jump");
-      if (BOSS_ATTACKS.has(e.mode)) return once("attack");
-      return loop("stand");
-    default:
-      return loop("walk");
+  const animation = entityPose(e);
+  if (e.behaviour === "boss" && (animation === "jump" || animation === "attack")) {
+    return { animation, frame: pickFrame(timingOf(timings, animation), BASE, e.modeSteps, false), flip }; // once through
   }
+  return { animation, frame: pickFrame(timingOf(timings, animation), BASE, steps, true), flip };
 }

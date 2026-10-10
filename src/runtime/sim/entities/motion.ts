@@ -1,5 +1,6 @@
 import { moveX, moveY, type Body } from "../body";
 import { ENEMY_GRAVITY, ENEMY_MAX_FALL, ENEMY_SHOT_SIZE } from "../constants";
+import { entityShotY } from "../pose";
 import type { Sim } from "../state";
 import { firstTile, isPlatform, isSolid, type TileMap } from "../tilemap";
 import type { Entity } from "./types";
@@ -36,7 +37,7 @@ export function patrol(sim: Sim, e: Entity, speed: number): void {
 export function fireAt(sim: Sim, e: Entity, vx: number, vy: number, damage: number): void {
   sim.enemyShots.push({
     x: e.x + e.w / 2 - ENEMY_SHOT_SIZE / 2,
-    y: e.y + e.shotY,
+    y: e.y + entityShotY(e),
     vx,
     vy,
     damage,

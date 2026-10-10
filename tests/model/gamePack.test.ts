@@ -119,7 +119,7 @@ describe("the kid's boss in the game pack", () => {
       defaults: { health: 40, attacks: "rain,big" },
       own: true,
       body: { w: 24, h: 28 },
-      shotY: 11,
+      shotYs: { stand: 11, jump: 11, attack: 11 },
     });
   });
 });
@@ -127,12 +127,12 @@ describe("the kid's boss in the game pack", () => {
 describe("the kid's types carry their hitbox and shot point", () => {
   it("from their looks", () => {
     let project = run(baseProject(), "addEnemy", { enemyId: "e1", name: "Ice Eye", behaviour: "turret" });
-    project = run(project, "resizeCanvas", { target: { enemy: "e1" }, canvas: "main", w: 24, h: 24 });
-    project = run(project, "setBody", { target: { enemy: "e1" }, body: { x: 2, y: 4, w: 20, h: 20 } });
-    project = run(project, "setShotY", { target: { enemy: "e1" }, y: 14 });
+    project = run(project, "resizePose", { target: { enemy: "e1" }, animation: "idle", w: 24, h: 24 });
+    project = run(project, "setBody", { target: { enemy: "e1" }, animation: "idle", body: { x: 2, y: 4, w: 20, h: 20 } });
+    project = run(project, "setShotY", { target: { enemy: "e1" }, animation: "idle", y: 14 });
     const def = gamePack(project, testPack).things.find((d) => d.type === "own-e1")!;
     expect(def.body).toEqual({ w: 20, h: 20 });
-    expect(def.shotY).toBe(14);
+    expect(def.shotYs).toEqual({ idle: 14 });
     expect(testPack.things.find((d) => d.type === "turret")!.body).toBeUndefined();
   });
 });

@@ -81,9 +81,9 @@ describe("the kid's enemies' own hitboxes and shot points", () => {
   function bigTurret(shotY: number) {
     let project = run(game(), "addEnemy", { enemyId: "e1", name: "Ice Eye", behaviour: "turret" });
     const target = { enemy: "e1" };
-    project = run(project, "resizeCanvas", { target, canvas: "main", w: 24, h: 24 });
-    project = run(project, "setBody", { target, body: { x: 2, y: 4, w: 20, h: 20 } });
-    project = run(project, "setShotY", { target, y: shotY });
+    project = run(project, "resizePose", { target, animation: "idle", w: 24, h: 24 });
+    project = run(project, "setBody", { target, animation: "idle", body: { x: 2, y: 4, w: 20, h: 20 } });
+    project = run(project, "setShotY", { target, animation: "idle", y: shotY });
     return run(project, "placeThing", { levelId: "L1", zoneId: "z1", thingId: "t1", type: "own-e1", x: 8, y: 12 });
   }
 
