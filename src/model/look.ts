@@ -131,6 +131,16 @@ export const isFixed = (rule: PoseRule): boolean => rule.min.w === rule.max.w &&
 export const hasShotPoint = (kind: LookKind, animation: string): boolean =>
   KINDS[kind].shotHeight !== null && KINDS[kind].animations[animation]?.body === "main";
 
+// The poses a character fires from: the pose the game shows as a shot comes out
+// (src/runtime/sim/pose.ts chooses it). Only these offer the Shot point tool.
+const FIRING: Partial<Record<LookKind, string[]>> = {
+  hero: ["standShoot", "runShoot", "jumpShoot", "climb", "hurt"],
+  turret: ["idle"],
+  shielded: ["open"],
+  boss: ["attack"],
+};
+export const firesFrom = (kind: LookKind, animation: string): boolean => FIRING[kind]?.includes(animation) ?? false;
+
 const bodyOf = (look: Look, which: BodyName | null | undefined): Size | undefined =>
   which === "main" ? look.body : which === "slide" ? look.slideBody : undefined;
 
@@ -307,8 +317,10 @@ export function reframeRows(rows: string[], w: number, h: number): string[] {
 
 const drawn = (frames: string[][]) => frames.reduce((n, rows) => n + rows.join("").replace(/\./g, "").length, 0);
 
+// Whether padding or trimming rows to a size would cut off any drawn pixel.
+export const cutsRows = (rows: string[], w: number, h: number): boolean => drawn([reframeRows(rows, w, h)]) < drawn([rows]);
+
 // Whether resizing a pose would cut off any drawn pixel of its frames.
 export function cutsDrawing(look: Look, animation: string, w: number, h: number): boolean {
-  const frames = look.animations[animation].frames;
-  return drawn(frames.map((rows) => reframeRows(rows, w, h))) < drawn(frames);
+  return look.animations[animation].frames.some((rows) => cutsRows(rows, w, h));
 }

@@ -1,6 +1,10 @@
 // @vitest-environment jsdom
 import { cleanup, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { applyCommand } from "@/commands";
+import { snowPack } from "@/content/snow/pack";
+import { newProject } from "@/editor/newProject";
 import { setupHero } from "./heroHelpers";
 
 // jsdom has no ResizeObserver: stand in one that reports the drawing area's own size.
@@ -28,7 +32,7 @@ describe("the canvas's zoom", () => {
     const { open } = setupHero();
     await open();
     const canvas = screen.getByTestId("hero-canvas") as HTMLCanvasElement;
-    expect(canvas.width).toBe(16 * 24); // 500 / 16 and 600 / 24 both allow the most, 24
+    expect(canvas.width).toBe(16 * 20); // fitting the hero's largest picture, 24 by 24 (Slide is 24 wide): 500 / 24 = 20
   });
 
   it("stays at the smallest zoom in a small area", async () => {
@@ -36,5 +40,21 @@ describe("the canvas's zoom", () => {
     const { open } = setupHero();
     await open();
     expect((screen.getByTestId("hero-canvas") as HTMLCanvasElement).width).toBe(16 * 12);
+  });
+
+  it("fits the character's largest pose, so pixels stay the same size between poses", async () => {
+    reported = { width: 500, height: 600 };
+    let n = 0;
+    const result = applyCommand(
+      newProject("Big", () => `id-${++n}`),
+      { name: "resizePose", args: { target: "hero", animation: "jumpShoot", w: 32, h: 32 } },
+      { pack: snowPack },
+    );
+    if (!result.ok) throw new Error(result.error);
+    const { open } = setupHero(result.project);
+    await open();
+    expect((screen.getByTestId("hero-canvas") as HTMLCanvasElement).width).toBe(16 * 15); // 500 / 32 = 15, 600 / 32 = 18
+    await userEvent.click(screen.getByRole("button", { name: /^Jump and shoot,/ }));
+    expect((screen.getByTestId("hero-canvas") as HTMLCanvasElement).width).toBe(32 * 15);
   });
 });

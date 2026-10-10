@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { moveEdge, pickEdge, shotYAt } from "@/editor/hero/hitbox";
+import { moveBox, moveEdge, pickEdge, pickGrip, shotYAt } from "@/editor/hero/hitbox";
 
 const body = { x: 2, y: 4, w: 10, h: 12 }; // columns 2..11, rows 4..15
 const limits = { canvas: { w: 16, h: 20 }, maxW: null, maxH: null };
@@ -10,6 +10,22 @@ describe("pickEdge", () => {
     expect(pickEdge(body, { x: 12, y: 9 })).toBe("right");
     expect(pickEdge(body, { x: 6, y: 3 })).toBe("top");
     expect(pickEdge(body, { x: 6, y: 15 })).toBe("bottom");
+  });
+});
+
+describe("pickGrip", () => {
+  it("moves the box from inside it, and grabs an edge on its outline", () => {
+    expect(pickGrip(body, { x: 6, y: 9 })).toBe("move");
+    expect(pickGrip(body, { x: 2, y: 9 })).toBe("left");
+    expect(pickGrip(body, { x: 11, y: 9 })).toBe("right");
+    expect(pickGrip(body, { x: 6, y: 15 })).toBe("bottom");
+  });
+});
+
+describe("moveBox", () => {
+  it("moves the whole box by the drag, keeping its size and keeping it on the canvas", () => {
+    expect(moveBox(body, { x: 6, y: 9 }, { x: 8, y: 8 }, { w: 16, h: 20 })).toEqual({ x: 4, y: 3, w: 10, h: 12 });
+    expect(moveBox(body, { x: 6, y: 9 }, { x: -50, y: 99 }, { w: 16, h: 20 })).toEqual({ x: 0, y: 8, w: 10, h: 12 });
   });
 });
 

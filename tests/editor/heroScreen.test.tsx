@@ -104,7 +104,7 @@ describe("the hero screen", () => {
     expect(pictureRows(saved().hero.look, "stand").every((row) => /^\.+$/.test(row))).toBe(true);
   });
 
-  it("only offers to copy frames on the same canvas", async () => {
+  it("only offers to copy frames of poses that share a hitbox", async () => {
     const { open, choose } = setupHero();
     await open();
     const options = () =>

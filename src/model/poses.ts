@@ -49,13 +49,24 @@ export function setPoseBody(look: Look, kind: LookKind, animation: string, box: 
   return { ...look, animations, ...(which === "slide" ? { slideBody: size } : { body: size }) };
 }
 
-// The hitbox fitted to a pose's first frame. Hero hitboxes keep within their limits, and a
-// shooter's stays at least as tall as its shot, growing upwards from its feet.
+// The smallest picture among the poses that share this pose's hitbox: the hitbox can't be bigger.
+export function smallestSharing(look: Look, kind: LookKind, animation: string): Size {
+  const which = KINDS[kind].animations[animation].body;
+  const sizes = Object.entries(KINDS[kind].animations)
+    .filter(([name, rule]) => which !== null && rule.body === which && look.animations[name])
+    .map(([name]) => look.animations[name].size);
+  return { w: Math.min(...sizes.map((s) => s.w)), h: Math.min(...sizes.map((s) => s.h)) };
+}
+
+// The hitbox fitted to a pose's first frame. Hero hitboxes keep within their limits, every hitbox
+// within the smallest pose that shares it, and a shooter's stays at least as tall as its shot,
+// growing upwards from its feet.
 export function fittedPoseBody(look: Look, kind: LookKind, animation: string): LookBox {
   const anim = look.animations[animation];
   const which = KINDS[kind].animations[animation].body;
-  const maxH = kind !== "hero" ? null : which === "slide" ? SLIDE_BODY_MAX_H : HERO_BODY_MAX_H;
-  const maxW = kind === "hero" && which === "main" ? HERO_BODY_MAX_W : null;
+  const smallest = smallestSharing(look, kind, animation); // and no bigger than the smallest pose that shares it
+  const maxH = Math.min(kind !== "hero" ? Infinity : which === "slide" ? SLIDE_BODY_MAX_H : HERO_BODY_MAX_H, smallest.h);
+  const maxW = Math.min(kind === "hero" && which === "main" ? HERO_BODY_MAX_W : Infinity, smallest.w);
   const box = fitBody(anim.frames[0], anim.size, maxH, maxW);
   const shotHeight = which === "main" ? KINDS[kind].shotHeight : null;
   if (shotHeight === null || box.h >= shotHeight) return box;

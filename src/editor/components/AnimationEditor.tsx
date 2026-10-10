@@ -7,6 +7,8 @@ import {
   ANIMATION_NAMES,
   ANIMATION_SPEEDS,
   cutsDrawing,
+  cutsRows,
+  firesFrom,
   hasShotPoint,
   HERO_BODY_MAX_H,
   HERO_BODY_MAX_W,
@@ -14,6 +16,7 @@ import {
   KINDS,
   MAX_FRAMES,
   poseBox,
+  reframeRows,
   type AnimationSpeed,
   type Look,
   type LookBox,
@@ -21,13 +24,15 @@ import {
   SLIDE_BODY_MAX_H,
 } from "@/model/look";
 import { baseFor, frameSteps } from "@/runtime/render/animate";
+import { smallestSharing } from "@/model/poses";
 import { lookSprites, paletteOf } from "@/runtime/render/lookArt";
 import styles from "../editor.module.css";
 import {
+  moveBox,
   moveEdge,
-  pickEdge,
+  pickGrip,
   shotYAt,
-  type Edge,
+  type Grip,
   type HitboxLimits,
 } from "../hero/hitbox";
 import type { RawImage } from "../hero/importPicture";
@@ -142,6 +147,20 @@ export function AnimationEditor({
   const body = poseBox(look, kind, animation);
   const colour = Math.min(slot, look.colours.length);
   const fixed = isFixed(poseRule); // the hero's shots
+  // A Size step the hitbox can't fit into is dimmed, with a note saying why.
+  const bodySize =
+    poseRule.body === "main"
+      ? look.body
+      : poseRule.body === "slide"
+        ? look.slideBody
+        : undefined;
+  const roomFor = (w: number, h: number) =>
+    !bodySize || (w >= bodySize.w && h >= bodySize.h);
+  const narrowerFits = size.w - 2 >= poseRule.min.w;
+  const shorterFits = size.h - 2 >= poseRule.min.h;
+  const hitboxStops =
+    (narrowerFits && !roomFor(size.w - 2, size.h)) ||
+    (shorterFits && !roomFor(size.w, size.h - 2));
   const resize = (w: number, h: number) => {
     if (
       cutsDrawing(look, animation, w, h) &&
@@ -153,7 +172,7 @@ export function AnimationEditor({
 
   // A hitbox or shot point being dragged: shown live, saved once when the press ends. The ref holds
   // the latest drag for the release, which may run before React re-renders.
-  type Draft = { body?: LookBox; shotY?: number; edge?: Edge };
+  type Draft = { body?: LookBox; shotY?: number; grip?: Grip; from?: Pixel };
   const [draft, setDraftState] = useState<Draft | null>(null);
   const draftRef = useRef<Draft | null>(null);
   const setDraft = (next: Draft | null) => {
@@ -162,18 +181,26 @@ export function AnimationEditor({
   };
   const which = poseRule.body;
   const shotHeight = rule.shotHeight;
+  // The box can't grow past the smallest picture of the poses that share it.
+  const smallest = smallestSharing(look, kind, animation);
   const hitboxLimits: HitboxLimits = {
     canvas: size,
-    maxW: kind === "hero" && which === "main" ? HERO_BODY_MAX_W : null,
-    maxH:
+    maxW: Math.min(
+      kind === "hero" && which === "main" ? HERO_BODY_MAX_W : Infinity,
+      smallest.w,
+    ),
+    maxH: Math.min(
       kind === "hero"
         ? which === "slide"
           ? SLIDE_BODY_MAX_H
           : HERO_BODY_MAX_H
-        : null,
+        : Infinity,
+      smallest.h,
+    ),
     minH: which === "main" ? shotHeight : null,
   };
-  const shotHere = hasShotPoint(kind, animation) && body !== null;
+  // Only a pose the character fires from offers the Shot point tool.
+  const shotHere = firesFrom(kind, animation) && hasShotPoint(kind, animation) && body !== null;
   const extraTools: ExtraTool[] =
     body === null
       ? []
@@ -182,13 +209,24 @@ export function AnimationEditor({
             id: "hitbox",
             label: "Hitbox",
             press: (p: Pixel) => {
-              const edge = which === "slide" ? "top" : pickEdge(body, p); // a slide's feet stay on the floor
-              setDraft({ edge, body: moveEdge(body, edge, p, hitboxLimits) });
+              const picked = pickGrip(body, p);
+              const grip = which === "slide" && picked !== "move" ? "top" : picked; // a slide's feet stay on the floor
+              setDraft({
+                grip,
+                from: p,
+                body: grip === "move" ? body : moveEdge(body, grip, p, hitboxLimits),
+              });
             },
             drag: (p: Pixel) => {
-              const edge = draftRef.current?.edge;
-              if (edge)
-                setDraft({ edge, body: moveEdge(body, edge, p, hitboxLimits) });
+              const d = draftRef.current;
+              if (!d?.grip || !d.from) return;
+              setDraft({
+                ...d,
+                body:
+                  d.grip === "move"
+                    ? moveBox(body, d.from, p, size)
+                    : moveEdge(body, d.grip, p, hitboxLimits),
+              });
             },
             release: () => {
               const next = draftRef.current?.body;
@@ -242,26 +280,31 @@ export function AnimationEditor({
       ? anim.frames[(frame - 1 + anim.frames.length) % anim.frames.length]
       : undefined;
 
-  // Copy from offers the frames of poses the same size as this one.
-  const partners = names
-    .filter(
-      (other) =>
-        look.animations[other].size.w === size.w &&
-        look.animations[other].size.h === size.h,
-    )
-    .flatMap((other) =>
-      look.animations[other].frames.flatMap((rows, i) =>
-        other === animation && i === frame
-          ? []
-          : [
-              {
-                id: `${other}:${i}`,
-                name: `${ANIMATION_NAMES[other]} frame ${i + 1}`,
-                rows,
-              },
-            ],
-      ),
-    );
+  // The zoom fits the character's largest picture, so pixels stay the same size between poses.
+  const largest = Object.values(look.animations).reduce(
+    (most, a) => ({ w: Math.max(most.w, a.size.w), h: Math.max(most.h, a.size.h) }),
+    { w: 0, h: 0 },
+  );
+  // Copy from offers the frames of poses that share this pose's hitbox (the hero's shots and Slide
+  // only their own), fitted to this pose's size the way Size fits them.
+  const sharesWith = (other: string) =>
+    poseRule.body === null
+      ? other === animation
+      : rule.animations[other].body === poseRule.body;
+  const partners = names.filter(sharesWith).flatMap((other) =>
+    look.animations[other].frames.flatMap((rows, i) =>
+      other === animation && i === frame
+        ? []
+        : [
+            {
+              id: `${other}:${i}`,
+              name: `${ANIMATION_NAMES[other]} frame ${i + 1}`,
+              rows: reframeRows(rows, size.w, size.h),
+              cuts: cutsRows(rows, size.w, size.h),
+            },
+          ],
+    ),
+  );
 
   const move = (from: number, to: number) => {
     if (to < 0 || to >= anim.frames.length || from === to) return;
@@ -466,7 +509,7 @@ export function AnimationEditor({
                   <button
                     type="button"
                     className={styles.action}
-                    disabled={size.w - 2 < poseRule.min.w}
+                    disabled={!narrowerFits || !roomFor(size.w - 2, size.h)}
                     onClick={() => resize(size.w - 2, size.h)}
                   >
                     Narrower
@@ -482,7 +525,7 @@ export function AnimationEditor({
                   <button
                     type="button"
                     className={styles.action}
-                    disabled={size.h - 2 < poseRule.min.h}
+                    disabled={!shorterFits || !roomFor(size.w, size.h - 2)}
                     onClick={() => resize(size.w, size.h - 2)}
                   >
                     Shorter
@@ -495,6 +538,11 @@ export function AnimationEditor({
                   >
                     Taller
                   </button>
+                  {hitboxStops && (
+                    <p className={styles.note}>
+                      The hitbox needs this much room.
+                    </p>
+                  )}
                 </div>
               )}
             </>
@@ -508,6 +556,8 @@ export function AnimationEditor({
           body={shownBody}
           shot={shot}
           extraTools={extraTools}
+          zoomFor={largest}
+          confirm={confirm}
           feet={poseRule.body !== null}
           testId={testId}
           colours={look.colours}

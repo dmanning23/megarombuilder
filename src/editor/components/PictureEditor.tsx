@@ -53,7 +53,9 @@ type Props = {
   onTool(tool: DrawTool): void;
   slot: number; // the chosen colour, from 1
   onSlot(slot: number): void;
-  partners: { id: string; name: string; rows: string[] }[]; // pictures of the same size, to copy from
+  partners: { id: string; name: string; rows: string[]; cuts?: boolean }[]; // pictures to copy from, already fitted to this size; cuts: fitting them trims drawing
+  zoomFor?: { w: number; h: number }; // the largest picture the zoom must fit (default: this one)
+  confirm?: (message: string) => boolean;
   importTarget: ImportTarget;
   readPicture(file: File): Promise<RawImage>;
   locked: boolean;
@@ -83,6 +85,8 @@ export function PictureEditor({
   slot,
   onSlot,
   partners,
+  zoomFor,
+  confirm,
   importTarget,
   readPicture,
   locked,
@@ -92,19 +96,22 @@ export function PictureEditor({
   onCommit,
 }: Props) {
   const colour = Math.min(slot, colours.length); // the chosen colour may have been removed
-  // The canvas grows to fill its drawing area, whose size the stylesheet sets: measure that area
+  // The canvas grows to fill its drawing area, whose size the stylesheet sets: measure that area,
+  // with a zoom that fits the largest picture it is given, so the zoom stays put between pictures
   // (there is no ResizeObserver in tests, so they draw at the smallest zoom).
   const wrap = useRef<HTMLDivElement>(null);
   const [zoom, setZoom] = useState(MIN_ZOOM);
+  const fitW = (zoomFor ?? size).w;
+  const fitH = (zoomFor ?? size).h;
   useEffect(() => {
     const el = wrap.current;
     if (!el || typeof ResizeObserver === "undefined") return;
     const observer = new ResizeObserver(([entry]) => {
-      setZoom(chooseZoom({ w: entry.contentRect.width, h: entry.contentRect.height }, size)); // same zoom: no re-render
+      setZoom(chooseZoom({ w: entry.contentRect.width, h: entry.contentRect.height }, { w: fitW, h: fitH })); // same zoom: no re-render
     });
     observer.observe(el);
     return () => observer.disconnect();
-  }, [size]);
+  }, [fitW, fitH]);
   const ink = tool === "eraser" ? "." : slotChar(colour);
   const stroke = useRef<{ rows: string[]; last: Pixel } | null>(null);
 
@@ -250,7 +257,14 @@ export function PictureEditor({
               value=""
               onChange={(e) => {
                 const from = partners.find((p) => p.id === e.target.value);
-                if (from) once("Copy picture", from.rows);
+                if (!from) return;
+                if (
+                  from.cuts &&
+                  confirm &&
+                  !confirm("This cuts off part of the picture you're copying. You can undo it.")
+                )
+                  return;
+                once("Copy picture", from.rows);
               }}
             >
               <option value="">Choose a picture…</option>

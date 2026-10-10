@@ -144,6 +144,13 @@ describe("setting a pose's hitbox", () => {
     expect(problems(look)[0]).toBe("The hero's Stand is 14 by 24; its hitbox needs 16 by 22.");
   });
 
+  it("fits a hitbox no bigger than the smallest pose that shares it", () => {
+    const look = resizePose(heroLook(), "hero", "run", 14, 24); // Run is the narrowest; Stand is drawn 16 wide
+    const fitted = fittedPoseBody(look, "hero", "stand");
+    expect(fitted).toEqual({ x: 1, y: 0, w: 14, h: 24 });
+    expect(problems(setPoseBody(look, "hero", "stand", fitted))).toEqual([]);
+  });
+
   it("fits a pose's hitbox to that pose's drawing", () => {
     const look = heroLook();
     look.animations.jumpShoot = { ...look.animations.jumpShoot, frames: [fill(16, 24, ".").map((row, y) => (y >= 8 ? "..1111111111...." : row))] };

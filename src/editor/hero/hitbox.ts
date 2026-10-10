@@ -67,3 +67,26 @@ export function moveEdge(
 
 export const shotYAt = (body: LookBox, p: Pixel, shotHeight: number): number =>
   clamp(p.y - body.y, 0, Math.max(0, body.h - shotHeight));
+
+export type Grip = Edge | "move";
+
+// A press strictly inside the box moves it; a press on its outline (or outside) grabs the nearest edge.
+export function pickGrip(body: LookBox, p: Pixel): Grip {
+  const inside =
+    p.x > body.x && p.x < body.x + body.w - 1 && p.y > body.y && p.y < body.y + body.h - 1;
+  return inside ? "move" : pickEdge(body, p);
+}
+
+// The box moved by a drag from one pixel to another, its size kept, staying on the canvas.
+export function moveBox(
+  body: LookBox,
+  from: Pixel,
+  to: Pixel,
+  canvas: { w: number; h: number },
+): LookBox {
+  return {
+    ...body,
+    x: clamp(body.x + to.x - from.x, 0, canvas.w - body.w),
+    y: clamp(body.y + to.y - from.y, 0, canvas.h - body.h),
+  };
+}

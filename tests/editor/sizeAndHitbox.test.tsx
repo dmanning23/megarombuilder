@@ -58,6 +58,21 @@ describe("the Size control", () => {
     expect(screen.queryByRole("group", { name: "Size" })).toBeNull();
   });
 
+  it("dims a step the hitbox can't fit into, saying why, but not a step at the size limit", async () => {
+    const { open } = setupHero();
+    await open();
+    const note = () => within(size()).queryByText("The hitbox needs this much room.");
+    expect(note()).toBeNull();
+    await userEvent.click(sizeButton("Narrower")); // 16 → 14: the hitbox is 14 wide
+    expect(sizeButton("Narrower")).toHaveProperty("disabled", true);
+    expect(note()).toBeTruthy();
+    expect(sizeButton("Shorter")).toHaveProperty("disabled", false); // 24 → 22 still fits a 22-tall hitbox
+    await chooseAnimation("Slide");
+    for (let i = 0; i < 4; i++) await userEvent.click(sizeButton("Wider")); // 24 → 32, the most
+    expect(sizeButton("Wider")).toHaveProperty("disabled", true);
+    expect(note()).toBeNull(); // Narrower still fits the 14-wide sliding hitbox
+  });
+
   it("resizes and sets the shot point of the chosen pose only", async () => {
     const { open, choose, saved } = setupHero();
     await open();
@@ -130,6 +145,31 @@ describe("the Hitbox tool", () => {
     expect(saved().hero.look.body.w).toBeGreaterThan(8);
   });
 
+  it("grows no bigger than the smallest pose, without an error", async () => {
+    const { open, choose, saved } = setupHero();
+    await open();
+    await chooseAnimation("Run");
+    await userEvent.click(sizeButton("Narrower")); // Run is now 14 wide
+    await chooseAnimation("Stand");
+    await choose("Hitbox");
+    canvasPress("hero-canvas").drag([14, 12], [15, 12]); // the right edge out by 1: Run has no room
+    expect(screen.queryByRole("alert")).toBeNull();
+    expect(box(saved().hero.look)).toEqual({ x: 1, y: 2, w: 14, h: 22 });
+  });
+
+  it("moves the box in this pose only, by dragging its middle, as one undo step", async () => {
+    const { open, choose, saved } = setupHero();
+    await open();
+    await choose("Hitbox");
+    canvasPress("hero-canvas").drag([8, 12], [9, 12]); // inside the box: one pixel right
+    await userEvent.click(screen.getByRole("button", { name: "Undo" }));
+    await userEvent.click(screen.getByRole("button", { name: "Redo" }));
+    const look = saved().hero.look;
+    expect(box(look)).toEqual({ x: 2, y: 2, w: 14, h: 22 });
+    expect(box(look, "jump")).toEqual({ x: 1, y: 2, w: 14, h: 22 });
+    expect(look.body).toEqual({ w: 14, h: 22 });
+  });
+
   it("offers Fit to drawing and Size in the picture bar under the canvas", async () => {
     const { open, choose } = setupHero();
     await open();
@@ -145,9 +185,10 @@ describe("the Shot point tool", () => {
   it("moves where shots come out, inside the hitbox", async () => {
     const { open, choose, saved } = setupHero();
     await open();
+    await chooseAnimation("Stand and shoot");
     await choose("Shot point");
     canvasPress("hero-canvas").drag([8, 14], [8, 16]);
-    expect(saved().hero.look.animations.stand.shotY).toBe(14); // row 16, the hitbox starting at row 2
+    expect(saved().hero.look.animations.standShoot.shotY).toBe(14); // row 16, the hitbox starting at row 2
   });
 
   it("isn't offered on the slide or the shots", async () => {
@@ -155,6 +196,10 @@ describe("the Shot point tool", () => {
     await open();
     await chooseAnimation("Slide");
     expect(screen.queryByRole("button", { name: "Shot point" })).toBeNull();
+    await chooseAnimation("Stand");
+    expect(screen.queryByRole("button", { name: "Shot point" })).toBeNull(); // the hero never fires standing still
+    await chooseAnimation("Climb");
+    expect(screen.getByRole("button", { name: "Shot point" })).toBeTruthy(); // it fires on ladders
   });
 
   it("stays at the same place in the picture when the hitbox's top edge moves, in one undo step", async () => {
