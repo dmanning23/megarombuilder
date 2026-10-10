@@ -25,7 +25,8 @@ export function resizePose(look: Look, kind: LookKind, animation: string, w: num
 }
 
 // Sets one pose's hitbox: its position there, and its size in every pose that shares it. The
-// other poses keep their box's bottom edge and centre, nudged inside their pictures. Every pose
+// other poses keep their box's bottom edge and centre (rounded towards no shift, so growing back
+// undoes shrinking exactly), nudged inside their pictures. Every pose
 // keeps its shot point on the same row of its picture, inside the new box.
 export function setPoseBody(look: Look, kind: LookKind, animation: string, box: LookBox): Look {
   const which = KINDS[kind].animations[animation].body;
@@ -39,7 +40,7 @@ export function setPoseBody(look: Look, kind: LookKind, animation: string, box: 
       const at =
         name === animation
           ? { x: box.x, y: box.y }
-          : nudgeInside({ x: anim.at.x + Math.floor((old.w - box.w) / 2), y: anim.at.y + old.h - box.h }, size, anim.size);
+          : nudgeInside({ x: anim.at.x + Math.trunc((old.w - box.w) / 2), y: anim.at.y + old.h - box.h }, size, anim.size);
       if (anim.shotY === undefined || shotHeight === null) return [name, { ...anim, at }];
       const shotY = Math.max(0, Math.min(anim.shotY + anim.at.y - at.y, box.h - shotHeight));
       return [name, { ...anim, at, shotY }];

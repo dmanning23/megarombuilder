@@ -118,6 +118,18 @@ describe("setting a pose's hitbox", () => {
     expect(problems(look)).toEqual([]);
   });
 
+  it("puts every other pose's box back exactly when an edge is dragged in and out again", () => {
+    let look = heroLook();
+    for (let i = 0; i < 3; i++) {
+      look = setPoseBody(look, "hero", "stand", { x: 1, y: 2, w: 13, h: 22 }); // the right edge in by 1
+      look = setPoseBody(look, "hero", "stand", { x: 1, y: 2, w: 14, h: 22 }); // and out again
+    }
+    look = setPoseBody(look, "hero", "stand", { x: 1, y: 2, w: 11, h: 22 }); // in by 3
+    look = setPoseBody(look, "hero", "stand", { x: 1, y: 2, w: 14, h: 22 }); // and out again
+    expect(look.animations.jump.at).toEqual({ x: 1, y: 2 });
+    expect(look).toEqual(heroLook());
+  });
+
   it("sets the sliding hitbox from Slide, leaving the standing poses alone", () => {
     const look = setPoseBody(heroLook(), "hero", "slide", { x: 4, y: 4, w: 16, h: 12 });
     expect(look.slideBody).toEqual({ w: 16, h: 12 });
