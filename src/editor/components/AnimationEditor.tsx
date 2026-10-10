@@ -24,10 +24,11 @@ import { baseFor, frameSteps } from "@/runtime/render/animate";
 import { lookSprites, paletteOf } from "@/runtime/render/lookArt";
 import styles from "../editor.module.css";
 import {
+  moveBox,
   moveEdge,
-  pickEdge,
+  pickGrip,
   shotYAt,
-  type Edge,
+  type Grip,
   type HitboxLimits,
 } from "../hero/hitbox";
 import type { RawImage } from "../hero/importPicture";
@@ -167,7 +168,7 @@ export function AnimationEditor({
 
   // A hitbox or shot point being dragged: shown live, saved once when the press ends. The ref holds
   // the latest drag for the release, which may run before React re-renders.
-  type Draft = { body?: LookBox; shotY?: number; edge?: Edge };
+  type Draft = { body?: LookBox; shotY?: number; grip?: Grip; from?: Pixel };
   const [draft, setDraftState] = useState<Draft | null>(null);
   const draftRef = useRef<Draft | null>(null);
   const setDraft = (next: Draft | null) => {
@@ -176,15 +177,28 @@ export function AnimationEditor({
   };
   const which = poseRule.body;
   const shotHeight = rule.shotHeight;
+  // The box can't grow past the smallest picture of the poses that share it.
+  const sharing = names
+    .filter((n) => which !== null && rule.animations[n].body === which)
+    .map((n) => look.animations[n].size);
+  const smallest = {
+    w: Math.min(...sharing.map((s) => s.w)),
+    h: Math.min(...sharing.map((s) => s.h)),
+  };
   const hitboxLimits: HitboxLimits = {
     canvas: size,
-    maxW: kind === "hero" && which === "main" ? HERO_BODY_MAX_W : null,
-    maxH:
+    maxW: Math.min(
+      kind === "hero" && which === "main" ? HERO_BODY_MAX_W : Infinity,
+      smallest.w,
+    ),
+    maxH: Math.min(
       kind === "hero"
         ? which === "slide"
           ? SLIDE_BODY_MAX_H
           : HERO_BODY_MAX_H
-        : null,
+        : Infinity,
+      smallest.h,
+    ),
     minH: which === "main" ? shotHeight : null,
   };
   const shotHere = hasShotPoint(kind, animation) && body !== null;
@@ -196,13 +210,24 @@ export function AnimationEditor({
             id: "hitbox",
             label: "Hitbox",
             press: (p: Pixel) => {
-              const edge = which === "slide" ? "top" : pickEdge(body, p); // a slide's feet stay on the floor
-              setDraft({ edge, body: moveEdge(body, edge, p, hitboxLimits) });
+              const picked = pickGrip(body, p);
+              const grip = which === "slide" && picked !== "move" ? "top" : picked; // a slide's feet stay on the floor
+              setDraft({
+                grip,
+                from: p,
+                body: grip === "move" ? body : moveEdge(body, grip, p, hitboxLimits),
+              });
             },
             drag: (p: Pixel) => {
-              const edge = draftRef.current?.edge;
-              if (edge)
-                setDraft({ edge, body: moveEdge(body, edge, p, hitboxLimits) });
+              const d = draftRef.current;
+              if (!d?.grip || !d.from) return;
+              setDraft({
+                ...d,
+                body:
+                  d.grip === "move"
+                    ? moveBox(body, d.from, p, size)
+                    : moveEdge(body, d.grip, p, hitboxLimits),
+              });
             },
             release: () => {
               const next = draftRef.current?.body;

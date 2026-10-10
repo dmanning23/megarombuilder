@@ -145,6 +145,31 @@ describe("the Hitbox tool", () => {
     expect(saved().hero.look.body.w).toBeGreaterThan(8);
   });
 
+  it("grows no bigger than the smallest pose, without an error", async () => {
+    const { open, choose, saved } = setupHero();
+    await open();
+    await chooseAnimation("Run");
+    await userEvent.click(sizeButton("Narrower")); // Run is now 14 wide
+    await chooseAnimation("Stand");
+    await choose("Hitbox");
+    canvasPress("hero-canvas").drag([14, 12], [15, 12]); // the right edge out by 1: Run has no room
+    expect(screen.queryByRole("alert")).toBeNull();
+    expect(box(saved().hero.look)).toEqual({ x: 1, y: 2, w: 14, h: 22 });
+  });
+
+  it("moves the box in this pose only, by dragging its middle, as one undo step", async () => {
+    const { open, choose, saved } = setupHero();
+    await open();
+    await choose("Hitbox");
+    canvasPress("hero-canvas").drag([8, 12], [9, 12]); // inside the box: one pixel right
+    await userEvent.click(screen.getByRole("button", { name: "Undo" }));
+    await userEvent.click(screen.getByRole("button", { name: "Redo" }));
+    const look = saved().hero.look;
+    expect(box(look)).toEqual({ x: 2, y: 2, w: 14, h: 22 });
+    expect(box(look, "jump")).toEqual({ x: 1, y: 2, w: 14, h: 22 });
+    expect(look.body).toEqual({ w: 14, h: 22 });
+  });
+
   it("offers Fit to drawing and Size in the picture bar under the canvas", async () => {
     const { open, choose } = setupHero();
     await open();
