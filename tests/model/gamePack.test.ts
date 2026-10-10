@@ -64,7 +64,7 @@ describe("designs in the game file", () => {
 
   it("start empty in a new game", () => {
     const project = createProject({ id: "p1", name: "Game" }, testPack);
-    expect(project.formatVersion).toBe(4);
+    expect(project.formatVersion).toBe(5);
     expect(project.enemies).toEqual([]);
     expect(project.boss).toBeNull();
   });
