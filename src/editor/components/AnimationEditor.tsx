@@ -7,6 +7,7 @@ import {
   ANIMATION_NAMES,
   ANIMATION_SPEEDS,
   cutsDrawing,
+  cutsRows,
   firesFrom,
   hasShotPoint,
   HERO_BODY_MAX_H,
@@ -15,6 +16,7 @@ import {
   KINDS,
   MAX_FRAMES,
   poseBox,
+  reframeRows,
   type AnimationSpeed,
   type Look,
   type LookBox,
@@ -283,26 +285,31 @@ export function AnimationEditor({
       ? anim.frames[(frame - 1 + anim.frames.length) % anim.frames.length]
       : undefined;
 
-  // Copy from offers the frames of poses the same size as this one.
-  const partners = names
-    .filter(
-      (other) =>
-        look.animations[other].size.w === size.w &&
-        look.animations[other].size.h === size.h,
-    )
-    .flatMap((other) =>
-      look.animations[other].frames.flatMap((rows, i) =>
-        other === animation && i === frame
-          ? []
-          : [
-              {
-                id: `${other}:${i}`,
-                name: `${ANIMATION_NAMES[other]} frame ${i + 1}`,
-                rows,
-              },
-            ],
-      ),
-    );
+  // The zoom fits the character's largest picture, so pixels stay the same size between poses.
+  const largest = Object.values(look.animations).reduce(
+    (most, a) => ({ w: Math.max(most.w, a.size.w), h: Math.max(most.h, a.size.h) }),
+    { w: 0, h: 0 },
+  );
+  // Copy from offers the frames of poses that share this pose's hitbox (the hero's shots and Slide
+  // only their own), fitted to this pose's size the way Size fits them.
+  const sharesWith = (other: string) =>
+    poseRule.body === null
+      ? other === animation
+      : rule.animations[other].body === poseRule.body;
+  const partners = names.filter(sharesWith).flatMap((other) =>
+    look.animations[other].frames.flatMap((rows, i) =>
+      other === animation && i === frame
+        ? []
+        : [
+            {
+              id: `${other}:${i}`,
+              name: `${ANIMATION_NAMES[other]} frame ${i + 1}`,
+              rows: reframeRows(rows, size.w, size.h),
+              cuts: cutsRows(rows, size.w, size.h),
+            },
+          ],
+    ),
+  );
 
   const move = (from: number, to: number) => {
     if (to < 0 || to >= anim.frames.length || from === to) return;
@@ -554,6 +561,8 @@ export function AnimationEditor({
           body={shownBody}
           shot={shot}
           extraTools={extraTools}
+          zoomFor={largest}
+          confirm={confirm}
           feet={poseRule.body !== null}
           testId={testId}
           colours={look.colours}

@@ -317,8 +317,10 @@ export function reframeRows(rows: string[], w: number, h: number): string[] {
 
 const drawn = (frames: string[][]) => frames.reduce((n, rows) => n + rows.join("").replace(/\./g, "").length, 0);
 
+// Whether padding or trimming rows to a size would cut off any drawn pixel.
+export const cutsRows = (rows: string[], w: number, h: number): boolean => drawn([reframeRows(rows, w, h)]) < drawn([rows]);
+
 // Whether resizing a pose would cut off any drawn pixel of its frames.
 export function cutsDrawing(look: Look, animation: string, w: number, h: number): boolean {
-  const frames = look.animations[animation].frames;
-  return drawn(frames.map((rows) => reframeRows(rows, w, h))) < drawn(frames);
+  return look.animations[animation].frames.some((rows) => cutsRows(rows, w, h));
 }

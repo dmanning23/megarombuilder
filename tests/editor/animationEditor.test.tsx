@@ -1,8 +1,9 @@
 // @vitest-environment jsdom
 import { cleanup, fireEvent, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { snowHero } from "@/content/snow/hero";
+import { reframeRows } from "@/model/look";
 import { setupHero } from "./heroHelpers";
 
 afterEach(cleanup);
@@ -98,6 +99,39 @@ describe("the animation editor", () => {
     await chooseAnimation("Hurt");
     await userEvent.selectOptions(screen.getByRole("combobox", { name: "Copy from" }), "Stand frame 1");
     expect(saved().hero.look.animations.hurt.frames[0]).toEqual(snowHero.animations.stand.frames[0]);
+  });
+
+  it("copies a frame from a pose of another size, fitted to this one", async () => {
+    const confirm = vi.fn(() => true);
+    const { open, saved } = setupHero(undefined, confirm);
+    await open();
+    await chooseAnimation("Run");
+    await userEvent.click(within(screen.getByRole("group", { name: "Size" })).getByRole("button", { name: "Wider" })); // 18 wide, padded
+    await chooseAnimation("Stand");
+    await userEvent.selectOptions(screen.getByRole("combobox", { name: "Copy from" }), "Run frame 1");
+    expect(confirm).not.toHaveBeenCalledWith("This cuts off part of the picture you're copying. You can undo it.");
+    expect(saved().hero.look.animations.stand.frames[0]).toEqual(snowHero.animations.run.frames[0]); // only padding was trimmed
+  });
+
+  it("asks before a copy cuts off drawing, and does nothing if the kid says no", async () => {
+    const confirm = vi.fn(() => true);
+    const { open, saved } = setupHero(undefined, confirm);
+    await open();
+    await chooseAnimation("Hurt");
+    await userEvent.click(within(screen.getByRole("group", { name: "Size" })).getByRole("button", { name: "Narrower" })); // 14 wide
+    confirm.mockReturnValue(false);
+    await userEvent.selectOptions(screen.getByRole("combobox", { name: "Copy from" }), "Stand and shoot frame 1"); // its arm reaches the edge
+    expect(confirm).toHaveBeenLastCalledWith("This cuts off part of the picture you're copying. You can undo it.");
+    expect(saved().hero.look.animations.hurt.frames[0]).toEqual(reframeRows(snowHero.animations.hurt.frames[0], 14, 24));
+  });
+
+  it("copies, trimmed, when the kid says yes", async () => {
+    const { open, saved } = setupHero(undefined, () => true);
+    await open();
+    await chooseAnimation("Hurt");
+    await userEvent.click(within(screen.getByRole("group", { name: "Size" })).getByRole("button", { name: "Narrower" }));
+    await userEvent.selectOptions(screen.getByRole("combobox", { name: "Copy from" }), "Stand and shoot frame 1");
+    expect(saved().hero.look.animations.hurt.frames[0]).toEqual(reframeRows(snowHero.animations.standShoot.frames[0], 14, 24));
   });
 
   it("labels the animation's speed on screen, apart from the hero's own speed", async () => {
