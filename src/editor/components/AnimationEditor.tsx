@@ -24,6 +24,7 @@ import {
   SLIDE_BODY_MAX_H,
 } from "@/model/look";
 import { baseFor, frameSteps } from "@/runtime/render/animate";
+import { smallestSharing } from "@/model/poses";
 import { lookSprites, paletteOf } from "@/runtime/render/lookArt";
 import styles from "../editor.module.css";
 import {
@@ -181,13 +182,7 @@ export function AnimationEditor({
   const which = poseRule.body;
   const shotHeight = rule.shotHeight;
   // The box can't grow past the smallest picture of the poses that share it.
-  const sharing = names
-    .filter((n) => which !== null && rule.animations[n].body === which)
-    .map((n) => look.animations[n].size);
-  const smallest = {
-    w: Math.min(...sharing.map((s) => s.w)),
-    h: Math.min(...sharing.map((s) => s.h)),
-  };
+  const smallest = smallestSharing(look, kind, animation);
   const hitboxLimits: HitboxLimits = {
     canvas: size,
     maxW: Math.min(
