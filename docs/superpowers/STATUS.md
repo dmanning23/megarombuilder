@@ -97,6 +97,7 @@ browser tests pass; typecheck, lint and build are clean. Browser tests: `npm run
 | `plans/2026-10-08-tidy-plan-1-screen-frame.md` | Tidy-up plan 1 of 2, implemented, reviewed and merged |
 | `plans/2026-10-08-tidy-plan-2-paint-layout.md` | Tidy-up plan 2 of 2, superseded by the workbench plan |
 | `plans/2026-10-09-tidy-plan-2-workbench.md` | Tidy-up plan 2 (revised: the workbench), implemented, reviewed and merged |
+| `specs/2026-10-10-pose-sizes-design.md` | Pose sizes spec (a size and shot point for every pose), awaiting review |
 
 Milestone 1 is now eight plans (the editor became two):
 
