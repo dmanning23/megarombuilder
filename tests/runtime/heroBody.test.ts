@@ -5,16 +5,17 @@ import { createSim, NO_INPUT } from "@/runtime/sim/state";
 import { step } from "@/runtime/sim/step";
 import { kill } from "@/runtime/sim/hazards";
 import { game } from "../ai/helpers";
+import { resizeStanding } from "../fixtures/poses";
 
 // The snow game with a hero 14 wide and 30 tall (its canvas grown to 16 by 32), sliding 12 high, shooting from 20.
 function tallGame() {
   let project = game();
   const commands: [string, unknown][] = [
     ["setHeroAbilities", { slide: true, chargeShot: true }],
-    ["resizeCanvas", { target: "hero", canvas: "main", w: 16, h: 32 }],
-    ["setBody", { target: "hero", body: { x: 1, y: 2, w: 14, h: 30 } }],
-    ["setBody", { target: "hero", which: "slide", body: { x: 5, y: 4, w: 14, h: 12 } }],
-    ["setShotY", { target: "hero", y: 20 }],
+    ...resizeStanding("hero", "hero", 16, 32),
+    ["setBody", { target: "hero", animation: "stand", body: { x: 1, y: 2, w: 14, h: 30 } }],
+    ["setBody", { target: "hero", animation: "slide", body: { x: 5, y: 4, w: 14, h: 12 } }],
+    ["setShotY", { target: "hero", animation: "standShoot", y: 20 }],
   ];
   for (const [name, args] of commands) {
     const result = applyCommand(project, { name, args }, { pack: snowPack });
@@ -65,14 +66,14 @@ describe("the hero's own size", () => {
 
   it("plays today's hero at today's sizes", () => {
     const sim = createSim(game(), "L1", snowPack);
-    expect([sim.player.w, sim.player.h, sim.player.standH, sim.player.slideH, sim.player.shotY]).toEqual([14, 22, 22, 14, 8]);
+    expect([sim.player.w, sim.player.h, sim.player.standH, sim.player.slideH, sim.player.shotYs.standShoot]).toEqual([14, 22, 22, 14, 8]);
   });
 
   it("slides lower than it stands even when its sliding hitbox is taller, and stands up again", () => {
     let project = game();
     for (const [name, args] of [
       ["setHeroAbilities", { slide: true }],
-      ["setBody", { target: "hero", body: { x: 2, y: 12, w: 12, h: 12 } }],
+      ["setBody", { target: "hero", animation: "stand", body: { x: 2, y: 12, w: 12, h: 12 } }],
     ] as const) {
       const result = applyCommand(project, { name, args }, { pack: snowPack });
       if (!result.ok) throw new Error(result.error);

@@ -3,7 +3,8 @@ import { createLevel, createProject } from "@/model/factory";
 import { parseProject } from "@/model/parse";
 import { DEFAULT_ABILITIES, HERO_PICTURES, pictureRows, withPicture } from "@/model/hero";
 import { designFrames } from "@/model/designs";
-import { DEFAULT_PLAYER, type Project } from "@/model/schema";
+import { KINDS, type Look, type LookKind } from "@/model/look";
+import { DEFAULT_PLAYER, FORMAT_VERSION, type Project } from "@/model/schema";
 import { testHero, testOldHero, testPack } from "../fixtures/testPack";
 
 const getPack = (id: string) => (id === "test" ? testPack : undefined);
@@ -39,7 +40,7 @@ describe("parseProject", () => {
   });
 
   it("refuses a project from a newer version", () => {
-    expect(errorOf({ ...project(), formatVersion: 5 })).toMatch(/newer version/);
+    expect(errorOf({ ...project(), formatVersion: 6 })).toMatch(/newer version/);
   });
 
   it("explains which field is wrong when the shape is bad", () => {
@@ -135,11 +136,12 @@ describe("format 3 games", () => {
     };
   }
 
-  it("upgrade to format 4 with every picture where it was read from", () => {
+  it("upgrade to the current format with every picture where it was read from", () => {
     const result = parseProject(format3(), getPack);
     if (!result.ok) throw new Error(result.error);
     const { project: upgraded } = result;
-    expect(upgraded.formatVersion).toBe(4);
+    expect(upgraded.formatVersion).toBe(FORMAT_VERSION);
+    expect(FORMAT_VERSION).toBe(5);
     for (const picture of HERO_PICTURES) {
       const old = picture === "shot" ? testOldHero.shot : picture === "chargedShot" ? testOldHero.chargedShot : testOldHero.poses[picture];
       expect(pictureRows(upgraded.hero.look, picture), picture).toEqual(old);
@@ -156,7 +158,50 @@ describe("format 3 games", () => {
   });
 
   it("refuse a broken look with a plain message", () => {
-    const doc = { ...project(), hero: { ...project().hero, look: { ...project().hero.look, shotY: 40 } } };
-    expect(errorOf(doc)).toContain("The hero's shot point is outside its hitbox.");
+    const look = project().hero.look;
+    const doc = { ...project(), hero: { ...project().hero, look: { ...look, animations: { ...look.animations, standShoot: { ...look.animations.standShoot, shotY: 40 } } } } };
+    expect(errorOf(doc)).toContain("The hero's Stand and shoot shot point is outside its hitbox.");
+  });
+
+  // The format 4 shape of a format 5 look, as format 4 games stored it: one canvas per group, one boxed hitbox, one shot point.
+  function format4(kind: LookKind, look: Look) {
+    const group = (a: string) => (kind === "hero" && ["slide", "shot", "chargedShot"].includes(a) ? a : "main");
+    const first = Object.keys(KINDS[kind].animations)[0];
+    const canvases = Object.fromEntries(Object.keys(look.animations).map((a) => [group(a), look.animations[a].size]));
+    return {
+      colours: look.colours,
+      canvases,
+      animations: Object.fromEntries(Object.entries(look.animations).map(([a, { frames, speed }]) => [a, { frames, speed }])),
+      body: { ...look.animations[first].at!, ...look.body },
+      ...(look.slideBody ? { slideBody: { ...look.animations.slide.at!, ...look.slideBody } } : {}),
+      ...(look.animations[first].shotY === undefined ? {} : { shotY: look.animations[first].shotY }),
+    };
+  }
+  // A game with a hero, an enemy and a boss, in the current format.
+  function current(): Project {
+    const result = parseProject(format3(), getPack);
+    if (!result.ok) throw new Error(result.error);
+    return result.project;
+  }
+
+  it("open from format 4 with every pose sized, placed and shooting as before", () => {
+    const game = current();
+    const doc = {
+      ...game,
+      formatVersion: 4,
+      hero: { ...game.hero, look: format4("hero", game.hero.look) },
+      enemies: game.enemies.map((e) => ({ ...e, look: format4(e.behaviour, e.look) })),
+      boss: { ...game.boss!, look: format4("boss", game.boss!.look) },
+    };
+    const result = parseProject(JSON.parse(JSON.stringify(doc)), getPack);
+    expect(result.ok && result.project).toEqual(game);
+  });
+
+  it("refuse a damaged format 4 look without throwing", () => {
+    const game = current();
+    const broken = { ...format4("hero", game.hero.look), canvases: {} };
+    expect(parseProject({ ...game, formatVersion: 4, hero: { ...game.hero, look: broken } }, getPack).ok).toBe(false);
+    const ghost = { ...game.enemies[0], behaviour: "ghost", look: format4(game.enemies[0].behaviour, game.enemies[0].look) };
+    expect(parseProject({ ...game, formatVersion: 4, enemies: [ghost] }, getPack).ok).toBe(false);
   });
 });

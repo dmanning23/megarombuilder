@@ -117,8 +117,8 @@ describe("drawZoneView", () => {
   it("draws the kid's own enemies lined up on their hitboxes, as the game does", () => {
     // A walker of the kid's on a 24 by 24 canvas, its hitbox at the canvas's left: placed at tile (6, 12).
     let project = run(game(), "addEnemy", { enemyId: "e1", name: "Frost Fang", behaviour: "walker" });
-    project = run(project, "resizeCanvas", { target: { enemy: "e1" }, canvas: "main", w: 24, h: 24 });
-    project = run(project, "setBody", { target: { enemy: "e1" }, body: { x: 0, y: 10, w: 14, h: 14 } });
+    project = run(project, "resizePose", { target: { enemy: "e1" }, animation: "walk", w: 24, h: 24 });
+    project = run(project, "setBody", { target: { enemy: "e1" }, animation: "walk", body: { x: 0, y: 10, w: 14, h: 14 } });
     project = run(project, "placeThing", { levelId: "L1", zoneId: "z1", thingId: "t1", type: "own-e1", x: 6, y: 12 });
     const fakeImage = (s: Sprite) => ({ sprite: s }) as unknown as CanvasImageSource;
     const own = ownSkins(project.enemies, () => fakeImage);

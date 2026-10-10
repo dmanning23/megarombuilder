@@ -2,6 +2,7 @@ import type { ContentPack } from "@/model/contentPack";
 import { TILE_SIZE } from "@/model/geometry";
 import { gamePack } from "@/model/gamePack";
 import { heroPhysics } from "@/model/hero";
+import { shotPoints } from "@/model/look";
 import type { Level, PlayerSettings, Project } from "@/model/schema";
 import { SLIDE_H } from "./constants";
 import { loadZoneThings } from "./entities/slots";
@@ -49,7 +50,7 @@ export type Player = {
   airSteps: number; // steps since leaving the ground, for the jump animation
   standH: number; // the standing hitbox's height, from the hero's look
   slideH: number; // the sliding hitbox's height
-  shotY: number; // where shots come out, below the hitbox's top
+  shotYs: Record<string, number>; // each pose's shot point, below the hitbox's top
 };
 
 export type Shot = { x: number; y: number; vx: number; charged?: boolean };
@@ -151,7 +152,7 @@ export function createSim(
     airSteps: 0,
     standH: body.h,
     slideH: Math.min(look.slideBody?.h ?? SLIDE_H, body.h - 1), // always lower than standing, so a slide ends
-    shotY: look.shotY ?? 8,
+    shotYs: shotPoints(look),
   };
   player.onLadder = touchingLadder(map, player);
   const sim: Sim = {

@@ -7,10 +7,13 @@ import {
   ANIMATION_NAMES,
   ANIMATION_SPEEDS,
   cutsDrawing,
+  hasShotPoint,
   HERO_BODY_MAX_H,
   HERO_BODY_MAX_W,
+  isFixed,
   KINDS,
   MAX_FRAMES,
+  poseBox,
   type AnimationSpeed,
   type Look,
   type LookBox,
@@ -130,28 +133,22 @@ export function AnimationEditor({
   const [onion, setOnion] = useState(false);
   const [dragged, setDragged] = useState<number | null>(null);
 
-  const sprites = useMemo(() => lookSprites(look), [look]);
+  const sprites = useMemo(() => lookSprites(look, kind), [look, kind]);
   const palette = useMemo(() => paletteOf(look.colours), [look.colours]);
   const anim = look.animations[animation];
   const frame = Math.min(chosen, anim.frames.length - 1); // undo can take the chosen frame away
-  const group = rule.animations[animation];
-  const canvas = look.canvases[group];
-  const body =
-    group === "main"
-      ? look.body
-      : group === "slide"
-        ? (look.slideBody ?? null)
-        : null;
+  const poseRule = rule.animations[animation];
+  const size = anim.size;
+  const body = poseBox(look, kind, animation);
   const colour = Math.min(slot, look.colours.length);
-  const limits = rule.canvases[group];
-  const fixed = limits.min.w === limits.max.w && limits.min.h === limits.max.h; // the hero's shots
+  const fixed = isFixed(poseRule); // the hero's shots
   const resize = (w: number, h: number) => {
     if (
-      cutsDrawing(look, kind, group, w, h) &&
+      cutsDrawing(look, animation, w, h) &&
       !confirm("This cuts off part of your drawing. You can undo it.")
     )
       return;
-    send("resizeCanvas", { canvas: group, w, h });
+    send("resizePose", { animation, w, h });
   };
 
   // A hitbox or shot point being dragged: shown live, saved once when the press ends. The ref holds
@@ -163,10 +160,10 @@ export function AnimationEditor({
     draftRef.current = next;
     setDraftState(next);
   };
-  const which = group === "slide" ? "slide" : "main";
+  const which = poseRule.body;
   const shotHeight = rule.shotHeight;
   const hitboxLimits: HitboxLimits = {
-    canvas,
+    canvas: size,
     maxW: kind === "hero" && which === "main" ? HERO_BODY_MAX_W : null,
     maxH:
       kind === "hero"
@@ -176,7 +173,7 @@ export function AnimationEditor({
         : null,
     minH: which === "main" ? shotHeight : null,
   };
-  const shotHere = shotHeight !== null && which === "main" && body !== null;
+  const shotHere = hasShotPoint(kind, animation) && body !== null;
   const extraTools: ExtraTool[] =
     body === null
       ? []
@@ -204,24 +201,8 @@ export function AnimationEditor({
                   next.h === body.h)
               )
                 return;
-              // The shot point is measured from the hitbox's top: keep it at the same row of the picture.
-              const shotY =
-                which === "main" &&
-                shotHeight !== null &&
-                look.shotY !== undefined
-                  ? Math.max(
-                      0,
-                      Math.min(
-                        look.shotY + body.y - next.y,
-                        next.h - shotHeight,
-                      ),
-                    )
-                  : undefined;
-              onBegin("Move the hitbox");
-              send("setBody", { which, body: next });
-              if (shotY !== undefined && shotY !== look.shotY)
-                send("setShotY", { y: shotY });
-              onCommit();
+              // The command keeps every pose's shot point on the same row of its picture.
+              send("setBody", { animation, body: next });
             },
           },
           ...(shotHere && shotHeight !== null
@@ -236,8 +217,8 @@ export function AnimationEditor({
                   release: () => {
                     const y = draftRef.current?.shotY;
                     setDraft(null);
-                    if (y !== undefined && y !== look.shotY)
-                      send("setShotY", { y });
+                    if (y !== undefined && y !== anim.shotY)
+                      send("setShotY", { animation, y });
                   },
                 },
               ]
@@ -248,7 +229,7 @@ export function AnimationEditor({
     tool === "hitbox" ? body !== null : tool === "shot" ? shotHere : true;
   const activeTool = offered ? tool : "pencil";
   const shownBody = draft?.body ?? body;
-  const shownShotY = draft?.shotY ?? look.shotY;
+  const shownShotY = draft?.shotY ?? anim.shotY;
   const shot =
     shotHere && shotHeight !== null && shownBody && shownShotY !== undefined
       ? { y: shownBody.y + shownShotY, h: shotHeight }
@@ -261,8 +242,13 @@ export function AnimationEditor({
       ? anim.frames[(frame - 1 + anim.frames.length) % anim.frames.length]
       : undefined;
 
+  // Copy from offers the frames of poses the same size as this one.
   const partners = names
-    .filter((other) => rule.animations[other] === group)
+    .filter(
+      (other) =>
+        look.animations[other].size.w === size.w &&
+        look.animations[other].size.h === size.h,
+    )
     .flatMap((other) =>
       look.animations[other].frames.flatMap((rows, i) =>
         other === animation && i === frame
@@ -425,7 +411,7 @@ export function AnimationEditor({
             <Player
               frames={anim.frames}
               palette={palette}
-              size={canvas}
+              size={size}
               speed={anim.speed}
               base={baseFor(animation)}
             />
@@ -465,7 +451,7 @@ export function AnimationEditor({
                 <button
                   type="button"
                   className={styles.action}
-                  onClick={() => send("fitBody", { which })}
+                  onClick={() => send("fitBody", { animation })}
                 >
                   Fit to drawing
                 </button>
@@ -476,36 +462,36 @@ export function AnimationEditor({
                   <span className={styles.abilityLabel}>Size</span>
                   <span
                     className={styles.note}
-                  >{`${canvas.w} × ${canvas.h}`}</span>
+                  >{`${size.w} × ${size.h}`}</span>
                   <button
                     type="button"
                     className={styles.action}
-                    disabled={canvas.w - 2 < limits.min.w}
-                    onClick={() => resize(canvas.w - 2, canvas.h)}
+                    disabled={size.w - 2 < poseRule.min.w}
+                    onClick={() => resize(size.w - 2, size.h)}
                   >
                     Narrower
                   </button>
                   <button
                     type="button"
                     className={styles.action}
-                    disabled={canvas.w + 2 > limits.max.w}
-                    onClick={() => resize(canvas.w + 2, canvas.h)}
+                    disabled={size.w + 2 > poseRule.max.w}
+                    onClick={() => resize(size.w + 2, size.h)}
                   >
                     Wider
                   </button>
                   <button
                     type="button"
                     className={styles.action}
-                    disabled={canvas.h - 2 < limits.min.h}
-                    onClick={() => resize(canvas.w, canvas.h - 2)}
+                    disabled={size.h - 2 < poseRule.min.h}
+                    onClick={() => resize(size.w, size.h - 2)}
                   >
                     Shorter
                   </button>
                   <button
                     type="button"
                     className={styles.action}
-                    disabled={canvas.h + 2 > limits.max.h}
-                    onClick={() => resize(canvas.w, canvas.h + 2)}
+                    disabled={size.h + 2 > poseRule.max.h}
+                    onClick={() => resize(size.w, size.h + 2)}
                   >
                     Taller
                   </button>
@@ -518,11 +504,11 @@ export function AnimationEditor({
           rows={anim.frames[frame]}
           under={under}
           palette={palette}
-          size={canvas}
+          size={size}
           body={shownBody}
           shot={shot}
           extraTools={extraTools}
-          feet={group === "main" || group === "slide"}
+          feet={poseRule.body !== null}
           testId={testId}
           colours={look.colours}
           tool={activeTool}
@@ -531,8 +517,8 @@ export function AnimationEditor({
           onSlot={setSlot}
           partners={partners}
           importTarget={{
-            ...canvas,
-            stand: group === "main" || group === "slide",
+            ...size,
+            stand: poseRule.body !== null,
           }}
           readPicture={readPicture}
           locked={locked}

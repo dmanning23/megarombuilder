@@ -3,8 +3,8 @@ import { snowArt } from "@/content/snow/art";
 import { SNOW_PALETTE } from "@/content/snow/palette";
 import { DESIGN_BODIES, designFrames, ENEMY_BEHAVIOURS, lettersToLook } from "@/model/designs";
 import { HERO_PICTURE_SLOTS, HERO_POSES } from "@/model/hero";
-import { lookProblems } from "@/model/look";
-import { designLookFrom, heroLookFrom, type OldHeroLook } from "@/model/lookUpgrade";
+import { lookProblems, shotPoints } from "@/model/look";
+import { designLookFrom, heroLookFrom, lookFromFormat4, type Format4Look, type OldHeroLook } from "@/model/lookUpgrade";
 import { bodySize } from "@/runtime/sim/entities/spawn";
 
 const fill = (w: number, h: number, ch: string) => Array.from({ length: h }, () => ch.repeat(w));
@@ -18,10 +18,16 @@ describe("heroLookFrom", () => {
   it("makes a valid hero look with today's sizes, bodies and shot point", () => {
     const look = heroLookFrom(oldHero());
     expect(lookProblems("hero", look, "The hero")).toEqual([]);
-    expect(look.canvases).toEqual({ main: { w: 16, h: 24 }, slide: { w: 24, h: 16 }, shot: { w: 6, h: 4 }, chargedShot: { w: 12, h: 10 } });
-    expect(look.body).toEqual({ x: 1, y: 2, w: 14, h: 22 });
-    expect(look.slideBody).toEqual({ x: 5, y: 2, w: 14, h: 14 });
-    expect(look.shotY).toBe(8);
+    for (const a of ["stand", "standShoot", "run", "runShoot", "jump", "jumpShoot", "climb", "hurt"]) {
+      expect(look.animations[a], a).toMatchObject({ size: { w: 16, h: 24 }, at: { x: 1, y: 2 }, shotY: 8 });
+    }
+    expect(look.animations.slide).toMatchObject({ size: { w: 24, h: 16 }, at: { x: 5, y: 2 } });
+    expect(look.animations.slide.shotY).toBeUndefined();
+    expect(look.animations.shot.size).toEqual({ w: 6, h: 4 });
+    expect(look.animations.shot.at).toBeUndefined();
+    expect(look.animations.chargedShot.size).toEqual({ w: 12, h: 10 });
+    expect(look.body).toEqual({ w: 14, h: 22 });
+    expect(look.slideBody).toEqual({ w: 14, h: 14 });
   });
 
   it("puts each old picture where the hero's pictures are read from", () => {
@@ -34,6 +40,23 @@ describe("heroLookFrom", () => {
       expect(look.animations[slot.animation].frames[slot.frame], picture).toEqual(expected);
       expect(look.animations[slot.animation].speed).toBe("normal");
     }
+  });
+});
+
+describe("lookFromFormat4", () => {
+  it("gives every pose its old group's size, hitbox position and shot point", () => {
+    const old: Format4Look = {
+      colours: [13],
+      canvases: { main: { w: 16, h: 16 } },
+      animations: { idle: { frames: [fill(16, 16, "1")], speed: "fast" } },
+      body: { x: 2, y: 4, w: 12, h: 12 },
+      shotY: 3,
+    };
+    expect(lookFromFormat4("turret", old)).toEqual({
+      colours: [13],
+      animations: { idle: { frames: [fill(16, 16, "1")], speed: "fast", size: { w: 16, h: 16 }, at: { x: 2, y: 4 }, shotY: 3 } },
+      body: { w: 12, h: 12 },
+    });
   });
 });
 
@@ -60,7 +83,7 @@ describe("designLookFrom", () => {
     const look = designLookFrom("boss", old);
     expect(lookProblems("boss", look, "Blizzard Bot")).toEqual([]);
     expect(designFrames("boss", look)).toEqual(old.frames);
-    expect(look.shotY).toBe(11);
+    expect(shotPoints(look)).toEqual({ stand: 11, jump: 11, attack: 11 });
   });
 });
 
@@ -68,7 +91,7 @@ describe("pictureRows on a hero whose run has one frame", () => {
   it("reads run2 as the run's only frame", async () => {
     const { pictureRows } = await import("@/model/hero");
     const look = heroLookFrom(oldHero());
-    const oneFrame = { ...look, animations: { ...look.animations, run: { frames: [look.animations.run.frames[0]], speed: "normal" as const } } };
+    const oneFrame = { ...look, animations: { ...look.animations, run: { ...look.animations.run, frames: [look.animations.run.frames[0]] } } };
     expect(pictureRows(oneFrame, "run2")).toEqual(look.animations.run.frames[0]);
   });
 });

@@ -14,6 +14,7 @@ import {
   RAIN_SPEED,
   SCREEN_H,
 } from "../constants";
+import { entityShotY } from "../pose";
 import type { Sim } from "../state";
 import { firstTile, isSolid } from "../tilemap";
 import { cameraFor } from "../view";
@@ -77,7 +78,7 @@ function startAttack(sim: Sim, e: Entity): void {
   } else if (attack === "aimed") {
     const p = sim.player;
     const dx = p.x + p.w / 2 - (e.x + e.w / 2);
-    const dy = p.y + p.h / 2 - (e.y + e.shotY + ENEMY_SHOT_SIZE / 2);
+    const dy = p.y + p.h / 2 - (e.y + entityShotY(e) + ENEMY_SHOT_SIZE / 2);
     const distance = Math.hypot(dx, dy) || 1;
     fireAt(sim, e, (dx / distance) * AIMED_SHOT_SPEED, (dy / distance) * AIMED_SHOT_SPEED, damage);
     e.timer = 40;

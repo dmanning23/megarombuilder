@@ -441,7 +441,7 @@ describe("animations in the game", () => {
 
   it("lines the hero's picture up on its hitbox, facing either way", () => {
     let project = game();
-    const result = applyCommand(project, { name: "setBody", args: { target: "hero", body: { x: 0, y: 2, w: 12, h: 22 } } }, { pack: snowPack });
+    const result = applyCommand(project, { name: "setBody", args: { target: "hero", animation: "stand", body: { x: 0, y: 2, w: 12, h: 22 } } }, { pack: snowPack });
     if (!result.ok) throw new Error(result.error);
     project = result.project;
     const art = heroArt(project.hero.look);

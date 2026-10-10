@@ -1,7 +1,8 @@
 import type { ContentPack } from "./contentPack";
 import type { EnemyBehaviour } from "./designs";
 import { abilitiesFromSettings } from "./hero";
-import { designLookFrom, heroLookFrom, type OldDesignLook, type OldHeroLook } from "./lookUpgrade";
+import type { LookKind } from "./look";
+import { designLookFrom, heroLookFrom, lookFromFormat4, type Format4Look, type OldDesignLook, type OldHeroLook } from "./lookUpgrade";
 import { FORMAT_VERSION, projectSchema, type Project } from "./schema";
 import { structureProblems } from "./validate";
 
@@ -26,6 +27,17 @@ const UPGRADES: Record<number, (doc: Record<string, unknown>, pack: ContentPack)
     enemies: Array.isArray(doc.enemies) ? doc.enemies.map(upgradeEnemy) : doc.enemies,
     boss: upgradeDesign(doc.boss, "boss"),
   }),
+  // Version 5 gave each pose its own picture size, hitbox position and shot point. Looks that the
+  // version 3 step just made are already version 5 (they have no canvases) and are left alone.
+  4: (doc) => ({
+    ...doc,
+    formatVersion: 5,
+    hero: upgradeLook4(doc.hero, "hero"),
+    enemies: Array.isArray(doc.enemies)
+      ? doc.enemies.map((e) => (isObject(e) && typeof e.behaviour === "string" ? upgradeLook4(e, e.behaviour as LookKind) : e))
+      : doc.enemies,
+    boss: upgradeLook4(doc.boss, "boss"),
+  }),
 };
 
 const isObject = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v);
@@ -42,6 +54,15 @@ function upgradeDesign(design: unknown, kind: EnemyBehaviour | "boss"): unknown 
     return { ...design, look: designLookFrom(kind, design.look as unknown as OldDesignLook) };
   } catch {
     return design; // a damaged old look: the schema refuses it
+  }
+}
+
+function upgradeLook4(owner: unknown, kind: LookKind): unknown {
+  if (!isObject(owner) || !isObject(owner.look) || !isObject(owner.look.canvases)) return owner;
+  try {
+    return { ...owner, look: lookFromFormat4(kind, owner.look as unknown as Format4Look) };
+  } catch {
+    return owner; // a damaged old look, or an unknown kind: the schema or the checks refuse it
   }
 }
 

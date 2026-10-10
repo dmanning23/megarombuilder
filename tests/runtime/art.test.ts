@@ -92,7 +92,7 @@ describe("thingFrame", () => {
   const thing = (overrides: Partial<Entity>): Entity => ({
     x: 0, y: 0, w: 14, h: 14, vx: 0, vy: 0, onGround: true, onIce: false,
     id: "t", type: "walker", behaviour: "walker", facing: 1, health: 1, mode: "walk",
-    timer: 0, attack: 0, homeX: 0, homeY: 0, dx: 0, dy: 0, flash: 0, modeSteps: 0, shotY: 4, settings: {},
+    timer: 0, attack: 0, homeX: 0, homeY: 0, dx: 0, dy: 0, flash: 0, modeSteps: 0, shotYs: {}, settings: {},
     ...overrides,
   });
 

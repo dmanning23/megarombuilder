@@ -6,8 +6,7 @@ type Saved = {
     name: string;
     behaviour: string;
     look: {
-      animations: { walk: { frames: string[][] } };
-      canvases: { main: { w: number; h: number } };
+      animations: { walk: { frames: string[][]; size: { w: number; h: number } } };
     };
   }[];
   levels: { zones: { things: { type: string }[] }[] }[];
@@ -80,7 +79,7 @@ test("make an enemy, place it, and play against it", async ({ page }) => {
     .getByRole("button", { name: "Wider" })
     .click();
   await expect
-    .poll(async () => (await saved(page)).enemies[0].look.canvases.main)
+    .poll(async () => (await saved(page)).enemies[0].look.animations.walk.size)
     .toEqual({ w: 18, h: 18 });
   await page.getByRole("button", { name: "Hitbox" }).click();
   await page.screenshot({

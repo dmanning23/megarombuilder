@@ -6,6 +6,7 @@ import { createProbe } from "@/checker/probe";
 import { applyCommand } from "@/commands";
 import { heroPhysics, JUMPS, SPEEDS } from "@/model/hero";
 import { settingCombos, zoneWithPiece } from "./pieceHarness";
+import { resizeStanding } from "../fixtures/poses";
 
 const EXPECTED = [
   "flat-run",
@@ -121,10 +122,11 @@ describe("snow pieces", () => {
     for (const piece of snowPieces) {
       for (const settings of settingCombos(piece)) {
         let project = zoneWithPiece(piece, settings);
-        for (const [name, args] of [
-          ["resizeCanvas", { target: "hero", canvas: "main", w: 16, h: 32 }],
-          ["setBody", { target: "hero", body: { x: 1, y: 2, w: 14, h: 30 } }],
-        ] as const) {
+        const commands: [string, unknown][] = [
+          ...resizeStanding("hero", "hero", 16, 32),
+          ["setBody", { target: "hero", animation: "stand", body: { x: 1, y: 2, w: 14, h: 30 } }],
+        ];
+        for (const [name, args] of commands) {
           const result = applyCommand(project, { name, args }, { pack: snowPack });
           if (!result.ok) throw new Error(result.error);
           project = result.project;
@@ -139,8 +141,8 @@ describe("snow pieces", () => {
     const flat = snowPieces.find((p) => p.id === "flat-run")!;
     let project = zoneWithPiece(flat, { width: 6 });
     const commands: [string, unknown][] = [
-      ["resizeCanvas", { target: "hero", canvas: "main", w: 16, h: 32 }],
-      ["setBody", { target: "hero", body: { x: 1, y: 2, w: 14, h: 30 } }],
+      ...resizeStanding("hero", "hero", 16, 32),
+      ["setBody", { target: "hero", animation: "stand", body: { x: 1, y: 2, w: 14, h: 30 } }],
     ];
     for (const [name, args] of commands) {
       const result = applyCommand(project, { name, args }, { pack: snowPack });

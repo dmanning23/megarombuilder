@@ -139,7 +139,8 @@ function drawEntity(ctx: Ctx2D, sim: Sim, e: Entity, skin: Skin | undefined, ox:
     if (flashing) return; // blink
     const shown = entityShown(e, sim.steps, timingsOf(own.animations));
     const frames = own.animations[shown.animation]?.frames ?? own.art.frames;
-    const at = placeOn(e, own.body, own.canvas.w, shown.flip);
+    const anim = own.animations[shown.animation];
+    const at = placeOn(e, anim?.box ?? own.body, anim?.size.w ?? own.canvas.w, shown.flip);
     ctx.drawImage(own.image(frames[Math.min(shown.frame, frames.length - 1)], shown.flip), at.x + ox, at.y + oy);
     return;
   }
@@ -185,8 +186,8 @@ export function draw(ctx: Ctx2D, sim: Sim, skin?: Skin): void {
       const blink = p.charge >= CHARGE_STEPS && Math.floor(sim.steps / 4) % 2 === 0;
       const image = blink && skin.hero.flashImage ? skin.hero.flashImage : skin.hero.image;
       const art = skin.hero.art;
-      const sliding = shown.animation === "slide";
-      const at = placeOn(p, sliding ? art.slideBody : art.body, art.canvases[sliding ? "slide" : "main"].w, shown.flip);
+      const anim = art.animations[shown.animation];
+      const at = placeOn(p, anim.box!, anim.size.w, shown.flip);
       ctx.drawImage(image(art.animations[shown.animation].frames[shown.frame], shown.flip), at.x + originX, at.y + originY);
     } else {
       const px = Math.round(p.x) + originX;

@@ -3,20 +3,15 @@ import { tidyName, type Project } from "@/model/schema";
 import {
   ANIMATION_NAMES,
   ANIMATION_SPEEDS,
-  firstStanding,
-  fitBody,
-  HERO_BODY_MAX_H,
-  HERO_BODY_MAX_W,
   KINDS,
   lookProblems,
-  reframeRows,
   MAX_FRAMES,
   MAX_LOOK_COLOURS,
-  SLIDE_BODY_MAX_H,
   slotChar,
   type Look,
   type LookKind,
 } from "@/model/look";
+import { fittedPoseBody, resizePose, setPoseBody } from "@/model/poses";
 import { PALETTE_8BIT } from "@/model/palette";
 import { listNames } from "./helpers";
 import { defineCommand, fail, idArg, ok, type CommandResult } from "./types";
@@ -186,11 +181,9 @@ const addFrame = defineCommand({
         return `${label} already has ${MAX_FRAMES} frames, the most.`;
       if (args.after >= anim.frames.length)
         return `${label} has no frame ${args.after + 1}.`;
-      const canvas =
-        found.look.canvases[KINDS[found.kind].animations[args.animation]];
       const added = args.copy
         ? anim.frames[args.after]
-        : Array.from({ length: canvas.h }, () => ".".repeat(canvas.w));
+        : Array.from({ length: anim.size.h }, () => ".".repeat(anim.size.w));
       const frames = [
         ...anim.frames.slice(0, args.after + 1),
         added,
@@ -275,90 +268,34 @@ const setAnimationSpeed = defineCommand({
   },
 });
 
-const bodyFor = (found: Found, look: Look, which: "main" | "slide") => {
-  const animation = which === "slide" ? "slide" : firstStanding(found.kind);
-  const maxH =
-    found.kind !== "hero"
-      ? null
-      : which === "slide"
-        ? SLIDE_BODY_MAX_H
-        : HERO_BODY_MAX_H;
-  const maxW =
-    found.kind === "hero" && which === "main" ? HERO_BODY_MAX_W : null;
-  const box = fitBody(
-    look.animations[animation].frames[0],
-    look.canvases[which],
-    maxH,
-    maxW,
-  );
-  // Something that shoots keeps its hitbox at least as tall as its shot, growing upwards from its feet.
-  const shotHeight = which === "main" ? KINDS[found.kind].shotHeight : null;
-  if (shotHeight === null || box.h >= shotHeight) return box;
-  const h = Math.min(shotHeight, look.canvases[which].h);
-  return { ...box, y: Math.max(0, box.y + box.h - h), h };
-};
-
-// Keeps a shot point inside a new body.
-function withShotInside(found: Found, look: Look): Look {
-  const shotHeight = KINDS[found.kind].shotHeight;
-  if (shotHeight === null || look.shotY === undefined) return look;
-  return {
-    ...look,
-    shotY: Math.max(0, Math.min(look.shotY, look.body.h - shotHeight)),
-  };
+// A pose that carries a hitbox, or a message naming the one that doesn't.
+function poseWithBody(found: Found, animation: string): string | null {
+  const anim = animationOf(found, animation);
+  if (typeof anim === "string") return anim;
+  return KINDS[found.kind].animations[animation].body === null
+    ? `${ANIMATION_NAMES[animation]} has no hitbox.`
+    : null;
 }
 
-const resizeCanvas = defineCommand({
-  name: "resizeCanvas",
+const resizePoseCommand = defineCommand({
+  name: "resizePose",
   description:
-    "Resize one of a character's canvases, padding or trimming every frame on it evenly at the sides and at the top (the feet stay on the bottom), and fitting its hitbox to the drawing.",
+    "Resize one of a character's poses (animations): every frame padded or trimmed evenly at the sides and at the top (the feet stay on the bottom), its hitbox moving with the drawing.",
   args: z.strictObject({
     target: targetArg,
-    canvas: z.string().min(1).max(32),
+    animation: animationArg,
     w: z.number().int().min(1).max(64),
     h: z.number().int().min(1).max(64),
   }),
   apply(project, args) {
     return editLook(project, args.target, (found) => {
-      if (!KINDS[found.kind].canvases[args.canvas])
-        return `${found.name} has no canvas called "${args.canvas}".`;
-      const animations = Object.fromEntries(
-        Object.entries(found.look.animations).map(([name, anim]) => [
-          name,
-          KINDS[found.kind].animations[name] === args.canvas
-            ? {
-                ...anim,
-                frames: anim.frames.map((f) => reframeRows(f, args.w, args.h)),
-              }
-            : anim,
-        ]),
-      );
-      let look: Look = {
-        ...found.look,
-        canvases: {
-          ...found.look.canvases,
-          [args.canvas]: { w: args.w, h: args.h },
-        },
-        animations,
-      };
-      // Check the size before fitting, so a size outside the limits gets its own message.
-      const sizeProblem = lookProblems(found.kind, look, found.name).find((p) =>
-        /canvas (is|must)/.test(p),
-      );
-      if (sizeProblem) return sizeProblem;
-      if (args.canvas === "main")
-        look = withShotInside(found, {
-          ...look,
-          body: bodyFor(found, look, "main"),
-        });
-      if (args.canvas === "slide")
-        look = { ...look, slideBody: bodyFor(found, look, "slide") };
-      return look;
+      const anim = animationOf(found, args.animation);
+      if (typeof anim === "string") return anim;
+      return resizePose(found.look, found.kind, args.animation, args.w, args.h);
     });
   },
 });
 
-const whichArg = z.enum(["main", "slide"]).optional();
 const boxArg = z.strictObject({
   x: z.number().int(),
   y: z.number().int(),
@@ -369,15 +306,12 @@ const boxArg = z.strictObject({
 const setBody = defineCommand({
   name: "setBody",
   description:
-    "Set a character's hitbox (or the hero's sliding hitbox, with which: \"slide\") in its canvas's pixels.",
-  args: z.strictObject({ target: targetArg, which: whichArg, body: boxArg }),
+    "Set a character's hitbox in one pose's pixels: its position in that pose, and its size in every pose (the hero's Slide has a sliding hitbox of its own).",
+  args: z.strictObject({ target: targetArg, animation: animationArg, body: boxArg }),
   apply(project, args) {
     return editLook(project, args.target, (found) => {
-      if (args.which === "slide")
-        return found.kind === "hero"
-          ? { ...found.look, slideBody: args.body }
-          : `${found.name} can't slide.`;
-      return withShotInside(found, { ...found.look, body: args.body });
+      const problem = poseWithBody(found, args.animation);
+      return problem ?? setPoseBody(found.look, found.kind, args.animation, args.body);
     });
   },
 });
@@ -385,18 +319,15 @@ const setBody = defineCommand({
 const fitBodyCommand = defineCommand({
   name: "fitBody",
   description:
-    "Fit a character's hitbox (or the hero's sliding hitbox) to its drawing.",
-  args: z.strictObject({ target: targetArg, which: whichArg }),
+    "Fit a character's hitbox to one pose's drawing: its position in that pose, and its size in every pose.",
+  args: z.strictObject({ target: targetArg, animation: animationArg }),
   apply(project, args) {
     return editLook(project, args.target, (found) => {
-      if (args.which === "slide")
-        return found.kind === "hero"
-          ? { ...found.look, slideBody: bodyFor(found, found.look, "slide") }
-          : `${found.name} can't slide.`;
-      return withShotInside(found, {
-        ...found.look,
-        body: bodyFor(found, found.look, "main"),
-      });
+      const problem = poseWithBody(found, args.animation);
+      return (
+        problem ??
+        setPoseBody(found.look, found.kind, args.animation, fittedPoseBody(found.look, found.kind, args.animation))
+      );
     });
   },
 });
@@ -404,16 +335,21 @@ const fitBodyCommand = defineCommand({
 const setShotY = defineCommand({
   name: "setShotY",
   description:
-    "Set where a character's shots come out: pixels below the top of its hitbox.",
+    "Set where shots come out in one of a character's poses: pixels below the top of its hitbox.",
   args: z.strictObject({
     target: targetArg,
+    animation: animationArg,
     y: z.number().int().min(-64).max(64),
   }),
   apply(project, args) {
-    return editLook(project, args.target, (found) => ({
-      ...found.look,
-      shotY: args.y,
-    }));
+    return editLook(project, args.target, (found) => {
+      const anim = animationOf(found, args.animation);
+      if (typeof anim === "string") return anim;
+      return {
+        ...found.look,
+        animations: { ...found.look.animations, [args.animation]: { ...anim, shotY: args.y } },
+      };
+    });
   },
 });
 
@@ -424,7 +360,7 @@ export const lookCommands = [
   removeFrame,
   moveFrame,
   setAnimationSpeed,
-  resizeCanvas,
+  resizePoseCommand,
   setBody,
   fitBodyCommand,
   setShotY,

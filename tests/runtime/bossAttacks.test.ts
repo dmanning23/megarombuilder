@@ -120,7 +120,7 @@ describe("the new attacks", () => {
 describe("aiming from the shot point", () => {
   it("aims the shot from where it starts, so it heads for the hero's middle", () => {
     const { sim, boss } = arena("aimed,aimed");
-    boss.shotY = 0; // a shot point at the top of the boss
+    boss.shotYs = { attack: 0 }; // a shot point at the top of the boss, in its attack pose
     until(sim, boss, "aimed");
     const shot = sim.enemyShots[0];
     const p = sim.player;

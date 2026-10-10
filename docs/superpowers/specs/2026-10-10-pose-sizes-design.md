@@ -185,4 +185,9 @@ the first plan carries both:
    - the zoom from the largest pose;
    - Copy from across sizes;
    - scaled thumbnails;
+   - dragging the middle of the hitbox to move it in the chosen pose only
+     (section 3; edges still resize it everywhere);
+   - the Shot point tool on poses that never fire (Stand, Run, Jump): either
+     not offered there or with a note, since the hero only fires from Stand and
+     shoot, Run and shoot, Jump and shoot, Climb and Hurt;
    - the browser test with a larger Jump and shoot.

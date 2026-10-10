@@ -1,16 +1,16 @@
 import type { ContentPack, ThingDef } from "./contentPack";
 import { bossSettings, tuningSettings } from "./designs";
-import type { Look } from "./look";
+import { shotPoints, type Look } from "./look";
 import type { Project } from "./schema";
 
 export const ownType = (id: string): string => `own-${id}`;
 export const OWN_BOSS = "own-boss";
 
-// A design's hitbox size and shot point, which spawning and shooting read from its thing type.
-const bodyOf = (look: Look): Pick<ThingDef, "body" | "shotY"> => ({
-  body: { w: look.body.w, h: look.body.h },
-  ...(look.shotY === undefined ? {} : { shotY: look.shotY }),
-});
+// A design's hitbox size and each pose's shot point, which spawning and shooting read from its thing type.
+const bodyOf = (look: Look): Pick<ThingDef, "body" | "shotYs"> => {
+  const shotYs = shotPoints(look);
+  return { body: { w: look.body.w, h: look.body.h }, ...(Object.keys(shotYs).length > 0 ? { shotYs } : {}) };
+};
 
 // The content pack plus the kid's own designs as thing types, so the game, the checker, commands
 // and validation treat them like any other thing. Own types already in `pack` are replaced, so

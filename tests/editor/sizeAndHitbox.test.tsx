@@ -3,10 +3,12 @@ import { cleanup, fireEvent, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ZOOM } from "@/editor/hero/pixels";
+import { poseBox, type Look } from "@/model/look";
 import { setupHero } from "./heroHelpers";
 
 afterEach(cleanup);
 
+const box = (look: Look, animation = "stand") => poseBox(look, "hero", animation);
 const size = () => screen.getByRole("group", { name: "Size" });
 const sizeButton = (name: string) => within(size()).getByRole("button", { name });
 const chooseAnimation = (name: string) =>
@@ -21,16 +23,17 @@ describe("the Size control", () => {
     await userEvent.click(sizeButton("Wider"));
     expect(within(size()).getByText("18 × 26")).toBeTruthy();
     expect(screen.getByRole("img", { name: "Stand frame 1, 18 by 26 pixels" })).toBeTruthy();
-    expect(saved().hero.look.canvases.main).toEqual({ w: 18, h: 26 });
+    expect(saved().hero.look.animations.stand.size).toEqual({ w: 18, h: 26 });
   });
 
   it("asks before cutting off drawing, and does nothing if the kid says no", async () => {
     const confirm = vi.fn(() => false);
     const { open, saved } = setupHero(undefined, confirm);
     await open();
-    await userEvent.click(sizeButton("Narrower")); // the snow hero fills its width: this cuts
+    await chooseAnimation("Stand and shoot");
+    await userEvent.click(sizeButton("Narrower")); // the snow hero's arm reaches the edge: this cuts
     expect(confirm).toHaveBeenCalledWith("This cuts off part of your drawing. You can undo it.");
-    expect(saved().hero.look.canvases.main).toEqual({ w: 16, h: 24 });
+    expect(saved().hero.look.animations.standShoot.size).toEqual({ w: 16, h: 24 });
   });
 
   it("doesn't ask when only empty space goes", async () => {
@@ -40,7 +43,7 @@ describe("the Size control", () => {
     await userEvent.click(sizeButton("Taller"));
     await userEvent.click(sizeButton("Shorter")); // takes back the empty row it added
     expect(confirm).not.toHaveBeenCalledWith("This cuts off part of your drawing. You can undo it.");
-    expect(saved().hero.look.canvases.main).toEqual({ w: 16, h: 24 });
+    expect(saved().hero.look.animations.stand.size).toEqual({ w: 16, h: 24 });
   });
 
   it("stops at the limits, sizes the slide on its own canvas, and has no Size for the shots", async () => {
@@ -54,6 +57,24 @@ describe("the Size control", () => {
     await chooseAnimation("Shot");
     expect(screen.queryByRole("group", { name: "Size" })).toBeNull();
   });
+
+  it("resizes and sets the shot point of the chosen pose only", async () => {
+    const { open, choose, saved } = setupHero();
+    await open();
+    await chooseAnimation("Jump and shoot");
+    await userEvent.click(sizeButton("Wider"));
+    expect(within(size()).getByText("18 × 24")).toBeTruthy();
+    await choose("Shot point");
+    canvasPress("hero-canvas").drag([8, 14], [8, 16]); // row 16; the hitbox, moved with the pixels, still starts at row 2
+    await chooseAnimation("Stand");
+    expect(within(size()).getByText("16 × 24")).toBeTruthy();
+    const look = saved().hero.look;
+    expect(look.animations.jumpShoot.size).toEqual({ w: 18, h: 24 });
+    expect(look.animations.stand.size).toEqual({ w: 16, h: 24 });
+    expect(look.animations.jumpShoot.shotY).toBe(14);
+    expect(look.animations.stand.shotY).toBe(8);
+  });
+
 });
 
 function canvasPress(testId: string) {
@@ -79,7 +100,7 @@ describe("the Hitbox tool", () => {
     await open();
     await choose("Hitbox");
     canvasPress("hero-canvas").drag([14, 12], [13, 12], [12, 12], [11, 12]); // the right edge, in by 3
-    expect(saved().hero.look.body).toEqual({ x: 1, y: 2, w: 11, h: 22 });
+    expect(box(saved().hero.look)).toEqual({ x: 1, y: 2, w: 11, h: 22 });
   });
 
   it("undoes a whole drag in one step", async () => {
@@ -88,7 +109,7 @@ describe("the Hitbox tool", () => {
     await choose("Hitbox");
     canvasPress("hero-canvas").drag([8, 2], [8, 3], [8, 4], [8, 5], [8, 6]); // the top edge, down by 4
     await userEvent.click(screen.getByRole("button", { name: "Undo" }));
-    expect(saved().hero.look.body).toEqual({ x: 1, y: 2, w: 14, h: 22 });
+    expect(box(saved().hero.look)).toEqual({ x: 1, y: 2, w: 14, h: 22 });
   });
 
   it("moves only the slide's top edge, on the slide's own canvas", async () => {
@@ -97,7 +118,7 @@ describe("the Hitbox tool", () => {
     await choose("Hitbox");
     await chooseAnimation("Slide");
     canvasPress("hero-canvas").drag([12, 2], [12, 6]);
-    expect(saved().hero.look.slideBody).toEqual({ x: 5, y: 6, w: 14, h: 10 });
+    expect(box(saved().hero.look, "slide")).toEqual({ x: 5, y: 6, w: 14, h: 10 });
   });
 
   it("fits the hitbox to the drawing", async () => {
@@ -126,7 +147,7 @@ describe("the Shot point tool", () => {
     await open();
     await choose("Shot point");
     canvasPress("hero-canvas").drag([8, 14], [8, 16]);
-    expect(saved().hero.look.shotY).toBe(14); // row 16, the hitbox starting at row 2
+    expect(saved().hero.look.animations.stand.shotY).toBe(14); // row 16, the hitbox starting at row 2
   });
 
   it("isn't offered on the slide or the shots", async () => {
@@ -142,8 +163,8 @@ describe("the Shot point tool", () => {
     await choose("Hitbox");
     canvasPress("hero-canvas").drag([8, 2], [8, 4], [8, 6]); // the top edge down by 4
     const look = saved().hero.look;
-    expect(look.body.y).toBe(6);
-    expect(look.body.y + look.shotY!).toBe(2 + 8); // still row 10 of the picture
+    expect(box(look)!.y).toBe(6);
+    expect(box(look)!.y + look.animations.stand.shotY!).toBe(2 + 8); // still row 10 of the picture
   });
 
   it("undoes the hitbox and the shot point together", async () => {
@@ -153,6 +174,6 @@ describe("the Shot point tool", () => {
     canvasPress("hero-canvas").drag([8, 2], [8, 6]);
     await userEvent.click(screen.getByRole("button", { name: "Undo" }));
     const look = saved().hero.look;
-    expect([look.body.y, look.shotY]).toEqual([2, 8]);
+    expect([box(look)!.y, look.animations.stand.shotY]).toEqual([2, 8]);
   });
 });
