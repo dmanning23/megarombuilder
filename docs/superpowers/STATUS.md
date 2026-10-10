@@ -63,7 +63,11 @@ right column with a compact colour grid (sorted greys, then by hue) and the
 preview. A character's settings sit in a How it plays drawer. Each pose (animation)
 now has its own picture size, hitbox position and shot point (game files are
 format 5); the game draws each pose on the body and fires from the shown pose's
-shot point. 1061 tests and 17 browser tests pass; typecheck, lint and build are clean. Browser tests: `npm run e2e`
+shot point. In the editor, a Size step the hitbox can't fit into is dimmed with a
+note, a pose's hitbox moves by dragging its middle (and grows no bigger than the
+smallest pose), the Shot point tool shows only on poses that fire, the zoom fits
+the largest pose, and Copy from works across sizes. 1071 tests and 18 browser
+tests pass; typecheck, lint and build are clean. Browser tests: `npm run e2e`
 (builds and serves on port 3100).
 
 | Document | State |
@@ -101,7 +105,7 @@ shot point. 1061 tests and 17 browser tests pass; typecheck, lint and build are 
 | `plans/2026-10-09-tidy-plan-2-workbench.md` | Tidy-up plan 2 (revised: the workbench), implemented, reviewed and merged |
 | `specs/2026-10-10-pose-sizes-design.md` | Pose sizes spec (a size and shot point for every pose), approved |
 | `plans/2026-10-10-pose-sizes-plan-1-model-and-game.md` | Pose sizes plan 1 of 2, implemented, reviewed and merged |
-| `plans/2026-10-10-pose-sizes-plan-2-editor.md` | Pose sizes plan 2 of 2, awaiting review |
+| `plans/2026-10-10-pose-sizes-plan-2-editor.md` | Pose sizes plan 2 of 2, implemented |
 
 Milestone 1 is now eight plans (the editor became two):
 

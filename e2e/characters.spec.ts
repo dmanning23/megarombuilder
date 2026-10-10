@@ -84,3 +84,25 @@ test("an alert pushes the tab row down", async ({ page }) => {
   await expect(alert).toBeVisible();
   expect(await top(page.getByRole("list", { name: "Enemies" }))).toBeGreaterThanOrEqual(await bottom(alert));
 });
+
+test("a bigger Jump and shoot keeps the pixels the same size, and its thumbnail fits", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.goto("/");
+  await page.getByRole("textbox", { name: "Game name" }).fill("Big jump");
+  await page.getByRole("button", { name: "Make a new game" }).click();
+  await page.getByRole("button", { name: "Characters" }).click();
+  const canvas = page.getByTestId("hero-canvas");
+  const animations = page.getByRole("group", { name: "Animations" });
+  const jump = animations.getByRole("button", { name: /^Jump and shoot,/ });
+  await jump.click();
+  const sizeGroup = page.getByRole("group", { name: "Size" });
+  for (let i = 0; i < 4; i++) await sizeGroup.getByRole("button", { name: "Wider" }).click();
+  for (let i = 0; i < 2; i++) await sizeGroup.getByRole("button", { name: "Taller" }).click();
+  await expect(sizeGroup.getByText("24 × 28")).toBeVisible();
+  const jumpWidth = (await canvas.boundingBox())!.width;
+  expect((await jump.locator("canvas").boundingBox())!.width).toBeLessThanOrEqual(32); // the thumbnail is scaled to fit
+  await page.screenshot({ path: "test-results/characters-big-jump.png" });
+  await animations.getByRole("button", { name: /^Stand,/ }).click();
+  // The same pixel size in both poses (a new canvas takes its zoom once its area is measured).
+  await expect.poll(async () => (await canvas.boundingBox())!.width / 16).toBe(jumpWidth / 24);
+});
