@@ -1,7 +1,7 @@
 # MegaRomBuilder: a size and shot point for every pose
 
 Date: 2026-10-10
-Status: design approved in conversation, awaiting written-spec review
+Status: approved
 
 ## 1. Purpose
 
@@ -166,13 +166,23 @@ where its arm is.
 
 ## 7. Build order
 
-1. The model:
+Two plans. Changing the look's shape breaks the game and the editor at once, so
+the first plan carries both:
+
+1. **The model, the file and the game:**
    - per-pose sizes, hitbox positions and shot points;
    - the rules and messages;
    - format 5 and the upgrade;
    - the look commands;
-   - the snow pack converted.
-2. The game: drawing each pose on the body, and shots from the shown pose's
-   shot point.
-3. The editor: per-pose Size, Hitbox, Shot point, the zoom, Copy from, and the
-   thumbnails.
+   - the snow pack converted;
+   - drawing each pose on the body;
+   - shots from the shown pose's shot point;
+   - the editor's existing Size, Hitbox and Shot point controls working on the
+     chosen pose.
+2. **The editor's new behaviour:**
+   - the dimmed Size step and its note;
+   - the hitbox drag limited by the smallest pose;
+   - the zoom from the largest pose;
+   - Copy from across sizes;
+   - scaled thumbnails;
+   - the browser test with a larger Jump and shoot.
