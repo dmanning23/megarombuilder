@@ -142,6 +142,20 @@ export function AnimationEditor({
   const body = poseBox(look, kind, animation);
   const colour = Math.min(slot, look.colours.length);
   const fixed = isFixed(poseRule); // the hero's shots
+  // A Size step the hitbox can't fit into is dimmed, with a note saying why.
+  const bodySize =
+    poseRule.body === "main"
+      ? look.body
+      : poseRule.body === "slide"
+        ? look.slideBody
+        : undefined;
+  const roomFor = (w: number, h: number) =>
+    !bodySize || (w >= bodySize.w && h >= bodySize.h);
+  const narrowerFits = size.w - 2 >= poseRule.min.w;
+  const shorterFits = size.h - 2 >= poseRule.min.h;
+  const hitboxStops =
+    (narrowerFits && !roomFor(size.w - 2, size.h)) ||
+    (shorterFits && !roomFor(size.w, size.h - 2));
   const resize = (w: number, h: number) => {
     if (
       cutsDrawing(look, animation, w, h) &&
@@ -466,7 +480,7 @@ export function AnimationEditor({
                   <button
                     type="button"
                     className={styles.action}
-                    disabled={size.w - 2 < poseRule.min.w}
+                    disabled={!narrowerFits || !roomFor(size.w - 2, size.h)}
                     onClick={() => resize(size.w - 2, size.h)}
                   >
                     Narrower
@@ -482,7 +496,7 @@ export function AnimationEditor({
                   <button
                     type="button"
                     className={styles.action}
-                    disabled={size.h - 2 < poseRule.min.h}
+                    disabled={!shorterFits || !roomFor(size.w, size.h - 2)}
                     onClick={() => resize(size.w, size.h - 2)}
                   >
                     Shorter
@@ -495,6 +509,11 @@ export function AnimationEditor({
                   >
                     Taller
                   </button>
+                  {hitboxStops && (
+                    <p className={styles.note}>
+                      The hitbox needs this much room.
+                    </p>
+                  )}
                 </div>
               )}
             </>

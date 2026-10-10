@@ -58,6 +58,21 @@ describe("the Size control", () => {
     expect(screen.queryByRole("group", { name: "Size" })).toBeNull();
   });
 
+  it("dims a step the hitbox can't fit into, saying why, but not a step at the size limit", async () => {
+    const { open } = setupHero();
+    await open();
+    const note = () => within(size()).queryByText("The hitbox needs this much room.");
+    expect(note()).toBeNull();
+    await userEvent.click(sizeButton("Narrower")); // 16 → 14: the hitbox is 14 wide
+    expect(sizeButton("Narrower")).toHaveProperty("disabled", true);
+    expect(note()).toBeTruthy();
+    expect(sizeButton("Shorter")).toHaveProperty("disabled", false); // 24 → 22 still fits a 22-tall hitbox
+    await chooseAnimation("Slide");
+    for (let i = 0; i < 4; i++) await userEvent.click(sizeButton("Wider")); // 24 → 32, the most
+    expect(sizeButton("Wider")).toHaveProperty("disabled", true);
+    expect(note()).toBeNull(); // Narrower still fits the 14-wide sliding hitbox
+  });
+
   it("resizes and sets the shot point of the chosen pose only", async () => {
     const { open, choose, saved } = setupHero();
     await open();
