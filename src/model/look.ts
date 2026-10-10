@@ -131,6 +131,16 @@ export const isFixed = (rule: PoseRule): boolean => rule.min.w === rule.max.w &&
 export const hasShotPoint = (kind: LookKind, animation: string): boolean =>
   KINDS[kind].shotHeight !== null && KINDS[kind].animations[animation]?.body === "main";
 
+// The poses a character fires from: the pose the game shows as a shot comes out
+// (src/runtime/sim/pose.ts chooses it). Only these offer the Shot point tool.
+const FIRING: Partial<Record<LookKind, string[]>> = {
+  hero: ["standShoot", "runShoot", "jumpShoot", "climb", "hurt"],
+  turret: ["idle"],
+  shielded: ["open"],
+  boss: ["attack"],
+};
+export const firesFrom = (kind: LookKind, animation: string): boolean => FIRING[kind]?.includes(animation) ?? false;
+
 const bodyOf = (look: Look, which: BodyName | null | undefined): Size | undefined =>
   which === "main" ? look.body : which === "slide" ? look.slideBody : undefined;
 

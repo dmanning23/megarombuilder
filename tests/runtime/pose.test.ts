@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { firesFrom, KINDS } from "@/model/look";
 import type { Entity } from "@/runtime/sim/entities/types";
-import { entityShotY, heroShotY } from "@/runtime/sim/pose";
+import { entityPose, entityShotY, heroPose, heroShotY } from "@/runtime/sim/pose";
 import type { Player } from "@/runtime/sim/state";
 
 const shotYs = { standShoot: 8, runShoot: 9, jumpShoot: 4, climb: 2, hurt: 12 };
@@ -29,5 +30,22 @@ describe("where shots come out", () => {
   it("is the shot point of an enemy's pose, or its middle", () => {
     expect(entityShotY(entity({ mode: "open" }))).toBe(1);
     expect(entityShotY(entity({ shotYs: {} }))).toBe(4); // the middle of 14, for a 6-high shot
+  });
+});
+
+describe("the poses that fire", () => {
+  it("are exactly the poses the game fires from", () => {
+    const fired = new Set<string>();
+    for (const onGround of [true, false])
+      for (const vx of [0, 1.5])
+        for (const onLadder of [false, true])
+          for (const hurt of [0, 10]) fired.add(heroPose(player({ onGround, vx, onLadder, hurt }), true));
+    expect([...fired].sort()).toEqual(Object.keys(KINDS.hero.animations).filter((a) => firesFrom("hero", a)).sort());
+    expect(firesFrom("hero", "stand")).toBe(false);
+    expect(firesFrom("turret", entityPose(entity({ behaviour: "turret" })))).toBe(true);
+    expect(firesFrom("shielded", entityPose(entity({ mode: "open" })))).toBe(true);
+    expect(firesFrom("shielded", "closed")).toBe(false);
+    expect(firesFrom("boss", entityPose(entity({ behaviour: "boss", mode: "aimed" })))).toBe(true);
+    expect(firesFrom("walker", "walk")).toBe(false);
   });
 });

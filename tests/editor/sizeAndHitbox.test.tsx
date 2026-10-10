@@ -185,9 +185,10 @@ describe("the Shot point tool", () => {
   it("moves where shots come out, inside the hitbox", async () => {
     const { open, choose, saved } = setupHero();
     await open();
+    await chooseAnimation("Stand and shoot");
     await choose("Shot point");
     canvasPress("hero-canvas").drag([8, 14], [8, 16]);
-    expect(saved().hero.look.animations.stand.shotY).toBe(14); // row 16, the hitbox starting at row 2
+    expect(saved().hero.look.animations.standShoot.shotY).toBe(14); // row 16, the hitbox starting at row 2
   });
 
   it("isn't offered on the slide or the shots", async () => {
@@ -195,6 +196,10 @@ describe("the Shot point tool", () => {
     await open();
     await chooseAnimation("Slide");
     expect(screen.queryByRole("button", { name: "Shot point" })).toBeNull();
+    await chooseAnimation("Stand");
+    expect(screen.queryByRole("button", { name: "Shot point" })).toBeNull(); // the hero never fires standing still
+    await chooseAnimation("Climb");
+    expect(screen.getByRole("button", { name: "Shot point" })).toBeTruthy(); // it fires on ladders
   });
 
   it("stays at the same place in the picture when the hitbox's top edge moves, in one undo step", async () => {

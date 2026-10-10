@@ -7,6 +7,7 @@ import {
   ANIMATION_NAMES,
   ANIMATION_SPEEDS,
   cutsDrawing,
+  firesFrom,
   hasShotPoint,
   HERO_BODY_MAX_H,
   HERO_BODY_MAX_W,
@@ -201,7 +202,8 @@ export function AnimationEditor({
     ),
     minH: which === "main" ? shotHeight : null,
   };
-  const shotHere = hasShotPoint(kind, animation) && body !== null;
+  // Only a pose the character fires from offers the Shot point tool.
+  const shotHere = firesFrom(kind, animation) && hasShotPoint(kind, animation) && body !== null;
   const extraTools: ExtraTool[] =
     body === null
       ? []
