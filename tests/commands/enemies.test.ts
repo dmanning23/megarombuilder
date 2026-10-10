@@ -100,16 +100,18 @@ describe("placing and removing an enemy", () => {
 });
 
 describe("changing behaviour after the look has changed", () => {
-  it("keeps the canvas, hitbox and frames, so the game stays valid", () => {
+  it("keeps each pose's size, the hitbox and the frames, so the game stays valid", () => {
     let project = add();
     const target = { enemy: "e1" };
-    project = run(project, "resizeCanvas", { target, canvas: "main", w: 24, h: 24 });
+    project = run(project, "resizePose", { target, animation: "walk", w: 24, h: 24 });
     project = run(project, "addFrame", { target, animation: "walk", after: 1, copy: true });
     const before = project.enemies[0].look;
     project = run(project, "setEnemyBehaviour", { enemyId: "e1", behaviour: "jumper" });
     const look = project.enemies[0].look;
     expect(lookProblems("jumper", look, "Frost Fang")).toEqual([]);
-    expect(look.canvases.main).toEqual({ w: 24, h: 24 });
+    expect(look.animations.ground.size).toEqual({ w: 24, h: 24 });
+    expect(look.animations.air.size).toEqual({ w: 24, h: 24 });
+    expect(look.animations.air.at).toEqual(before.animations.walk.at);
     expect(look.body).toEqual(before.body);
     expect(look.animations.ground.frames).toEqual([before.animations.walk.frames[0]]);
     expect(look.animations.air.frames).toEqual(before.animations.walk.frames.slice(1));

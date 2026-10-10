@@ -59,50 +59,80 @@ describe("colours", () => {
   });
 });
 
-describe("the canvas, body and shot point", () => {
-  it("grows evenly at the sides and top, keeping the feet row, and refits the body", () => {
-    const project = run(baseProject(), "resizeCanvas", { ...hero, canvas: "main", w: 20, h: 28 });
+describe("a pose's size, hitbox and shot point", () => {
+  it("resizes one pose, padding evenly at the sides and top, its hitbox moving with the pixels", () => {
+    const project = run(baseProject(), "resizePose", { ...hero, animation: "jumpShoot", w: 20, h: 28 });
     const look = project.hero.look;
-    expect(look.canvases.main).toEqual({ w: 20, h: 28 });
-    const before = baseProject().hero.look.animations.stand.frames[0];
-    expect(look.animations.stand.frames[0]).toEqual([...fill(20, 4, "."), ...before.map((row) => `..${row}..`)]);
-    expect(look.body).toEqual({ x: 2, y: 4, w: 16, h: 24 }); // the test hero's solid picture
-    expect(lookProblems("hero", look, "The hero")).toEqual([]);
+    expect(look.animations.jumpShoot.size).toEqual({ w: 20, h: 28 });
+    const before = baseProject().hero.look.animations.jumpShoot.frames[0];
+    expect(look.animations.jumpShoot.frames[0]).toEqual([...fill(20, 4, "."), ...before.map((row) => `..${row}..`)]);
+    expect(look.animations.jumpShoot.at).toEqual({ x: 3, y: 6 });
+    expect(look.animations.stand).toEqual(baseProject().hero.look.animations.stand);
+    expect(look.body).toEqual(baseProject().hero.look.body);
   });
 
-  it("trims evenly when shrinking, and one undo puts it all back", () => {
+  it("trims one pose, and one undo puts it back", () => {
     const start = baseProject();
     const history = createHistory(start);
-    const { history: shrunk } = runCommand(history, { name: "resizeCanvas", args: { ...hero, canvas: "main", w: 12, h: 20 } }, ctx);
-    const look = shrunk.project.hero.look;
-    expect(look.animations.stand.frames[0]).toEqual(start.hero.look.animations.stand.frames[0].slice(4).map((row) => row.slice(2, 14)));
-    expect(look.body.h).toBeLessThanOrEqual(20);
+    const { history: shrunk } = runCommand(history, { name: "resizePose", args: { ...hero, animation: "stand", w: 14, h: 24 } }, ctx);
+    expect(shrunk.project.hero.look.animations.stand.frames[0]).toEqual(start.hero.look.animations.stand.frames[0].map((row) => row.slice(1, 15)));
     expect(undo(shrunk).project).toBe(start);
   });
 
-  it("refuses sizes outside the limits", () => {
-    expect(runError(baseProject(), "resizeCanvas", { ...hero, canvas: "main", w: 34, h: 24 })).toBe(
-      "The hero's canvas is 34 by 24; it can be 12 to 32 wide and 16 to 32 tall.",
+  it("refuses sizes outside the limits, or smaller than the hitbox", () => {
+    expect(runError(baseProject(), "resizePose", { ...hero, animation: "run", w: 34, h: 24 })).toBe(
+      "The hero's Run is 34 by 24; it can be 12 to 32 wide and 16 to 32 tall.",
     );
-    expect(runError(baseProject(), "resizeCanvas", { ...hero, canvas: "shot", w: 8, h: 4 })).toBe("The hero's shot canvas must be 6 by 4.");
+    expect(runError(baseProject(), "resizePose", { ...hero, animation: "shot", w: 8, h: 4 })).toBe("The hero's Shot must be 6 by 4.");
+    expect(runError(baseProject(), "resizePose", { ...hero, animation: "jumpShoot", w: 12, h: 24 })).toBe(
+      "The hero's Jump and shoot is 12 by 24; its hitbox needs 14 by 22.",
+    );
   });
 
-  it("sets and fits the hitbox, and moves the shot point within it", () => {
-    let project = run(baseProject(), "setBody", { ...hero, body: { x: 2, y: 4, w: 12, h: 20 } });
-    expect(project.hero.look.body).toEqual({ x: 2, y: 4, w: 12, h: 20 });
-    expect(runError(project, "setBody", { ...hero, body: { x: 2, y: 0, w: 12, h: 31 } })).toMatch(/hitbox/);
-    project = run(project, "fitBody", { ...hero });
-    expect(project.hero.look.body).toEqual({ x: 0, y: 0, w: 16, h: 24 }); // the test hero's pictures are solid
-    project = run(project, "setShotY", { ...hero, y: 12 });
-    expect(project.hero.look.shotY).toBe(12);
-    expect(runError(project, "setShotY", { ...hero, y: 21 })).toBe("The hero's shot point is outside its hitbox.");
+  it("moves the hitbox in one pose and resizes it in all, refusing a size a smaller pose can't hold", () => {
+    let project = run(baseProject(), "setBody", { ...hero, animation: "jumpShoot", body: { x: 2, y: 4, w: 12, h: 20 } });
+    expect(project.hero.look.body).toEqual({ w: 12, h: 20 });
+    expect(project.hero.look.animations.jumpShoot.at).toEqual({ x: 2, y: 4 });
+    expect(project.hero.look.animations.stand.at).toEqual({ x: 2, y: 4 }); // feet and centre kept: (1 + 1, 2 + 22 - 20)
+    project = run(project, "resizePose", { ...hero, animation: "run", w: 12, h: 24 });
+    expect(runError(project, "setBody", { ...hero, animation: "stand", body: { x: 1, y: 2, w: 14, h: 22 } })).toBe(
+      "The hero's Run is 12 by 24; its hitbox needs 14 by 22.",
+    );
+    expect(runError(project, "setBody", { ...hero, animation: "shot", body: { x: 0, y: 0, w: 4, h: 4 } })).toBe("Shot has no hitbox.");
+  });
+
+  it("fits a pose's hitbox to that pose's drawing", () => {
+    const wide = run(baseProject(), "resizePose", { ...hero, animation: "stand", w: 24, h: 24 });
+    const filled = run(wide, "setFrame", { ...hero, animation: "stand", frame: 0, rows: fill(24, 24, "1") });
+    const fitted = run(filled, "fitBody", { ...hero, animation: "stand" });
+    expect(fitted.hero.look.animations.stand.at).toEqual({ x: 4, y: 0 });
+    expect(fitted.hero.look.body).toEqual({ w: 16, h: 24 }); // at most 16 wide, around its middle
+    const slid = run(baseProject(), "fitBody", { ...hero, animation: "slide" });
+    expect(slid.hero.look.slideBody!.h).toBeLessThanOrEqual(14);
+  });
+
+  it("keeps a short shooter's fitted hitbox at least as tall as its shot", () => {
+    let project = run(baseProject(), "addEnemy", { enemyId: "e1", name: "Ice Eye", behaviour: "turret" });
+    const target = { enemy: "e1" };
+    const flat = Array.from({ length: 16 }, (_, y) => (y >= 13 ? "1".repeat(16) : ".".repeat(16))); // 3 rows drawn
+    project = run(project, "setFrame", { target, animation: "idle", frame: 0, rows: flat });
+    project = run(project, "fitBody", { target, animation: "idle" });
+    expect(project.enemies[0].look.body.h).toBeGreaterThanOrEqual(6);
+  });
+
+  it("sets one pose's shot point", () => {
+    const project = run(baseProject(), "setShotY", { ...hero, animation: "jumpShoot", y: 12 });
+    expect(project.hero.look.animations.jumpShoot.shotY).toBe(12);
+    expect(project.hero.look.animations.standShoot.shotY).toBe(8);
+    expect(runError(project, "setShotY", { ...hero, animation: "jumpShoot", y: 21 })).toBe("The hero's Jump and shoot shot point is outside its hitbox.");
+    expect(runError(project, "setShotY", { ...hero, animation: "slide", y: 2 })).toBe("The hero's Slide can't have a shot point.");
   });
 
   it("aims at an enemy or the boss", () => {
     let project = run(baseProject(), "addEnemy", { enemyId: "e1", name: "Frost Fang", behaviour: "walker" });
-    project = run(project, "addFrame", { target: { enemy: "e1" }, animation: "walk", after: 1, copy: true });
-    expect(project.enemies[0].look.animations.walk.frames).toHaveLength(3);
-    expect(runError(project, "setShotY", { target: { enemy: "e1" }, y: 2 })).toBe("Frost Fang doesn't shoot, so it can't have a shot point.");
+    project = run(project, "addFrame", { target: { enemy: "e1" }, animation: "walk", after: 1 });
+    expect(project.enemies[0].look.animations.walk.frames[2]).toEqual(fill(16, 16, "."));
+    expect(runError(project, "setShotY", { target: { enemy: "e1" }, animation: "walk", y: 2 })).toBe("Frost Fang doesn't shoot, so it can't have a shot point.");
     expect(runError(project, "setFrame", { target: { enemy: "e9" }, animation: "walk", frame: 0, rows: ["1"] })).toBe(
       'There is no enemy with the id "e9".',
     );
@@ -112,24 +142,3 @@ describe("the canvas, body and shot point", () => {
   });
 });
 
-describe("fitting the hero's hitboxes to wide drawings", () => {
-  it("fits the slide to the drawing, and keeps a standing hitbox at most 16 wide around its middle", () => {
-    const project = run(baseProject(), "fitBody", { target: "hero", which: "slide" });
-    expect(project.hero.look.slideBody!.h).toBeLessThanOrEqual(14);
-    const wide = run(baseProject(), "resizeCanvas", { target: "hero", canvas: "main", w: 24, h: 24 });
-    const filled = run(wide, "setFrame", { target: "hero", animation: "stand", frame: 0, rows: Array.from({ length: 24 }, () => "1".repeat(24)) });
-    const fitted = run(filled, "fitBody", { target: "hero" });
-    expect(fitted.hero.look.body).toEqual({ x: 4, y: 0, w: 16, h: 24 });
-  });
-});
-
-describe("fitting a short shooter", () => {
-  it("keeps its hitbox at least as tall as its shot", () => {
-    let project = run(baseProject(), "addEnemy", { enemyId: "e1", name: "Ice Eye", behaviour: "turret" });
-    const target = { enemy: "e1" };
-    const flat = Array.from({ length: 16 }, (_, y) => (y >= 13 ? "1".repeat(16) : ".".repeat(16))); // 3 rows drawn
-    project = run(project, "setFrame", { target, animation: "idle", frame: 0, rows: flat });
-    project = run(project, "fitBody", { target });
-    expect(project.enemies[0].look.body.h).toBeGreaterThanOrEqual(6);
-  });
-});
