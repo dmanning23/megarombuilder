@@ -43,6 +43,29 @@ export function lookFromFormat4(kind: LookKind, old: Format4Look): Look {
   };
 }
 
+// Pads a picture evenly on every side to a bigger size (the odd pixel on the right and bottom).
+export function centreRows(rows: string[], w: number, h: number): string[] {
+  const left = Math.floor((w - rows[0].length) / 2);
+  const top = Math.floor((h - rows.length) / 2);
+  const blank = ".".repeat(w);
+  const padded = rows.map((row) => ".".repeat(left) + row + ".".repeat(w - row.length - left));
+  return [...Array.from({ length: top }, () => blank), ...padded, ...Array.from({ length: h - rows.length - top }, () => blank)];
+}
+
+// Format 6 gave the hero a Level 2 shot. A hero without one starts with its own Charged shot,
+// centred on the bigger canvas, so it keeps the kid's colours.
+export function withLevel2Shot(look: Look): Look {
+  if (look.animations.chargedShot2 || !look.animations.chargedShot) return look;
+  const charged = look.animations.chargedShot;
+  return {
+    ...look,
+    animations: {
+      ...look.animations,
+      chargedShot2: { frames: charged.frames.map((rows) => centreRows(rows, 16, 12)), speed: charged.speed, size: { w: 16, h: 12 } },
+    },
+  };
+}
+
 // The pictures of format 3 and before, as format 4 looks with that format's sizes, bodies and shot
 // points, then converted.
 type OldAnimation = Format4Look["animations"][string];
@@ -62,14 +85,14 @@ export function heroLookFrom(old: OldHeroLook): Look {
     animations[animation] = still(frames);
   }
   animations.runShoot = still([...animations.run.frames]); // today's running shot shows the run
-  return lookFromFormat4("hero", {
+  return withLevel2Shot(lookFromFormat4("hero", {
     colours: old.colours,
     canvases: { main: { w: 16, h: 24 }, slide: { w: 24, h: 16 }, shot: { w: 6, h: 4 }, chargedShot: { w: 12, h: 10 } },
     animations,
     body: { x: 1, y: 2, w: 14, h: 22 },
     slideBody: { x: 5, y: 2, w: 14, h: 14 },
     shotY: 8,
-  });
+  }));
 }
 
 export function designLookFrom(kind: EnemyBehaviour | "boss", old: OldDesignLook): Look {

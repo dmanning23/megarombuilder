@@ -1,8 +1,8 @@
 import type { ContentPack } from "./contentPack";
 import type { EnemyBehaviour } from "./designs";
 import { abilitiesFromSettings } from "./hero";
-import type { LookKind } from "./look";
-import { designLookFrom, heroLookFrom, lookFromFormat4, type Format4Look, type OldDesignLook, type OldHeroLook } from "./lookUpgrade";
+import type { Look, LookKind } from "./look";
+import { designLookFrom, heroLookFrom, lookFromFormat4, withLevel2Shot, type Format4Look, type OldDesignLook, type OldHeroLook } from "./lookUpgrade";
 import { FORMAT_VERSION, projectSchema, type Project } from "./schema";
 import { structureProblems } from "./validate";
 
@@ -38,6 +38,9 @@ const UPGRADES: Record<number, (doc: Record<string, unknown>, pack: ContentPack)
       : doc.enemies,
     boss: upgradeLook4(doc.boss, "boss"),
   }),
+  // Version 6 gave the hero a level 2 charge shot: off, with a Level 2 shot picture copied from
+  // its Charged shot.
+  5: (doc) => ({ ...doc, formatVersion: 6, hero: upgradeHero5(doc.hero) }),
 };
 
 const isObject = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v);
@@ -63,6 +66,17 @@ function upgradeLook4(owner: unknown, kind: LookKind): unknown {
     return { ...owner, look: lookFromFormat4(kind, owner.look as unknown as Format4Look) };
   } catch {
     return owner; // a damaged old look, or an unknown kind: the schema or the checks refuse it
+  }
+}
+
+function upgradeHero5(hero: unknown): unknown {
+  if (!isObject(hero)) return hero;
+  const abilities = isObject(hero.abilities) ? { chargeLevel2: false, ...hero.abilities } : hero.abilities;
+  if (!isObject(hero.look) || !isObject(hero.look.animations)) return { ...hero, abilities };
+  try {
+    return { ...hero, abilities, look: withLevel2Shot(hero.look as unknown as Look) };
+  } catch {
+    return { ...hero, abilities }; // a damaged look: the schema refuses it
   }
 }
 
