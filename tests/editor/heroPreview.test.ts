@@ -4,7 +4,7 @@ import { snowPack } from "@/content/snow/pack";
 import { BOSS_PREVIEW_INPUTS, bossPreviewSim, enemyPreviewSim, IDLE_INPUTS, previewInputs, previewSim } from "@/editor/hero/preview";
 import { defaultTuning, ENEMY_BEHAVIOURS, type BossAttack, type EnemyDesign } from "@/model/designs";
 import { DEFAULT_ABILITIES, type Abilities } from "@/model/hero";
-import { SLIDE_H } from "@/runtime/sim/constants";
+import { CHARGE2_STEPS, SLIDE_H } from "@/runtime/sim/constants";
 import { step } from "@/runtime/sim/step";
 
 function play(abilities: Abilities) {
@@ -103,5 +103,18 @@ describe("the boss preview", () => {
       expect(sim.phase, attacks.join()).toBe("play");
       expect(sim.zoneIndex).toBe(0);
     }
+  });
+});
+
+describe("the hero preview's charge", () => {
+  it("holds shoot long enough for level 2 when the hero has it", () => {
+    const inputs = previewInputs({ ...DEFAULT_ABILITIES, chargeShot: true, chargeLevel2: true });
+    let longest = 0;
+    let held = 0;
+    for (const input of inputs) {
+      held = input.shoot ? held + 1 : 0;
+      longest = Math.max(longest, held);
+    }
+    expect(longest).toBeGreaterThanOrEqual(CHARGE2_STEPS);
   });
 });

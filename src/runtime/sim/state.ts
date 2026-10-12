@@ -53,7 +53,7 @@ export type Player = {
   shotYs: Record<string, number>; // each pose's shot point, below the hitbox's top
 };
 
-export type Shot = { x: number; y: number; vx: number; charged?: boolean };
+export type Shot = { x: number; y: number; vx: number; charged?: boolean; level2?: boolean };
 
 export type Camera = { x: number; y: number };
 

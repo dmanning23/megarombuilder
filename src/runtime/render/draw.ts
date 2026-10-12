@@ -2,7 +2,7 @@ import type { ContentPack, ThingBehaviour, TileBehaviour } from "@/model/content
 import { TILE_SIZE, tileIndex, zoneSize } from "@/model/geometry";
 import type { LookBox } from "@/model/look";
 import type { Zone } from "@/model/schema";
-import { CHARGE_STEPS, ENEMY_SHOT_SIZE, SCREEN_H, SCREEN_W } from "@/runtime/sim/constants";
+import { CHARGE2_STEPS, CHARGE_STEPS, ENEMY_SHOT_SIZE, SCREEN_H, SCREEN_W } from "@/runtime/sim/constants";
 import { shotSize } from "@/runtime/sim/shots";
 import { num, type Box, type Entity } from "@/runtime/sim/entities/types";
 import type { Camera, Sim } from "@/runtime/sim/state";
@@ -183,7 +183,8 @@ export function draw(ctx: Ctx2D, sim: Sim, skin?: Skin): void {
   if (sim.phase !== "dead" && !blinkedOut) {
     if (skin?.hero) {
       const shown = heroShown(p, sim.steps, timingsOf(skin.hero.art.animations));
-      const blink = p.charge >= CHARGE_STEPS && Math.floor(sim.steps / 4) % 2 === 0;
+      const level2Ready = !!sim.settings.chargeLevel2 && p.charge >= CHARGE2_STEPS;
+      const blink = p.charge >= CHARGE_STEPS && Math.floor(sim.steps / (level2Ready ? 2 : 4)) % 2 === 0; // faster at level 2
       const image = blink && skin.hero.flashImage ? skin.hero.flashImage : skin.hero.image;
       const art = skin.hero.art;
       const anim = art.animations[shown.animation];
@@ -201,7 +202,7 @@ export function draw(ctx: Ctx2D, sim: Sim, skin?: Skin): void {
     const x = Math.round(shot.x) + originX;
     const y = Math.round(shot.y) + originY;
     if (skin?.hero) {
-      const anim = skin.hero.art.animations[shot.charged ? "chargedShot" : "shot"];
+      const anim = skin.hero.art.animations[shot.level2 ? "chargedShot2" : shot.charged ? "chargedShot" : "shot"];
       const picture = anim.frames[pickFrame({ frames: anim.frames.length, speed: anim.speed }, 8, sim.steps, true)];
       ctx.drawImage(skin.hero.image(picture, shot.vx < 0), x, y);
     } else {

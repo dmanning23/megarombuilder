@@ -55,3 +55,8 @@ export const CHARGE_STEPS = 60;
 export const CHARGED_W = 12;
 export const CHARGED_H = 10;
 export const CHARGED_DAMAGE = 3;
+// Holding on to two seconds, with the level 2 ability, charges a bigger shot: 16 by 12, 5 damage.
+export const CHARGE2_STEPS = 120;
+export const CHARGED2_W = 16;
+export const CHARGED2_H = 12;
+export const CHARGED2_DAMAGE = 5;

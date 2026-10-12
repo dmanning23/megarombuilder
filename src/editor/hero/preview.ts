@@ -21,7 +21,7 @@ export function previewSim(look: HeroLook, abilities: Abilities, pack: ContentPa
 
 const hold = (keys: Partial<Input>, steps: number): Input[] => new Array<Input>(steps).fill({ ...NO_INPUT, ...keys });
 
-// Stand, run, jump, shoot twice, slide and charge if the hero can, then run back to the start.
+// Stand, run, jump, shoot twice, slide and charge (to level 2) if the hero can, then run back to the start.
 export function previewInputs(abilities: Abilities): Input[] {
   return [
     ...hold({}, 40),
@@ -34,7 +34,7 @@ export function previewInputs(abilities: Abilities): Input[] {
     ...hold({ shoot: true }, 2),
     ...hold({}, 30),
     ...(abilities.slide ? [...hold({ right: true, down: true }, 1), ...hold({ down: true, jump: true }, 1), ...hold({}, 45)] : []),
-    ...(abilities.chargeShot ? [...hold({ shoot: true }, 75), ...hold({}, 40)] : []),
+    ...(abilities.chargeShot ? [...hold({ shoot: true }, abilities.chargeLevel2 ? 135 : 75), ...hold({}, 40)] : []),
     ...hold({ left: true }, 190),
     ...hold({}, 20),
   ];

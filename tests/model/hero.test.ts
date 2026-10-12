@@ -34,7 +34,7 @@ function look(): HeroLook {
 
 describe("heroPhysics", () => {
   it("gives milestone 1's numbers for normal abilities", () => {
-    expect(heroPhysics(DEFAULT_ABILITIES)).toEqual(DEFAULT_PLAYER);
+    expect(heroPhysics(DEFAULT_ABILITIES)).toEqual({ ...DEFAULT_PLAYER, chargeLevel2: false }); // milestone 1 had no level 2
   });
 
   it("turns each step into its value", () => {

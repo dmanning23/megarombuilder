@@ -99,6 +99,7 @@ export function heroPhysics(abilities: Abilities): PlayerSettings {
     maxShots: abilities.shots,
     slide: abilities.slide,
     chargeShot: abilities.chargeShot,
+    chargeLevel2: abilities.chargeLevel2,
   };
 }
 

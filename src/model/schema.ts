@@ -98,6 +98,7 @@ export type PlayerSettings = {
   maxShots: number;
   slide: boolean;
   chargeShot: boolean;
+  chargeLevel2?: boolean; // a second charge level (needs chargeShot)
 };
 export type ChatMessage = z.infer<typeof chatMessageSchema>;
 export type Project = z.infer<typeof projectSchema>;
