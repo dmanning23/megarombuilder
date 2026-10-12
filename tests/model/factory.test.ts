@@ -72,7 +72,7 @@ describe("createProject", () => {
   });
   it("gives a new game the pack's hero with normal abilities", () => {
     const project = createProject({ id: "p1", name: "My Game" }, testPack);
-    expect(project.formatVersion).toBe(5);
+    expect(project.formatVersion).toBe(6);
     expect(project.hero).toEqual({ abilities: DEFAULT_ABILITIES, look: testHero });
     expect(project).not.toHaveProperty("player");
   });
@@ -80,7 +80,7 @@ describe("createProject", () => {
 
 describe("projectSchema", () => {
   it("rejects a document with the wrong format version", () => {
-    const project = { ...createProject({ id: "p1", name: "My Game" }, testPack), formatVersion: 6 };
+    const project = { ...createProject({ id: "p1", name: "My Game" }, testPack), formatVersion: 7 };
     expect(projectSchema.safeParse(project).success).toBe(false);
   });
 

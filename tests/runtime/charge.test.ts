@@ -6,7 +6,8 @@ import type { Abilities } from "@/model/hero";
 import type { Sprite } from "@/runtime/render/art";
 import { draw } from "@/runtime/render/draw";
 import { heroArt } from "@/runtime/render/heroArt";
-import { CHARGE_STEPS, CHARGED_H, CHARGED_W } from "@/runtime/sim/constants";
+import { CHARGE2_STEPS, CHARGE_STEPS, CHARGED2_H, CHARGED2_W, CHARGED_H, CHARGED_W } from "@/runtime/sim/constants";
+import { shotSize } from "@/runtime/sim/shots";
 import { createSim, NO_INPUT, type Sim } from "@/runtime/sim/state";
 import { step } from "@/runtime/sim/step";
 import type { Thing } from "@/model/schema";
@@ -116,13 +117,64 @@ describe("the charge shot", () => {
   });
 });
 
+describe("the level 2 charge shot", () => {
+  const level2 = { chargeShot: true, chargeLevel2: true };
+  const second = (s: Sim) => s.shots.filter((shot) => shot.level2);
+
+  it("fires level 2 after two seconds, level 1 before, and nothing before one", () => {
+    let s = sim([], level2);
+    hold(s, CHARGE2_STEPS);
+    expect(second(s)).toHaveLength(1);
+    expect(shotSize(second(s)[0])).toEqual({ w: CHARGED2_W, h: CHARGED2_H });
+    expect([CHARGED2_W, CHARGED2_H]).toEqual([16, 12]);
+    s = sim([], level2);
+    hold(s, CHARGE2_STEPS - 1);
+    expect(second(s)).toEqual([]);
+    expect(charged(s)).toHaveLength(1);
+    s = sim([], level2);
+    hold(s, CHARGE_STEPS - 1);
+    expect(charged(s)).toEqual([]);
+  });
+
+  it("is never fired with level 2 off", () => {
+    const s = sim();
+    hold(s, CHARGE2_STEPS + 30);
+    expect(second(s)).toEqual([]);
+    expect(charged(s)).toHaveLength(1);
+  });
+
+  it("does 5 damage, stopping at what it doesn't destroy and carrying on through what it does", () => {
+    const s = sim([thing("turret", 8, 12, { interval: 1000, health: 7 }), thing("turret", 11, 12, { interval: 1000, health: 6 })], level2);
+    run(s, { shoot: true }, CHARGE2_STEPS); // the tap's normal shot hits the first turret: 7 → 6
+    run(s, {}, 1);
+    run(s, {}, 60);
+    expect(s.slots[0].entity?.health).toBe(1); // 7 - 1 - 5: it stops here
+    expect(s.slots[1].entity?.health).toBe(6);
+    const t = sim([thing("turret", 8, 12, { interval: 1000, health: 6 }), thing("turret", 11, 12, { interval: 1000, health: 5 })], level2);
+    run(t, { shoot: true }, CHARGE2_STEPS);
+    run(t, {}, 1);
+    run(t, {}, 60);
+    expect(t.slots.map((slot) => slot.entity)).toEqual([null, null]); // 6 - 1 - 5, then 5 - 5
+  });
+
+  it("starts its whole width in front of a hero facing left", () => {
+    const s = sim([], level2);
+    run(s, { right: true }, 60); // away from the screen's left edge, where a shot would leave at once
+    run(s, { left: true }, 1);
+    run(s, {}, 10); // come to a stop
+    hold(s, CHARGE2_STEPS);
+    const shot = second(s)[0];
+    expect(shot.x).toBe(s.player.x - CHARGED2_W + shot.vx); // one step on
+  });
+});
+
 describe("drawing the charge", () => {
   const hero = heroArt(createDemoProject().hero.look);
   type Drawn = { sprite: Sprite; flip: boolean; flash?: boolean };
 
-  function drawn(prepare: (s: Sim) => void): Drawn[] {
+  function drawn(prepare: (s: Sim) => void, changes: Partial<Abilities> = { chargeShot: true }): Drawn[] {
     const project = createDemoProject();
-    const hero2 = { ...project.hero, abilities: { ...project.hero.abilities, chargeShot: true } };
+    const hero2 = { ...project.hero, abilities: { ...project.hero.abilities, ...changes } };
     const s = createSim({ ...project, hero: hero2 }, DEMO_LEVEL_ID, snowPack);
     step(s, NO_INPUT);
     prepare(s);
@@ -157,5 +209,21 @@ describe("drawing the charge", () => {
   it("draws charged shots with the charged-shot picture", () => {
     const images = drawn((s) => s.shots.push({ x: 60, y: 180, vx: 4, charged: true }));
     expect(images).toContainEqual({ sprite: hero.chargedShot, flip: false });
+  });
+
+  it("blinks twice as fast once level 2 is reached", () => {
+    const level2 = { chargeShot: true, chargeLevel2: true };
+    const at = (steps: number) =>
+      drawn((s) => {
+        s.player.charge = CHARGE2_STEPS;
+        s.steps = steps;
+      }, level2);
+    expect(at(4)).toContainEqual({ sprite: hero.poses.stand, flip: false, flash: true }); // every 2 steps: on at 4
+    expect(at(2)).toContainEqual({ sprite: hero.poses.stand, flip: false }); // off at 2
+  });
+
+  it("draws level 2 shots with the Level 2 shot picture", () => {
+    const images = drawn((s) => s.shots.push({ x: 60, y: 180, vx: 4, charged: true, level2: true }));
+    expect(images).toContainEqual({ sprite: hero.animations.chargedShot2.frames[0], flip: false });
   });
 });

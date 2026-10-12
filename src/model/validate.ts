@@ -153,6 +153,9 @@ export function structureProblems(project: Project, pack: ContentPack): string[]
     ids.add(level.id);
     problems.push(...levelProblems(level, full));
   }
+  if (project.hero.abilities.chargeLevel2 && !project.hero.abilities.chargeShot) {
+    problems.push("The hero's level 2 charge shot needs its charge shot on.");
+  }
   problems.push(...lookProblems("hero", project.hero.look, "The hero"));
   const enemyIds = new Set<string>();
   const enemyNames = new Map<string, string>(); // tidied, lower case → the first spelling

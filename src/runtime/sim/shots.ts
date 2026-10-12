@@ -1,4 +1,4 @@
-import { CHARGE_STEPS, CHARGED_H, CHARGED_W, SCREEN_W, SHOT_H, SHOT_POSE_STEPS, SHOT_SPEED, SHOT_W } from "./constants";
+import { CHARGE2_STEPS, CHARGE_STEPS, CHARGED2_H, CHARGED2_W, CHARGED_H, CHARGED_W, SCREEN_W, SHOT_H, SHOT_POSE_STEPS, SHOT_SPEED, SHOT_W } from "./constants";
 import { heroShotY } from "./pose";
 import { sliding } from "./slide";
 import type { Input, Shot, Sim } from "./state";
@@ -31,10 +31,15 @@ export function updateShots(sim: Sim): void {
 }
 
 export const shotSize = (shot: Shot): { w: number; h: number } =>
-  shot.charged ? { w: CHARGED_W, h: CHARGED_H } : { w: SHOT_W, h: SHOT_H };
+  shot.level2
+    ? { w: CHARGED2_W, h: CHARGED2_H }
+    : shot.charged
+      ? { w: CHARGED_W, h: CHARGED_H }
+      : { w: SHOT_W, h: SHOT_H };
 
 // Holding shoot charges; letting go once fully charged fires a charged shot. It always fires: the
 // shots-on-screen limit is for normal shots. A release mid-slide is lost (no shooting while sliding).
+// With the level 2 ability, holding on to two seconds fires the bigger level 2 shot instead.
 export function chargeShot(sim: Sim, input: Input): void {
   const p = sim.player;
   if (!sim.settings.chargeShot) return;
@@ -43,11 +48,14 @@ export function chargeShot(sim: Sim, input: Input): void {
     return;
   }
   if (!input.shoot && sim.prev.shoot && p.charge >= CHARGE_STEPS && !sliding(p)) {
+    const level2 = !!sim.settings.chargeLevel2 && p.charge >= CHARGE2_STEPS;
+    const { w, h } = level2 ? { w: CHARGED2_W, h: CHARGED2_H } : { w: CHARGED_W, h: CHARGED_H };
     sim.shots.push({
-      x: p.facing > 0 ? p.x + p.w : p.x - CHARGED_W,
-      y: p.y + heroShotY(p) + SHOT_H / 2 - CHARGED_H / 2, // centred on a normal shot's line
+      x: p.facing > 0 ? p.x + p.w : p.x - w,
+      y: p.y + heroShotY(p) + SHOT_H / 2 - h / 2, // centred on a normal shot's line
       vx: p.facing * SHOT_SPEED,
       charged: true,
+      ...(level2 ? { level2: true } : {}),
     });
     p.shotTimer = SHOT_POSE_STEPS;
   }

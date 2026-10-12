@@ -21,6 +21,7 @@ function heroLook(): Look {
       slide: pose(24, 16, { x: 5, y: 2 }),
       shot: pose(6, 4),
       chargedShot: pose(12, 10),
+      chargedShot2: pose(16, 12),
     },
     body: { w: 14, h: 22 },
     slideBody: { w: 14, h: 14 },

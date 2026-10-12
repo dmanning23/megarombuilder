@@ -39,7 +39,7 @@ describe("hero colours", () => {
     const { open, choose, saved } = setupHero();
     await open();
     await choose("Remove colour 7");
-    expect((await screen.findByRole("alert")).textContent).toContain("Colour 7 is still used in Shot frame 1 and Charged shot frame 1.");
+    expect((await screen.findByRole("alert")).textContent).toContain("Colour 7 is still used in Shot frame 1, Charged shot frame 1 and Level 2 shot frame 1.");
     expect(saved().hero.look.colours).toHaveLength(7);
   });
 

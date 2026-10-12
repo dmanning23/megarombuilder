@@ -84,6 +84,22 @@ describe("hero abilities", () => {
     expect(hero.abilities.speed).toBe("fast");
   });
 
+  it("sets the charge shot to Off, On or Level 2, and notes the Level 2 shot picture until it's on", async () => {
+    const { open, saved } = setupHero();
+    await open();
+    await settings();
+    const charge = () => within(group("Charge shot"));
+    expect(charge().getAllByRole("button").map((b) => b.textContent)).toEqual(["Off", "On", "Level 2"]);
+    const picture = () => screen.getByRole("button", { name: /^Level 2 shot,/ });
+    expect(picture().textContent).toContain("(needs level 2)");
+    await userEvent.click(charge().getByRole("button", { name: "Level 2" }));
+    expect(charge().getByRole("button", { name: "Level 2" }).getAttribute("aria-pressed")).toBe("true");
+    expect(picture().textContent).not.toContain("(needs level 2)");
+    await userEvent.click(charge().getByRole("button", { name: "Off" }));
+    expect(charge().getByRole("button", { name: "Off" }).getAttribute("aria-pressed")).toBe("true");
+    expect(saved().hero.abilities).toMatchObject({ chargeShot: false, chargeLevel2: false });
+  });
+
   it("is locked while the assistant works", async () => {
     let finish = () => {};
     const waiting = new Promise<void>((resolve) => (finish = resolve));

@@ -42,3 +42,13 @@ describe("hero commands and review fixes", () => {
   });
 
 });
+
+describe("the level 2 charge shot", () => {
+  it("needs the charge shot, turns on with it, and goes off with it", () => {
+    expect(runError(baseProject(), "setHeroAbilities", { chargeLevel2: true })).toBe("A level 2 charge shot needs the charge shot on.");
+    let project = run(baseProject(), "setHeroAbilities", { chargeShot: true, chargeLevel2: true });
+    expect(project.hero.abilities).toMatchObject({ chargeShot: true, chargeLevel2: true });
+    project = run(project, "setHeroAbilities", { chargeShot: false });
+    expect(project.hero.abilities).toMatchObject({ chargeShot: false, chargeLevel2: false });
+  });
+});

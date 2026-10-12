@@ -49,7 +49,7 @@ describe("AI_TOOLS", () => {
   });
 
   it("lets the assistant change the hero's abilities, and nothing else about the hero", () => {
-    expect(properties("set_hero_abilities")).toEqual(["speed", "jump", "health", "shots", "slide", "chargeShot"]);
+    expect(properties("set_hero_abilities")).toEqual(["speed", "jump", "health", "shots", "slide", "chargeShot", "chargeLevel2"]);
     expect(tool("set_hero_abilities").command).toMatchObject({ name: "setHeroAbilities", levelArg: false });
     expect(tool("fill_rect").command).toMatchObject({ levelArg: true });
     expect(AI_TOOLS.some((t) => /hero_(colours|pose|look)/.test(t.name))).toBe(false);

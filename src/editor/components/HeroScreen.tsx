@@ -105,6 +105,7 @@ export function HeroScreen({
           ...(abilities.chargeShot
             ? {}
             : { chargedShot: "(needs charge shot)" }),
+          ...(abilities.chargeLevel2 ? {} : { chargedShot2: "(needs level 2)" }),
         }}
         locked={locked}
         onCommand={onCommand}

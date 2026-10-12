@@ -68,6 +68,7 @@ export const abilitiesSchema = z.object({
   shots: z.literal(SHOT_COUNTS),
   slide: z.boolean(),
   chargeShot: z.boolean(),
+  chargeLevel2: z.boolean(), // a second, bigger charge (needs chargeShot)
 });
 export type Abilities = z.infer<typeof abilitiesSchema>;
 
@@ -78,6 +79,7 @@ export const DEFAULT_ABILITIES: Abilities = {
   shots: 3,
   slide: false,
   chargeShot: false,
+  chargeLevel2: false,
 };
 
 // The only place ability steps become numbers. Normal everywhere is milestone 1's hero.
@@ -97,6 +99,7 @@ export function heroPhysics(abilities: Abilities): PlayerSettings {
     maxShots: abilities.shots,
     slide: abilities.slide,
     chargeShot: abilities.chargeShot,
+    chargeLevel2: abilities.chargeLevel2,
   };
 }
 
@@ -119,6 +122,7 @@ export function abilitiesFromSettings(old: unknown): Abilities {
     shots: nearest(SHOT_COUNTS.map((n): [Abilities["shots"], number] => [n, n]), s.maxShots, 3),
     slide: false,
     chargeShot: false,
+    chargeLevel2: false,
   };
 }
 

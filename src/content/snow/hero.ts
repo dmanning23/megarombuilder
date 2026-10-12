@@ -129,6 +129,21 @@ export const SNOW_HERO_PICTURES: Record<HeroPicture, string[]> = {
   chargedShot: CHARGED_SHOT,
 };
 
+const LEVEL_2_SHOT = [
+  "......kkkk......",
+  "...kkkyyyykkk...",
+  "..kyyyywwyyyyk..",
+  ".kyyywwwwwwyyyk.",
+  "kyyywwwwwwwwyyyk",
+  "kyywwwwwwwwwwyyk",
+  "kyywwwwwwwwwwyyk",
+  "kyyywwwwwwwwyyyk",
+  ".kyyywwwwwwyyyk.",
+  "..kyyyywwyyyyk..",
+  "...kkkyyyykkk...",
+  "......kkkk......",
+];
+
 // Each letter the hero uses becomes a colour slot, "1" for the first.
 const LETTERS = ["k", "t", "T", "w", "o", "G", "y"];
 
@@ -152,4 +167,12 @@ const snowHeroPictures: OldHeroLook = {
   chargedShot: toSlots(CHARGED_SHOT),
 };
 
-export const snowHero: HeroLook = heroLookFrom(snowHeroPictures);
+// The pictures, then the drawn Level 2 shot in place of the copy of the Charged shot.
+const fromPictures = heroLookFrom(snowHeroPictures);
+export const snowHero: HeroLook = {
+  ...fromPictures,
+  animations: {
+    ...fromPictures.animations,
+    chargedShot2: { ...fromPictures.animations.chargedShot2, frames: [toSlots(LEVEL_2_SHOT)] },
+  },
+};

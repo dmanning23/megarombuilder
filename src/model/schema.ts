@@ -2,7 +2,7 @@ import { z } from "zod";
 import { bossDesignSchema, enemyDesignSchema, MAX_ENEMIES } from "./designs";
 import { heroSchema } from "./hero";
 
-export const FORMAT_VERSION = 5;
+export const FORMAT_VERSION = 6;
 
 export const MAX_ID_LENGTH = 64;
 
@@ -98,6 +98,7 @@ export type PlayerSettings = {
   maxShots: number;
   slide: boolean;
   chargeShot: boolean;
+  chargeLevel2?: boolean; // a second charge level (needs chargeShot)
 };
 export type ChatMessage = z.infer<typeof chatMessageSchema>;
 export type Project = z.infer<typeof projectSchema>;

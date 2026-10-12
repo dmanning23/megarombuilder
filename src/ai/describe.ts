@@ -140,7 +140,7 @@ export function describeHero(project: Project): string {
     `Your hero runs ${SPEED_TEXT[a.speed]}, jumps onto ledges up to ${JUMP_TILES[a.jump]} tiles high, has ${physics.maxHealth} health and can have ${a.shots} shot${a.shots === 1 ? "" : "s"} on screen.`,
     `Your hero is ${body.h} pixels tall and ${body.w} wide, so it fits through 2-tile gaps.`,
     a.slide ? "It can slide under gaps one tile high." : "It can't slide.",
-    a.chargeShot ? "It has a charge shot." : "It has no charge shot.",
+    a.chargeLevel2 ? "It has a level 2 charge shot." : a.chargeShot ? "It has a charge shot." : "It has no charge shot.",
   ].join(" ");
 }
 
