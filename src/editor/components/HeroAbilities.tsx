@@ -28,8 +28,14 @@ const ROWS: { key: keyof Abilities; label: string; steps: readonly Step[]; name(
   },
   { key: "shots", label: "Shots on screen", steps: SHOT_COUNTS, name: (s) => String(s) },
   { key: "slide", label: "Slide", steps: [false, true], name: (s) => (s ? "On" : "Off") },
-  { key: "chargeShot", label: "Charge shot", steps: [false, true], name: (s) => (s ? "On" : "Off") },
 ];
+
+// The charge shot's two settings as one control: off, on, or with a second, bigger level.
+const CHARGE_STEPS = [
+  ["off", "Off"],
+  ["on", "On"],
+  ["level2", "Level 2"],
+] as const;
 
 type Props = {
   abilities: Abilities;
@@ -45,6 +51,7 @@ export function HeroAbilities({ abilities, level, check, onAbilities, onGoToZone
   const failing = check
     ? level.zones.filter((z) => check.zones.some((c) => c.zoneId === z.id && !c.passable))
     : [];
+  const charge = abilities.chargeLevel2 ? "level2" : abilities.chargeShot ? "on" : "off";
   return (
     <section className={styles.abilities} aria-label="Abilities">
       <h3 className={styles.panelHeading}>Abilities</h3>
@@ -67,6 +74,22 @@ export function HeroAbilities({ abilities, level, check, onAbilities, onGoToZone
             </div>
           </div>
         ))}
+        <div role="group" aria-label="Charge shot" className={styles.ability}>
+          <span className={styles.abilityLabel}>Charge shot</span>
+          <div className={styles.steps}>
+            {CHARGE_STEPS.map(([step, name]) => (
+              <button
+                key={step}
+                type="button"
+                className={styles.step}
+                aria-pressed={charge === step}
+                onClick={() => onAbilities({ chargeShot: step !== "off", chargeLevel2: step === "level2" })}
+              >
+                {name}
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
       <p role="status" className={check && failing.length > 0 ? styles.bad : styles.good}>
         {!check ? (

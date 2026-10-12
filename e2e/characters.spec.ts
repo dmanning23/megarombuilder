@@ -106,3 +106,20 @@ test("a bigger Jump and shoot keeps the pixels the same size, and its thumbnail 
   // The same pixel size in both poses (a new canvas takes its zoom once its area is measured).
   await expect.poll(async () => (await canvas.boundingBox())!.width / 16).toBe(jumpWidth / 24);
 });
+
+test("the charge shot's Level 2 and its picture", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.goto("/");
+  await page.getByRole("textbox", { name: "Game name" }).fill("Level two");
+  await page.getByRole("button", { name: "Make a new game" }).click();
+  await page.getByRole("button", { name: "Characters" }).click();
+  await page.getByRole("button", { name: "How it plays" }).click();
+  await page.getByRole("group", { name: "Charge shot" }).getByRole("button", { name: "Level 2" }).click();
+  await expect(page.getByRole("group", { name: "Charge shot" }).getByRole("button", { name: "Level 2" })).toHaveAttribute("aria-pressed", "true");
+  await page.waitForTimeout(300); // let the drawer finish sliding in
+  await page.screenshot({ path: "test-results/level2-drawer.png" });
+  await page.getByRole("button", { name: "Done" }).click();
+  await page.getByRole("group", { name: "Animations" }).getByRole("button", { name: /^Level 2 shot,/ }).click();
+  await expect(page.getByRole("group", { name: "Size" })).toHaveCount(0); // a fixed size
+  await page.screenshot({ path: "test-results/level2-picture.png" });
+});
