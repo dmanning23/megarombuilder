@@ -152,6 +152,13 @@ describe("format 3 games", () => {
     expect(designFrames("boss", upgraded.boss!.look)).toEqual(old.boss.look.frames);
   });
 
+  it("refuse a damaged format 3 hero without throwing", () => {
+    for (const chargedShot of [[], ["1".repeat(20)], "nope"]) {
+      const doc = { ...format3(), hero: { abilities: DEFAULT_ABILITIES, look: { ...testOldHero, chargedShot } } };
+      expect(parseProject(doc, getPack).ok, JSON.stringify(chargedShot)).toBe(false);
+    }
+  });
+
   it("upgrade a format 1 game without converting the pack's hero twice", () => {
     const result = parseProject({ ...format3(), formatVersion: 1, hero: undefined, enemies: undefined, boss: undefined, player: {} }, getPack);
     if (!result.ok) throw new Error(result.error);

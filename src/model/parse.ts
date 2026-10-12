@@ -48,7 +48,11 @@ const isObject = (v: unknown): v is Record<string, unknown> => typeof v === "obj
 // Each converts only an old-shaped picture set, and leaves anything else for the schema to judge.
 function upgradeHero(hero: unknown): unknown {
   if (!isObject(hero) || !isObject(hero.look) || !isObject(hero.look.poses)) return hero;
-  return { ...hero, look: heroLookFrom(hero.look as unknown as OldHeroLook) };
+  try {
+    return { ...hero, look: heroLookFrom(hero.look as unknown as OldHeroLook) };
+  } catch {
+    return hero; // a damaged old look: the schema refuses it
+  }
 }
 
 function upgradeDesign(design: unknown, kind: EnemyBehaviour | "boss"): unknown {

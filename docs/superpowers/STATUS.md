@@ -68,7 +68,7 @@ note, a pose's hitbox moves by dragging its middle (and grows no bigger than the
 smallest pose), the Shot point tool shows only on poses that fire, the zoom fits
 the largest pose, and Copy from works across sizes. The hero's charge shot can
 be Off, On or Level 2 (hold two seconds for a bigger, 5-damage shot with its own
-picture); game files are format 6. 1088 tests and 19 browser tests pass; typecheck, lint and build are clean. Browser tests: `npm run e2e`
+picture); game files are format 6. 1089 tests and 19 browser tests pass; typecheck, lint and build are clean. Browser tests: `npm run e2e`
 (builds and serves on port 3100).
 
 | Document | State |
@@ -108,7 +108,7 @@ picture); game files are format 6. 1088 tests and 19 browser tests pass; typeche
 | `plans/2026-10-10-pose-sizes-plan-1-model-and-game.md` | Pose sizes plan 1 of 2, implemented, reviewed and merged |
 | `plans/2026-10-10-pose-sizes-plan-2-editor.md` | Pose sizes plan 2 of 2, implemented, reviewed and merged |
 | `specs/2026-10-12-1.1-gameplay-tweaks-design.md` | 1.1 gameplay tweaks spec: part 1 approved |
-| `plans/2026-10-12-1.1-plan-1-level-2-charge.md` | 1.1 plan 1 (the level 2 charge shot), implemented |
+| `plans/2026-10-12-1.1-plan-1-level-2-charge.md` | 1.1 plan 1 (the level 2 charge shot), implemented, reviewed and merged |
 
 Milestone 1 is now eight plans (the editor became two):
 
@@ -162,6 +162,9 @@ Milestone 4, characters that fit, was five plans:
      .step and .choice fade differently; a few dead or duplicate CSS rules.
    - Tidy plan 1: the wide-screen screenshots don't show the bottom of the
      scrolling panel (plan 2 should screenshot the panel itself).
+   - 1.1 plan 1: no test that a Charge shot choice is one undo step; the Level
+     2 shot's note says "(needs level 2)" even when the charge shot is off; the
+     format 5 upgrade test doesn't pin the rest of the game unchanged.
    - Pose sizes plan 2: the shot line follows the hitbox during a move, then
      snaps back to its picture row on release; a pose switch can briefly show
      the smallest zoom (the picture editor remounts); Slide's box can be moved
