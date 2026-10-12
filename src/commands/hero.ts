@@ -8,12 +8,17 @@ const withLook = (project: Project, look: HeroLook): Project => ({ ...project, h
 const setHeroAbilitiesCommand = defineCommand({
   name: "setHeroAbilities",
   description:
-    "Change the hero's abilities: speed (normal, fast, veryFast), jump (low, normal, high, veryHigh), health (fragile, normal, tough), shots on screen (1, 2, 3 or 5), slide and chargeShot (true or false). Only the given ones change.",
+    "Change the hero's abilities: speed (normal, fast, veryFast), jump (low, normal, high, veryHigh), health (fragile, normal, tough), shots on screen (1, 2, 3 or 5), slide and chargeShot (true or false), and chargeLevel2 (true or false: a second, bigger charge, which needs chargeShot). Only the given ones change.",
   args: abilitiesSchema.partial().strict(),
   apply(project, args): CommandResult {
     const given = Object.fromEntries(Object.entries(args).filter(([, value]) => value !== undefined));
     if (Object.keys(given).length === 0) return fail("Give at least one ability to change.");
-    return ok({ ...project, hero: { ...project.hero, abilities: { ...project.hero.abilities, ...given } } });
+    const abilities = { ...project.hero.abilities, ...given };
+    if (abilities.chargeLevel2 && !abilities.chargeShot) {
+      if (given.chargeLevel2) return fail("A level 2 charge shot needs the charge shot on.");
+      abilities.chargeLevel2 = false; // turning the charge shot off turns level 2 off too
+    }
+    return ok({ ...project, hero: { ...project.hero, abilities } });
   },
 });
 

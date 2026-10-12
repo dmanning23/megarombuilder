@@ -139,6 +139,10 @@ describe("describeHero", () => {
     );
   });
 
+  it("says when the hero has a level 2 charge shot", () => {
+    expect(describeHero(withAbilities({ chargeShot: true, chargeLevel2: true }))).toContain("It has a level 2 charge shot.");
+  });
+
   it("reads well for every step", () => {
     for (const speed of SPEEDS)
       for (const jump of JUMPS)
