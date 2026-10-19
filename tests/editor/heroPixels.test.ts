@@ -2,7 +2,9 @@ import { describe, expect, it } from "vitest";
 import {
   blankRows,
   drawPixels,
+  canShift,
   flipRows,
+  shiftRows,
   floodFill,
   linePixels,
   pixelFromPointer,
@@ -143,5 +145,25 @@ describe("drawing at another zoom", () => {
     };
     drawPixels(ctx, ["..", ".1"], { "1": "#ff0000" }, { w: 2, h: 2 }, null, false, {}, 20);
     expect(rects).toContainEqual({ colour: "#ff0000", x: 20, y: 20, w: 20, h: 20 });
+  });
+});
+
+describe("shifting a picture", () => {
+  const rows = ["....", ".12.", "..3.", "...."];
+
+  it("moves every pixel one step, bringing in empty space", () => {
+    expect(shiftRows(rows, "left")).toEqual(["....", "12..", ".3..", "...."]);
+    expect(shiftRows(rows, "right")).toEqual(["....", "..12", "...3", "...."]);
+    expect(shiftRows(rows, "up")).toEqual([".12.", "..3.", "....", "...."]);
+    expect(shiftRows(rows, "down")).toEqual(["....", "....", ".12.", "..3."]);
+  });
+
+  it("can't shift towards an edge the drawing touches, or an empty picture", () => {
+    expect(canShift(rows, "left")).toBe(true);
+    expect(canShift(["1...", "...."], "left")).toBe(false);
+    expect(canShift(["...1", "...."], "right")).toBe(false);
+    expect(canShift(["..1.", "...."], "up")).toBe(false);
+    expect(canShift(["....", ".1.."], "down")).toBe(false);
+    expect(["left", "right", "up", "down"].some((d) => canShift(["....", "...."], d as "left"))).toBe(false);
   });
 });

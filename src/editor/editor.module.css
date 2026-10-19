@@ -1000,6 +1000,15 @@
   padding-top: 0.6rem;
   border-top: 1px solid rgb(233 238 245 / 0.18);
 }
+/* The four Shift arrows sit together as one small cluster. */
+.shiftGroup {
+  display: flex;
+  gap: 0.2rem;
+}
+.shiftGroup .action {
+  min-width: 2.25rem;
+  padding-inline: 0.5rem;
+}
 .pictureBar .field {
   display: flex;
   align-items: center;

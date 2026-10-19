@@ -68,7 +68,9 @@ note, a pose's hitbox moves by dragging its middle (and grows no bigger than the
 smallest pose), the Shot point tool shows only on poses that fire, the zoom fits
 the largest pose, and Copy from works across sizes. The hero's charge shot can
 be Off, On or Level 2 (hold two seconds for a bigger, 5-damage shot with its own
-picture); game files are format 6. 1089 tests and 19 browser tests pass; typecheck, lint and build are clean. Browser tests: `npm run e2e`
+picture); game files are format 6. Shift buttons in the picture bar move a
+whole frame a pixel at a time (never past an edge the drawing touches), to line
+imported pictures up. 1093 tests and 19 browser tests pass; typecheck, lint and build are clean. Browser tests: `npm run e2e`
 (builds and serves on port 3100).
 
 | Document | State |
