@@ -1,9 +1,9 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, screen } from "@testing-library/react";
+import { cleanup, fireEvent, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it } from "vitest";
 import { snowHero } from "@/content/snow/hero";
-import { flipRows, ZOOM } from "@/editor/hero/pixels";
+import { flipRows, shiftRows, ZOOM } from "@/editor/hero/pixels";
 import { setupHero } from "./heroHelpers";
 import { pictureRows } from "@/model/hero";
 import { applyCommand } from "@/commands/registry";
@@ -95,6 +95,30 @@ describe("the hero screen", () => {
     expect(screen.getByRole("combobox", { name: "Copy from" })).toHaveProperty("value", "");
     const flipped = pictureRows(saved().hero.look, "run1");
     expect(flipped).toEqual(flipRows(pictureRows(snowHero, "stand")));
+  });
+
+  it("shifts the whole picture one pixel per press, never past an edge it touches", async () => {
+    const { open, saved } = setupHero();
+    await open();
+    const shift = (name: string) => within(screen.getByRole("group", { name: "Shift picture" })).getByRole("button", { name });
+    expect(shift("Shift down")).toHaveProperty("disabled", true); // the snow hero's feet are on the bottom row
+    expect(shift("Shift up")).toHaveProperty("disabled", false);
+    await userEvent.click(shift("Shift up"));
+    await userEvent.click(shift("Shift up"));
+    await userEvent.click(shift("Shift left"));
+    expect(shift("Shift down")).toHaveProperty("disabled", false);
+    const stand = pictureRows(snowHero, "stand");
+    expect(pictureRows(saved().hero.look, "stand")).toEqual(shiftRows(shiftRows(shiftRows(stand, "up"), "up"), "left"));
+  });
+
+  it("undoes one shift at a time", async () => {
+    const { open, saved } = setupHero();
+    await open();
+    const shift = (name: string) => within(screen.getByRole("group", { name: "Shift picture" })).getByRole("button", { name });
+    await userEvent.click(shift("Shift up"));
+    await userEvent.click(shift("Shift up"));
+    await userEvent.click(screen.getByRole("button", { name: "Undo" }));
+    expect(pictureRows(saved().hero.look, "stand")).toEqual(shiftRows(pictureRows(snowHero, "stand"), "up"));
   });
 
   it("clears a picture", async () => {

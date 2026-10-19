@@ -5,7 +5,10 @@ import styles from "../editor.module.css";
 import type { Imported, ImportTarget, RawImage } from "../hero/importPicture";
 import {
   blankRows,
+  canShift,
   flipRows,
+  shiftRows,
+  type ShiftDirection,
   floodFill,
   linePixels,
   setPixels,
@@ -67,6 +70,14 @@ type Props = {
 
 // One picture's drawing area. Render it with the picture as its key: a new picture is a new
 // editor, and a stroke left open on the old one ends as one undo step when it goes.
+// The Shift buttons: move the whole picture a pixel, to line it up with the hitbox and feet.
+const SHIFTS: [ShiftDirection, string][] = [
+  ["left", "◀"],
+  ["right", "▶"],
+  ["up", "▲"],
+  ["down", "▼"],
+];
+
 export function PictureEditor({
   name,
   rows,
@@ -283,6 +294,21 @@ export function PictureEditor({
         >
           Flip
         </button>
+        <div role="group" aria-label="Shift picture" className={styles.shiftGroup}>
+          {SHIFTS.map(([direction, arrow]) => (
+            <button
+              key={direction}
+              type="button"
+              className={styles.action}
+              aria-label={`Shift ${direction}`}
+              title={`Shift ${direction}`}
+              disabled={!canShift(rows, direction)}
+              onClick={() => once(`Shift ${direction}`, shiftRows(rows, direction))}
+            >
+              <span aria-hidden="true">{arrow}</span>
+            </button>
+          ))}
+        </div>
         <button
           type="button"
           className={`${styles.action} ${styles.danger}`}

@@ -44,6 +44,27 @@ export function floodFill(rows: string[], start: Pixel, ch: string): string[] {
 
 export const flipRows = (rows: string[]): string[] => rows.map((row) => [...row].reverse().join(""));
 
+export type ShiftDirection = "left" | "right" | "up" | "down";
+
+// Moves every pixel one step, bringing in empty space from the other side. Pixels pushed past the
+// edge would be lost, so the editor checks canShift first.
+export function shiftRows(rows: string[], direction: ShiftDirection): string[] {
+  const blank = ".".repeat(rows[0]?.length ?? 0);
+  if (direction === "left") return rows.map((row) => row.slice(1) + ".");
+  if (direction === "right") return rows.map((row) => "." + row.slice(0, -1));
+  if (direction === "up") return [...rows.slice(1), blank];
+  return [blank, ...rows.slice(0, -1)];
+}
+
+// Whether a shift keeps every drawn pixel: something is drawn, and none of it touches that edge.
+export function canShift(rows: string[], direction: ShiftDirection): boolean {
+  if (rows.every((row) => /^\.*$/.test(row))) return false;
+  if (direction === "left") return rows.every((row) => row[0] === ".");
+  if (direction === "right") return rows.every((row) => row[row.length - 1] === ".");
+  if (direction === "up") return /^\.*$/.test(rows[0]);
+  return /^\.*$/.test(rows[rows.length - 1]);
+}
+
 export function pixelFromPointer(
   clientX: number,
   clientY: number,
