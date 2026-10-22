@@ -94,6 +94,7 @@ export const KINDS: Record<LookKind, KindRule> = {
   jumper: enemy(["ground", "air"]),
   shielded: enemy(["closed", "open"], ENEMY_SHOT_H),
   dropper: enemy(["hang", "fall"]),
+  sniper: enemy(["guard", "shoot"], ENEMY_SHOT_H),
   boss: {
     animations: { stand: BOSS_POSE, jump: BOSS_POSE, attack: BOSS_POSE },
     shotHeight: ENEMY_SHOT_H,
@@ -122,6 +123,8 @@ export const ANIMATION_NAMES: Record<string, string> = {
   open: "Shield open",
   hang: "Hang",
   fall: "Fall",
+  guard: "Guard",
+  shoot: "Shoot",
   attack: "Attack",
 };
 
@@ -139,6 +142,7 @@ const FIRING: Partial<Record<LookKind, string[]>> = {
   hero: ["standShoot", "runShoot", "jumpShoot", "climb", "hurt"],
   turret: ["idle"],
   shielded: ["open"],
+  sniper: ["shoot"],
   boss: ["attack"],
 };
 export const firesFrom = (kind: LookKind, animation: string): boolean => FIRING[kind]?.includes(animation) ?? false;

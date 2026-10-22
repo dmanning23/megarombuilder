@@ -9,6 +9,7 @@ const WEIGHTS: Record<ThingBehaviour, number> = {
   turret: 1.5,
   jumper: 1.5,
   shielded: 2,
+  sniper: 2.5,
   health: -0.5,
   platform: 0,
   boss: 0,

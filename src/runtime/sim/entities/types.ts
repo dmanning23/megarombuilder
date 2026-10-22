@@ -35,6 +35,7 @@ export const ENEMY_BEHAVIOURS: ReadonlySet<ThingBehaviour> = new Set([
   "jumper",
   "shielded",
   "dropper",
+  "sniper",
 ]);
 
 // A number from a thing's settings, or the fallback when it is missing or not a number.

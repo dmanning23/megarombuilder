@@ -174,6 +174,7 @@ const BEHAVIOUR_WORDS: Record<EnemyBehaviour, string> = {
   jumper: "a hopper that hops toward the hero",
   shielded: "a shield guard that blocks shots until it opens up",
   dropper: "a dropper that drops when the hero passes underneath",
+  sniper: "a sniper that hides behind its shield, then fires three low shots you jump over",
 };
 
 const ATTACK_WORDS: Record<BossAttack, string> = {

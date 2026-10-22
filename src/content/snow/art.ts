@@ -265,6 +265,46 @@ const SHIELDED = [
   ]),
 ];
 
+// The Sniper: behind its tall shield, then with the shield lowered and its gun out low.
+const SNIPER = [
+  sprite([
+    BLANK16,
+    "....kkkkk.......",
+    "...kbbbbbk..kkk.",
+    "...kbwkwbk.kgggk",
+    "...kbbbbbk.kgggk",
+    "....kkkkk..kgggk",
+    "...kBBBBBk.kgggk",
+    "..kBBBBBBBkkgggk",
+    "..kBBBBBBBkkgggk",
+    "..kBBBBBBBkkgggk",
+    "..kBBBBBBBkkgggk",
+    "...kBBBBBk.kgggk",
+    "...kBk.kBk.kgggk",
+    "...kBk.kBk.kgggk",
+    "..kGGk.kGGk.kkk.",
+    "..kkkk.kkkk.....",
+  ]),
+  sprite([
+    BLANK16,
+    "....kkkkk.......",
+    "...kbbbbbk......",
+    "...kbwkwbk......",
+    "...kbbbbbk......",
+    "....kkkkk.......",
+    "...kBBBBBk......",
+    "..kBBBBBBBk.....",
+    "..kBBBBBBBk.....",
+    "..kBBBBBBBkkkkkk",
+    "..kBBBBBBBkooook",
+    "...kBBBBBkkkkkk.",
+    "...kBk.kBk.kgk..",
+    "...kBk.kBk.kgk..",
+    "..kGGk.kGGk.kkk.",
+    "..kkkk.kkkk.....",
+  ]),
+];
+
 const DROPPER = [
   sprite([
     ...pad(4),
@@ -407,6 +447,7 @@ export const snowArt: ArtSet = {
     turret: TURRET,
     jumper: JUMPER,
     shielded: SHIELDED,
+    sniper: SNIPER,
     dropper: DROPPER,
     platform: [toSprite(platform())],
     "small-health": SMALL_HEALTH,

@@ -15,6 +15,7 @@ export type ThingBehaviour =
   | "jumper"
   | "shielded"
   | "dropper"
+  | "sniper"
   | "platform"
   | "health"
   | "boss";
@@ -28,7 +29,7 @@ export type ThingDef = {
   defaults: ThingSettings;
   own?: boolean; // one of the kid's own designs (added by gamePack)
   body?: { w: number; h: number }; // the kid's own types: the hitbox from their look (others use the behaviour's size)
-  shotYs?: Record<string, number>; // the kid's own types: each pose's shot point, below the hitbox's top
+  shotYs?: Record<string, number>; // each pose's shot point, below the hitbox's top (the kid's own types, and the pack's Sniper)
 };
 
 // Piece settings are whole numbers so they can be described to the AI as plain ranges.

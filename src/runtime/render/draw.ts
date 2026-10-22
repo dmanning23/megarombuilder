@@ -45,6 +45,7 @@ export const ENTITY_COLOURS: Record<ThingBehaviour, string> = {
   jumper: "#80ed99",
   shielded: "#ffd166",
   dropper: "#ef476f",
+  sniper: "#8ecae6",
   platform: "#adb5bd",
   health: "#ff006e",
   boss: "#00b4d8",
