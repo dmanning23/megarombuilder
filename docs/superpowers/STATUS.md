@@ -72,7 +72,7 @@ picture); game files are format 6. Shift buttons in the picture bar move a
 whole frame a pixel at a time (never past an edge the drawing touches), to line
 imported pictures up. A seventh enemy kind, the Sniper, stands its ground behind a
 shield that blocks shots from the front and fires three low shots every 2 seconds;
-every enemy's health goes up to 12. 1104 tests and 20 browser tests pass; typecheck, lint and build are clean. Browser tests: `npm run e2e`
+every enemy's health goes up to 12. 1105 tests and 20 browser tests pass; typecheck, lint and build are clean. Browser tests: `npm run e2e`
 (builds and serves on port 3100).
 
 | Document | State |
