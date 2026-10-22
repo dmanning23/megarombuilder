@@ -180,6 +180,13 @@ describe("describeDesigns", () => {
     expect(text).toContain("- own-e2: Ice Eye, a turret that fires at the hero: 3 hits, normal damage, shoots often.");
   });
 
+  it("describes a Sniper, with only its health and damage", () => {
+    const project = run(game(), "addEnemy", { enemyId: "e3", name: "Joe", behaviour: "sniper" });
+    expect(describeDesigns(project, pack)).toContain(
+      "- own-e3: Joe, a sniper that hides behind its shield, then fires three low shots you jump over: 8 hits, normal damage.",
+    );
+  });
+
   it("describes the boss's fight and attacks in order, and which boss is in the boss room", () => {
     const project = designed();
     const line =

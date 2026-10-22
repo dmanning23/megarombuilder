@@ -84,7 +84,7 @@ const setEnemyBehaviourCommand = defineCommand({
 
 const setEnemyTuningCommand = defineCommand({
   name: "setEnemyTuning",
-  description: "Change any of an enemy's tuning steps: health (1, 2, 3, 5), damage, speed, shoots.",
+  description: "Change any of an enemy's tuning steps: health (1, 2, 3, 5, 8, 12), damage, speed, shoots.",
   args: z.strictObject({
     enemyId: idArg,
     health: z.literal(HEALTH_STEPS).optional(),

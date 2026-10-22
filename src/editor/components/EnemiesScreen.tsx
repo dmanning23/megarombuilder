@@ -36,6 +36,7 @@ export const BEHAVIOUR_NAMES: Record<EnemyBehaviour, string> = {
   jumper: "Hopper",
   shielded: "Shield guard",
   dropper: "Dropper",
+  sniper: "Sniper",
 };
 
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);

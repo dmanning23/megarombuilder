@@ -228,6 +228,25 @@ describe("the Enemies tab", () => {
     expect(within(screen.getByRole("group", { name: "Animations" })).getByRole("button", { name: "In the air, 3 frames" })).toBeTruthy();
   });
 
+  it("makes a Sniper, with Health and Damage, Guard and Shoot poses, and the Shot point on Shoot only", async () => {
+    const { open, saved } = setup();
+    await open();
+    await make("Joe", "Sniper");
+    await settings();
+    expect(screen.queryByRole("group", { name: "Speed" })).toBeNull();
+    expect(screen.queryByRole("group", { name: "Shoots" })).toBeNull();
+    const health = within(screen.getByRole("group", { name: "Health" }));
+    expect(health.getAllByRole("button").map((b) => b.textContent)).toEqual(["1 hit", "2 hits", "3 hits", "5 hits", "8 hits", "12 hits"]);
+    expect(health.getByRole("button", { name: "8 hits" }).getAttribute("aria-pressed")).toBe("true");
+    await userEvent.click(screen.getByRole("button", { name: "Done" }));
+    const animations = within(screen.getByRole("group", { name: "Animations" }));
+    expect(animations.getAllByRole("button").map((b) => b.getAttribute("aria-label"))).toEqual(["Guard, 1 frame", "Shoot, 1 frame"]);
+    expect(screen.queryByRole("button", { name: "Shot point" })).toBeNull(); // Guard doesn't fire
+    await userEvent.click(animations.getByRole("button", { name: /^Shoot,/ }));
+    expect(screen.getByRole("button", { name: "Shot point" })).toBeTruthy();
+    expect(saved().enemies[0]).toMatchObject({ behaviour: "sniper", tuning: { health: 8 } });
+  });
+
   it("offers the Shot point tool only to enemies that shoot", async () => {
     const { open } = setup();
     await open();

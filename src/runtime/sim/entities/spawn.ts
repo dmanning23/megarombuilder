@@ -11,6 +11,7 @@ const SIZES: Record<ThingBehaviour, [number, number]> = {
   jumper: [14, 14],
   shielded: [14, 16],
   dropper: [14, 12],
+  sniper: [14, 16],
   platform: [32, 8],
   health: [10, 10],
   boss: [24, 28],
@@ -23,6 +24,7 @@ const HEALTH: Record<ThingBehaviour, number> = {
   jumper: 2,
   shielded: 2,
   dropper: 1,
+  sniper: 8,
   platform: 0,
   health: 0,
   boss: 28,
@@ -58,7 +60,7 @@ export function createEntity(thing: Thing, def: ThingDef, playerCentreX: number)
   // The kid's own enemies and boss take their settings from their designs alone, even when an
   // older game stored some on the placed copy.
   const settings = def.own ? { ...def.defaults } : { ...def.defaults, ...thing.settings };
-  const initialMode: Partial<Record<ThingBehaviour, string>> = { boss: "intro", dropper: "hang" };
+  const initialMode: Partial<Record<ThingBehaviour, string>> = { boss: "intro", dropper: "hang", sniper: "guard" };
   return {
     ...box,
     vx: 0,

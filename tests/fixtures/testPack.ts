@@ -57,6 +57,7 @@ export const testPack: ContentPack = {
     { type: "turret", name: "Turret", category: "enemy", behaviour: "turret", description: "Shoots.", defaults: {} },
     { type: "jumper", name: "Jumper", category: "enemy", behaviour: "jumper", description: "Hops.", defaults: {} },
     { type: "shielded", name: "Shielded", category: "enemy", behaviour: "shielded", description: "Blocks.", defaults: {} },
+    { type: "sniper", name: "Sniper", category: "enemy", behaviour: "sniper", description: "Snipes.", defaults: {}, shotYs: { shoot: 9 } },
     { type: "dropper", name: "Dropper", category: "enemy", behaviour: "dropper", description: "Drops.", defaults: {} },
     { type: "platform", name: "Platform", category: "platform", behaviour: "platform", description: "Moves.", defaults: {} },
     { type: "boss", name: "Boss", category: "boss", behaviour: "boss", description: "Fights.", defaults: {} },

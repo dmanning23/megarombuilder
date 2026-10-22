@@ -4,7 +4,7 @@ import { nearestColour } from "./palette";
 
 // The kid's own enemies and boss: what they chose (named steps), and what they drew.
 
-export const ENEMY_BEHAVIOURS = ["walker", "flyer", "turret", "jumper", "shielded", "dropper"] as const;
+export const ENEMY_BEHAVIOURS = ["walker", "flyer", "turret", "jumper", "shielded", "dropper", "sniper"] as const;
 export type EnemyBehaviour = (typeof ENEMY_BEHAVIOURS)[number];
 
 export const MAX_ENEMIES = 12;
@@ -13,7 +13,7 @@ export const BOSS_FRAME = { w: 24, h: 28 };
 
 // ---- Tuning ----
 
-export const HEALTH_STEPS = [1, 2, 3, 5] as const;
+export const HEALTH_STEPS = [1, 2, 3, 5, 8, 12] as const;
 export const DAMAGE_STEPS = ["low", "normal", "high"] as const;
 export const SPEED_STEPS = ["slow", "normal", "fast"] as const;
 export const SHOOT_STEPS = ["rarely", "sometimes", "often"] as const;
@@ -34,6 +34,7 @@ export const TUNING_USED: Record<EnemyBehaviour, (keyof EnemyTuning)[]> = {
   jumper: ["health", "damage", "speed"],
   shielded: ["health", "damage", "speed", "shoots"],
   dropper: ["health", "damage"],
+  sniper: ["health", "damage"], // it shoots on a fixed beat
 };
 
 // A new enemy starts as tough as its snow counterpart (the runtime's own health for that behaviour).
@@ -44,6 +45,7 @@ export const DEFAULT_HEALTH: Record<EnemyBehaviour, EnemyTuning["health"]> = {
   jumper: 2,
   shielded: 2,
   dropper: 1,
+  sniper: 8,
 };
 
 export const defaultTuning = (behaviour: EnemyBehaviour): EnemyTuning => ({
@@ -76,6 +78,7 @@ export function tuningSettings(behaviour: EnemyBehaviour, tuning: EnemyTuning): 
     settings.interval = interval * SHOOT[tuning.shoots];
     settings.shotDamage = DAMAGE[tuning.damage];
   }
+  if (behaviour === "sniper") settings.shotDamage = DAMAGE[tuning.damage]; // it shoots, on a fixed beat
   return settings;
 }
 
@@ -92,10 +95,11 @@ export const DESIGN_BODIES: Record<EnemyBehaviour | "boss", LookBox> = {
   jumper: body(14, 14),
   shielded: body(14, 16),
   dropper: body(14, 12),
+  sniper: body(14, 16),
   boss: { x: 0, y: 0, w: 24, h: 28 },
 };
 // Where enemy shots come out today: the middle of the body (an enemy shot is 6 high).
-export const DESIGN_SHOT_Y: Partial<Record<EnemyBehaviour | "boss", number>> = { turret: 4, shielded: 5, boss: 11 };
+export const DESIGN_SHOT_Y: Partial<Record<EnemyBehaviour | "boss", number>> = { turret: 4, shielded: 5, sniper: 9, boss: 11 }; // the Sniper fires low, to be jumped
 
 // Where an enemy's or boss's old frame lives in its look. Walk, fly and idle took both old frames.
 export function designFrameSlot(kind: EnemyBehaviour | "boss", index: number): { animation: string; frame: number } {

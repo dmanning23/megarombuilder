@@ -76,6 +76,8 @@ export function thingFrame(e: Entity, steps: number, count: number): number {
       return pick(e.mode === "open" ? 1 : 0);
     case "dropper":
       return pick(e.mode === "hang" ? 0 : 1);
+    case "sniper":
+      return pick(e.mode === "shoot" ? 1 : 0);
     case "jumper":
       return pick(e.onGround ? 0 : 1);
     case "boss":

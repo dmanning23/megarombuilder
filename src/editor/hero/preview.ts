@@ -48,6 +48,7 @@ const ENEMY_SPOT: Record<EnemyBehaviour, { x: number; y: number }> = {
   jumper: { x: 11, y: 12 },
   shielded: { x: 11, y: 12 },
   dropper: { x: 1, y: 5 }, // above the hero, so it drops
+  sniper: { x: 11, y: 12 },
 };
 
 // The enemy preview: one screen, the hero standing still, the enemy doing what it does.

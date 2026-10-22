@@ -29,9 +29,10 @@ export function hurtPlayer(sim: Sim, amount: number, fromX: number): void {
 
 const isTarget = (e: Entity) => ENEMY_BEHAVIOURS.has(e.behaviour) || e.behaviour === "boss";
 
-// A walking shielded enemy blocks shots coming at the side it faces.
+// A walking Shield Guard, or a guarding Sniper, blocks shots coming at the side it faces.
 const shieldBlocks = (e: Entity, shotVx: number) =>
-  e.behaviour === "shielded" && e.mode === "walk" && shotVx * e.facing < 0;
+  ((e.behaviour === "shielded" && e.mode === "walk") || (e.behaviour === "sniper" && e.mode !== "shoot")) &&
+  shotVx * e.facing < 0;
 
 // Player shots against enemies and the boss. A charged shot (either level) does more damage and carries on through
 // anything it destroys; any other hit uses the shot up.
