@@ -71,7 +71,8 @@ be Off, On or Level 2 (hold two seconds for a bigger, 5-damage shot with its own
 picture); game files are format 6. Shift buttons in the picture bar move a
 whole frame a pixel at a time (never past an edge the drawing touches), to line
 imported pictures up. A seventh enemy kind, the Sniper, stands its ground behind a
-shield that blocks shots from the front and fires three low shots every 2 seconds;
+shield that blocks shots from the front, and after every 2 seconds of guarding
+lowers it for a second to fire three low shots;
 every enemy's health goes up to 12. 1105 tests and 20 browser tests pass; typecheck, lint and build are clean. Browser tests: `npm run e2e`
 (builds and serves on port 3100).
 
@@ -113,7 +114,7 @@ every enemy's health goes up to 12. 1105 tests and 20 browser tests pass; typech
 | `plans/2026-10-10-pose-sizes-plan-2-editor.md` | Pose sizes plan 2 of 2, implemented, reviewed and merged |
 | `specs/2026-10-12-1.1-gameplay-tweaks-design.md` | 1.1 gameplay tweaks spec: part 1 approved and built; part 2 (the Sniper) approved |
 | `plans/2026-10-12-1.1-plan-1-level-2-charge.md` | 1.1 plan 1 (the level 2 charge shot), implemented, reviewed and merged |
-| `plans/2026-10-22-1.1-plan-2-sniper.md` | 1.1 plan 2 (the Sniper), implemented |
+| `plans/2026-10-22-1.1-plan-2-sniper.md` | 1.1 plan 2 (the Sniper), implemented, reviewed and merged |
 
 Milestone 1 is now eight plans (the editor became two):
 
@@ -167,6 +168,12 @@ Milestone 4, characters that fit, was five plans:
      .step and .choice fade differently; a few dead or duplicate CSS rules.
    - Tidy plan 1: the wide-screen screenshots don't show the bottom of the
      scrolling panel (plan 2 should screenshot the panel itself).
+   - 1.1 plan 2: the pack Sniper's shot sits about 1.5px below its drawn barrel
+     (shot point 8 would centre it); the assistant calls a kid's Sniper's shots
+     "low" even if its shot point was moved up; no save-and-load test of a Sniper
+     or health 8 and 12 (checked by hand), no assistant test of placing the pack
+     Sniper, and the shield tests set facing directly; the assistant still can't
+     make or tune a kid's own enemies (any kind).
    - 1.1 plan 1: no test that a Charge shot choice is one undo step; the Level
      2 shot's note says "(needs level 2)" even when the charge shot is off; the
      format 5 upgrade test doesn't pin the rest of the game unchanged.
