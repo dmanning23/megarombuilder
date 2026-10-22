@@ -70,7 +70,9 @@ the largest pose, and Copy from works across sizes. The hero's charge shot can
 be Off, On or Level 2 (hold two seconds for a bigger, 5-damage shot with its own
 picture); game files are format 6. Shift buttons in the picture bar move a
 whole frame a pixel at a time (never past an edge the drawing touches), to line
-imported pictures up. 1093 tests and 19 browser tests pass; typecheck, lint and build are clean. Browser tests: `npm run e2e`
+imported pictures up. A seventh enemy kind, the Sniper, stands its ground behind a
+shield that blocks shots from the front and fires three low shots every 2 seconds;
+every enemy's health goes up to 12. 1104 tests and 20 browser tests pass; typecheck, lint and build are clean. Browser tests: `npm run e2e`
 (builds and serves on port 3100).
 
 | Document | State |
@@ -111,7 +113,7 @@ imported pictures up. 1093 tests and 19 browser tests pass; typecheck, lint and 
 | `plans/2026-10-10-pose-sizes-plan-2-editor.md` | Pose sizes plan 2 of 2, implemented, reviewed and merged |
 | `specs/2026-10-12-1.1-gameplay-tweaks-design.md` | 1.1 gameplay tweaks spec: part 1 approved and built; part 2 (the Sniper) approved |
 | `plans/2026-10-12-1.1-plan-1-level-2-charge.md` | 1.1 plan 1 (the level 2 charge shot), implemented, reviewed and merged |
-| `plans/2026-10-22-1.1-plan-2-sniper.md` | 1.1 plan 2 (the Sniper), awaiting review |
+| `plans/2026-10-22-1.1-plan-2-sniper.md` | 1.1 plan 2 (the Sniper), implemented |
 
 Milestone 1 is now eight plans (the editor became two):
 

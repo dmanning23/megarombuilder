@@ -123,3 +123,25 @@ test("the charge shot's Level 2 and its picture", async ({ page }) => {
   await expect(page.getByRole("group", { name: "Size" })).toHaveCount(0); // a fixed size
   await page.screenshot({ path: "test-results/level2-picture.png" });
 });
+
+test("a Sniper in the editor and in a level", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.goto("/");
+  await page.getByRole("textbox", { name: "Game name" }).fill("Sniper");
+  await page.getByRole("button", { name: "Make a new game" }).click();
+  await page.getByRole("button", { name: "Characters" }).click();
+  await page.getByRole("tab", { name: "Enemies" }).click();
+  await page.getByRole("button", { name: "New enemy" }).click();
+  await page.getByRole("textbox", { name: "Enemy name" }).fill("Joe");
+  await page.getByRole("group", { name: "Choose how it behaves" }).getByRole("button", { name: "Sniper" }).click();
+  await page.getByRole("group", { name: "Animations" }).getByRole("button", { name: /^Shoot,/ }).click();
+  await page.screenshot({ path: "test-results/sniper-editor.png" });
+  await page.getByRole("button", { name: "Level" }).click();
+  await page.getByRole("tab", { name: "Enemies and items" }).click();
+  await expect(page.getByRole("button", { name: /Sniper/ }).first()).toBeVisible();
+  await page.getByRole("button", { name: /^Sniper/ }).first().click(); // the snow pack's Sniper
+  const box = (await page.getByTestId("zone-canvas").boundingBox())!;
+  const t = box.height / 15;
+  await page.mouse.click(box.x + 8.5 * t, box.y + 12.5 * t); // on the floor
+  await page.screenshot({ path: "test-results/sniper-palette.png" });
+});
