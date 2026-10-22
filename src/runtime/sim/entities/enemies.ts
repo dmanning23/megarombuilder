@@ -86,6 +86,33 @@ const shielded: Update = (sim, e) => {
   }
 };
 
+// The Sniper stands its ground behind its shield, turning to face the hero. Every 2 seconds it
+// lowers the shield for a second and fires three level shots, 12 steps apart, the way it faced
+// when it opened up.
+export const SNIPER_GUARD_STEPS = 120;
+export const SNIPER_OPEN_STEPS = 60;
+export const SNIPER_SHOT_STEPS = [1, 13, 25];
+
+const sniper: Update = (sim, e) => {
+  fall(sim.map, e);
+  e.timer++;
+  if (e.mode !== "shoot") {
+    e.facing = towardPlayer(sim, e);
+    if (e.timer >= SNIPER_GUARD_STEPS) {
+      e.mode = "shoot";
+      e.timer = 0;
+    }
+    return;
+  }
+  if (SNIPER_SHOT_STEPS.includes(e.timer)) {
+    fireAt(sim, e, e.facing * num(e.settings, "shotSpeed", 2), 0, num(e.settings, "shotDamage", 2));
+  }
+  if (e.timer >= SNIPER_OPEN_STEPS) {
+    e.mode = "guard";
+    e.timer = 0;
+  }
+};
+
 const BEHAVIOURS: Partial<Record<ThingBehaviour, Update>> = {
   walker,
   flyer,
@@ -93,6 +120,7 @@ const BEHAVIOURS: Partial<Record<ThingBehaviour, Update>> = {
   jumper,
   shielded,
   dropper,
+  sniper,
   boss: updateBoss,
 };
 

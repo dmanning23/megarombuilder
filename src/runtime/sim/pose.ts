@@ -26,6 +26,8 @@ export function entityPose(e: Entity): string {
       return e.onGround ? "ground" : "air";
     case "shielded":
       return e.mode === "open" ? "open" : "closed";
+    case "sniper":
+      return e.mode === "shoot" ? "shoot" : "guard";
     case "dropper":
       return e.mode === "hang" ? "hang" : "fall";
     case "boss":

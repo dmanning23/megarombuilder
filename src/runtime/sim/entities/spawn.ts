@@ -60,7 +60,7 @@ export function createEntity(thing: Thing, def: ThingDef, playerCentreX: number)
   // The kid's own enemies and boss take their settings from their designs alone, even when an
   // older game stored some on the placed copy.
   const settings = def.own ? { ...def.defaults } : { ...def.defaults, ...thing.settings };
-  const initialMode: Partial<Record<ThingBehaviour, string>> = { boss: "intro", dropper: "hang" };
+  const initialMode: Partial<Record<ThingBehaviour, string>> = { boss: "intro", dropper: "hang", sniper: "guard" };
   return {
     ...box,
     vx: 0,
