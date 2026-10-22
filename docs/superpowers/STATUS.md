@@ -109,7 +109,7 @@ imported pictures up. 1093 tests and 19 browser tests pass; typecheck, lint and 
 | `specs/2026-10-10-pose-sizes-design.md` | Pose sizes spec (a size and shot point for every pose), approved |
 | `plans/2026-10-10-pose-sizes-plan-1-model-and-game.md` | Pose sizes plan 1 of 2, implemented, reviewed and merged |
 | `plans/2026-10-10-pose-sizes-plan-2-editor.md` | Pose sizes plan 2 of 2, implemented, reviewed and merged |
-| `specs/2026-10-12-1.1-gameplay-tweaks-design.md` | 1.1 gameplay tweaks spec: part 1 approved |
+| `specs/2026-10-12-1.1-gameplay-tweaks-design.md` | 1.1 gameplay tweaks spec: part 1 approved and built; part 2 (the Sniper) awaiting review |
 | `plans/2026-10-12-1.1-plan-1-level-2-charge.md` | 1.1 plan 1 (the level 2 charge shot), implemented, reviewed and merged |
 
 Milestone 1 is now eight plans (the editor became two):
